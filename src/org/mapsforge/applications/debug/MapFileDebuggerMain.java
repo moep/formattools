@@ -14,11 +14,13 @@
  */
 package org.mapsforge.applications.debug;
 
+import java.io.IOException;
+
 /**
  * 
  * @author Karsten Groll
  * 
- *         Main class for executing various tests helping undestanding the map file format.
+ *         Main class for executing various tests helping understanding the map file format.
  */
 public class MapFileDebuggerMain {
 
@@ -27,7 +29,31 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
-		System.out.println("Bla!");
+		// try {
+		// FileReader fr = new FileReader(512 * 1024, "files/bla.bin");
+		// System.out.println("Reading chunks");
+		// byte[] chunk;
+		// while ((chunk = fr.nextChunk()) != null) {
+		//
+		// }
+		//
+		// fr.close();
+		// } catch (IOException e) {
+		// e.printStackTrace();
+		// }
+		//
+		// System.out.println("Done");
+
+		// try {
+		// FileWriter.createFile("files/bla.bin", 1024 * 300);
+		// } catch (IOException e) {
+		// e.printStackTrace();
+		// }
+		try {
+			FileWriter.createDirWithFiles("files/", 1000, 300);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 
