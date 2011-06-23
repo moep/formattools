@@ -15,6 +15,9 @@
 package org.mapsforge.applications.debug;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * 
@@ -24,11 +27,49 @@ import java.io.IOException;
  */
 public class MapFileDebuggerMain {
 
+	private static void createDataStructure() {
+		try {
+			System.out.println("creating data");
+			// FileWriter.createDirWithFiles("files/", 1000, 300);
+			FileWriter.createDirStructureWithFiles("files/");
+			System.out.println("done");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static List<Tuple<Integer, Integer>> createRandomLookups(long seed, int count) {
+		LinkedList<Tuple<Integer, Integer>> ret = new LinkedList<Tuple<Integer, Integer>>();
+		Random r = new Random(seed);
+
+		for (int i = 0; i < count; i++) {
+			ret.add(new Tuple<Integer, Integer>(r.nextInt(300), r.nextInt(300)));
+		}
+
+		return ret;
+	}
+
+	private static void performQueries(List<Tuple<Integer, Integer>> queries) {
+		for (Tuple<Integer, Integer> t : queries) {
+			try {
+				// FileReader.readFile("files/" + t.e1 + "/" + t.e2 + ".y");
+				FileReader.readFile("files/bzs7/" + t.e1 + "/" + t.e2 + ".y");
+			} catch (IOException e) {
+				System.err.println(e.getMessage());
+			}
+
+		}
+	}
+
 	/**
 	 * @param args
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
+		// createDataStructure();
+		List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);
+		performQueries(queries);
+
 		// try {
 		// FileReader fr = new FileReader(512 * 1024, "files/bla.bin");
 		// System.out.println("Reading chunks");
@@ -49,12 +90,17 @@ public class MapFileDebuggerMain {
 		// } catch (IOException e) {
 		// e.printStackTrace();
 		// }
-		try {
-			FileWriter.createDirWithFiles("files/", 1000, 300);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 
+	}
+
+	private static class Tuple<T1, T2> {
+		public T1 e1;
+		public T2 e2;
+
+		public Tuple(T1 e1, T2 e2) {
+			this.e1 = e1;
+			this.e2 = e2;
+		}
 	}
 
 }

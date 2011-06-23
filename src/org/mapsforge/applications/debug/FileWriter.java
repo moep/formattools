@@ -75,4 +75,26 @@ public class FileWriter {
 		}
 
 	}
+
+	public static void createDirStructureWithFiles(String path)
+			throws IOException {
+		// Create directories
+		new File(path + "/bzs7/").mkdirs();
+
+		// 30k fake data
+		byte[] data = new byte[1024 * 5];
+		for (int i = 0; i < data.length; i++) {
+			data[i] = (byte) 0x88;
+		}
+
+		RandomAccessFile f;
+		for (int x = 0; x < 300; x++) {
+			new File(path + "/bzs7/" + x + "/").mkdirs();
+			for (int y = 0; y < 300; y++) {
+				f = new RandomAccessFile(path + "/bzs7/" + x + "/" + y + ".y", "rw");
+				f.write(data);
+				f.close();
+			}
+		}
+	}
 }
