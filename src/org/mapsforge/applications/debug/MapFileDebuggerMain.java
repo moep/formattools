@@ -15,6 +15,7 @@
 package org.mapsforge.applications.debug;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -28,12 +29,19 @@ import java.util.Random;
 public class MapFileDebuggerMain {
 
 	private static void createDataStructure() {
+		// try {
+		// System.out.println("creating data");
+		// FileWriter.createDirStructureWithFiles("files/");
+		// System.out.println("done");
+		// } catch (IOException e) {
+		// e.printStackTrace();
+		// }
+
 		try {
-			System.out.println("creating data");
-			// FileWriter.createDirWithFiles("files/", 1000, 300);
-			FileWriter.createDirStructureWithFiles("files/");
-			System.out.println("done");
-		} catch (IOException e) {
+			FileWriter.createSQLiteDB("test.db", 300, 300);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
@@ -66,9 +74,9 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
-		// createDataStructure();
-		List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);
-		performQueries(queries);
+		createDataStructure();
+		// List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);
+		// performQueries(queries);
 
 		// try {
 		// FileReader fr = new FileReader(512 * 1024, "files/bla.bin");
@@ -91,16 +99,6 @@ public class MapFileDebuggerMain {
 		// e.printStackTrace();
 		// }
 
-	}
-
-	private static class Tuple<T1, T2> {
-		public T1 e1;
-		public T2 e2;
-
-		public Tuple(T1 e1, T2 e2) {
-			this.e1 = e1;
-			this.e2 = e2;
-		}
 	}
 
 }

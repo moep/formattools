@@ -3,6 +3,12 @@ package org.mapsforge.applications.debug;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /*
  * Copyright 2010, 2011 mapsforge.org
@@ -96,5 +102,63 @@ public class FileWriter {
 				f.close();
 			}
 		}
+	}
+
+	/**
+	 * Creates a SQLite DB with mock data for accessing tiles.
+	 * 
+	 * @param path
+	 * @param numXDimensions
+	 * @param numYDimensions
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
+	public static void createSQLiteDB(String path, int numXDimensions, int numYDimensions)
+			throws ClassNotFoundException, SQLException {
+		File f = new File(path);
+		if (f.exists())
+			f.delete();
+
+		Class.forName("org.sqlite.JDBC");
+		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path);
+		Statement stmt = conn.createStatement();
+		stmt.executeUpdate("DROP TABLE IF EXISTS idx;");
+		stmt.executeUpdate("CREATE TABLE IF NOT EXISTS idx (x INTEGER, y INTEGER, data BLOB, PRIMARY KEY (x,y))");
+
+		// fake data
+		byte[] data = new byte[1024];
+		for (int i = 0; i < data.length; i += 8) {
+			data[i] = 0xd;
+			data[i + 1] = 0xe;
+			data[i + 2] = 0xa;
+			data[i + 3] = 0xd;
+			data[i + 4] = 0xb;
+			data[i + 5] = 0xa;
+			data[i + 6] = 0xb;
+			data[i + 7] = 0xe;
+		}
+
+		PreparedStatement pStmt = conn.prepareStatement("INSERT INTO idx VALUES (?, ?, ?)");
+		Blob b = conn.createBlob();
+		// Blob b = conn.createBlob();
+		//
+		// System.out.println("Creating blob: " + b.setBytes(0, data));
+		// System.out.print("Adding batches...");
+		// for (int x = 0; x < numXDimensions; x++) {
+		// for (int y = 0; y < numYDimensions; y++) {
+		// pStmt.setInt(1, x);
+		// pStmt.setInt(2, y);
+		// pStmt.setBlob(3, b);
+		// pStmt.addBatch();
+		// }
+		// }
+		// System.out.print("done.");
+		//
+		// conn.setAutoCommit(false);
+		// System.out.print("Executing batch...");
+		// pStmt.executeBatch();
+		// System.out.print("done!");
+
+		conn.close();
 	}
 }
