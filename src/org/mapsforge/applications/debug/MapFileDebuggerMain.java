@@ -16,9 +16,6 @@ package org.mapsforge.applications.debug;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
 
 /**
  * 
@@ -26,19 +23,24 @@ import java.util.Random;
  * 
  *         Main class for executing various tests helping understanding the map file format.
  */
+
 public class MapFileDebuggerMain {
 
-	private static void createDataStructure() {
-		// try {
-		// System.out.println("creating data");
-		// FileWriter.createDirStructureWithFiles("files/");
-		// System.out.println("done");
-		// } catch (IOException e) {
-		// e.printStackTrace();
-		// }
-
+	private static void createFileDataStructure(int numXDimensions, int numYDimensions, int dataSize) {
 		try {
-			FileWriter.createSQLiteDB("test.db", 300, 300);
+			System.out.print("Creating file data structure...");
+			FileWriter.createDirStructureWithFiles("files/", numXDimensions, numYDimensions, dataSize);
+			System.out.print("done.\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void createSQLiteDataStructure(int numXDimensions, int numYDimensions, int dataSize) {
+		try {
+			System.out.print("Creating SQLite data structure...");
+			FileWriter.createSQLiteDB("test.db", numXDimensions, numYDimensions, dataSize);
+			System.out.print("done.\n");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -46,35 +48,37 @@ public class MapFileDebuggerMain {
 		}
 	}
 
-	private static List<Tuple<Integer, Integer>> createRandomLookups(long seed, int count) {
-		LinkedList<Tuple<Integer, Integer>> ret = new LinkedList<Tuple<Integer, Integer>>();
-		Random r = new Random(seed);
-
-		for (int i = 0; i < count; i++) {
-			ret.add(new Tuple<Integer, Integer>(r.nextInt(300), r.nextInt(300)));
-		}
-
-		return ret;
-	}
-
-	private static void performQueries(List<Tuple<Integer, Integer>> queries) {
-		for (Tuple<Integer, Integer> t : queries) {
-			try {
-				// FileReader.readFile("files/" + t.e1 + "/" + t.e2 + ".y");
-				FileReader.readFile("files/bzs7/" + t.e1 + "/" + t.e2 + ".y");
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-			}
-
-		}
-	}
+	// private static List<Tuple<Integer, Integer>> createRandomLookups(long seed, int count) {
+	// LinkedList<Tuple<Integer, Integer>> ret = new LinkedList<Tuple<Integer, Integer>>();
+	// Random r = new Random(seed);
+	//
+	// for (int i = 0; i < count; i++) {
+	// ret.add(new Tuple<Integer, Integer>(r.nextInt(300), r.nextInt(300)));
+	// }
+	//
+	// return ret;
+	// }
+	//
+	// private static void performQueries(final List<Tuple<Integer, Integer>> queries) {
+	// for (Tuple<Integer, Integer> t : queries) {
+	// try {
+	// // FileReader.readFile("files/" + t.e1 + "/" + t.e2 + ".y");
+	// FileReader.readFile("files/bzs7/" + t.e1 + "/" + t.e2 + ".y");
+	// } catch (IOException e) {
+	// System.err.println(e.getMessage());
+	// }
+	//
+	// }
+	// }
 
 	/**
 	 * @param args
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
-		createDataStructure();
+		createFileDataStructure(300, 300, 5);
+		createSQLiteDataStructure(300, 300, 5);
+
 		// List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);
 		// performQueries(queries);
 

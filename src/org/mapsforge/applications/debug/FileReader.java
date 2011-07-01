@@ -26,7 +26,14 @@ import java.io.RandomAccessFile;
  * 
  */
 public class FileReader {
-
+	/**
+	 * Reads a given file 1000 times.
+	 * 
+	 * @param pathToFile
+	 *            file that should be read.
+	 * @throws IOException
+	 *             if file cannot be read.
+	 */
 	public static void readFile(String pathToFile) throws IOException {
 		RandomAccessFile f;
 		byte[] buffer = new byte[1024 * 30];
