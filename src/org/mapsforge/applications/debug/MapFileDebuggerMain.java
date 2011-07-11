@@ -76,7 +76,7 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
-		createFileDataStructure(300, 300, 5);
+		// createFileDataStructure(300, 300, 5);
 		createSQLiteDataStructure(300, 300, 5);
 
 		// List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);

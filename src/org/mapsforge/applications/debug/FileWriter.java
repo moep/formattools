@@ -85,9 +85,9 @@ public class FileWriter {
 	 */
 	public static void createSQLiteDB(String path, int numXDimensions, int numYDimensions, int dataSize)
 			throws ClassNotFoundException, SQLException {
-		File f = new File(path);
-		if (f.exists())
-			f.delete();
+		// File f = new File(path);
+		// if (f.exists())
+		// f.delete();
 
 		Class.forName("org.sqlite.JDBC");
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path);
