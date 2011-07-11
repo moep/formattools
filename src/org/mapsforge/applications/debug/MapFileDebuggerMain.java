@@ -76,8 +76,17 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
+		MapFormatReader mfr = null;
+		try {
+			mfr = new MapFormatReader("/home/moep/berlin.map");
+			mfr.parseFile();
+			mfr.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		// createFileDataStructure(300, 300, 5);
-		createSQLiteDataStructure(300, 300, 5);
+		// createSQLiteDataStructure(300, 300, 5);
 
 		// List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);
 		// performQueries(queries);
@@ -104,5 +113,4 @@ public class MapFileDebuggerMain {
 		// }
 
 	}
-
 }
