@@ -14,12 +14,14 @@
  */
 package org.mapsforge.applications.debug;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+
+import org.mapsforge.core.MercatorProjection;
 
 /**
  * Class for reading the current map format.
@@ -30,10 +32,11 @@ import java.util.Arrays;
 public class MapFormatReader {
 	private static final String HEXES = "0123456789ABCDEF";
 
-	private File mapFile;
 	private RandomAccessFile f;
 	private byte[] buffer;
 	private long offset = 0;
+	/** for switching between a long and double representation of longitude and latitude values */
+	private static final double COORDINATES_FACTOR = 1000000.0;
 
 	private byte[] magicData;
 	private int headerLength;
@@ -41,7 +44,6 @@ public class MapFormatReader {
 	private byte numZoomIntervals;
 	private byte flags;
 	private int tileSize;
-	private int projectionNameStringLength;
 	private String projectionName;
 	private int maxLat;
 	private int minLon;
@@ -52,13 +54,13 @@ public class MapFormatReader {
 	private long dateOfCreation;
 	private int numPOIMappings;
 	private int numWayTagMappings;
-	private byte commentStringLength;
 	private String comment;
 	private byte[] baseZoomLevel;
 	private byte[] minimalZoomLevel;
 	private byte[] maximalZoomLevel;
 	private long[] absoluteStartPosition;
 	private long[] subFileSize;
+	private ArrayList<Long>[] tileOffsets;
 
 	/**
 	 * The constructor.
@@ -75,6 +77,22 @@ public class MapFormatReader {
 	}
 
 	/**
+	 * Parses the map file and stores its structure.
+	 * 
+	 * @throws IOException
+	 *             when the file cannot be read.
+	 */
+	public void parseFile() throws IOException {
+		parseHeader();
+
+		this.tileOffsets = new ArrayList[this.numZoomIntervals];
+
+		for (byte i = 0; i < this.numZoomIntervals; i++) {
+			parseSubFile(i);
+		}
+	}
+
+	/**
 	 * Closes the file handler.
 	 * 
 	 * @throws IOException
@@ -83,6 +101,209 @@ public class MapFormatReader {
 	public void close() throws IOException {
 		if (this.f != null)
 			this.f.close();
+	}
+
+	private void parseHeader() throws IOException {
+		System.out.println("------ H E A D E R ------");
+
+		// Magic bytes (20B)
+		this.magicData = new byte[20];
+		this.f.read(this.magicData, 0, 20);
+		this.offset += 20;
+		System.out.println("Magic bytes: " + MapFormatReader.getHex(this.magicData));
+
+		// Header Length (4B)
+		this.headerLength = getNextInt();
+		System.out.println("Header lenght: " + MapFormatReader.getHex(this.headerLength) + " ("
+				+ this.headerLength + ")");
+
+		// File version (4B)
+		this.fileVersion = getNextInt();
+		System.out.println("File version: " + MapFormatReader.getHex(this.fileVersion) + " ("
+				+ this.fileVersion + ")");
+
+		// Flags (1B)
+		this.flags = getNextByte();
+
+		System.out.println("Flags: " + MapFormatReader.getHex(this.flags));
+
+		// Number of zoom intervals (1B)
+		this.numZoomIntervals = getNextByte();
+		System.out.println("#zoom intervals: " + MapFormatReader.getHex(this.numZoomIntervals) + " ("
+				+ this.numZoomIntervals + ")");
+
+		// Projection name (variable)
+		this.projectionName = getNextString();
+		System.out.println("Projection name: " + this.projectionName);
+
+		// Tile size (2B)
+		this.tileSize = getNextDword();
+		System.out.println("Tile size: "
+				+ MapFormatReader.getHex(Arrays.copyOfRange(this.buffer, 0, 2)) + " ("
+				+ this.tileSize + ")");
+
+		// Maximum latitude (4B)
+		this.maxLat = getNextInt();
+		System.out.println("Maximum latitude: " + MapFormatReader.getHex(this.maxLat) + " ("
+				+ this.maxLat + ")");
+
+		// Minimum longitude (4B)
+		this.minLon = getNextInt();
+		System.out.println("Minimum longitude: " +
+				MapFormatReader.getHex(this.minLon) + " ("
+				+ this.minLon + ")");
+
+		// Minimum latitude (4B)
+		this.minLat = getNextInt();
+		System.out.println("Minimum latitude: " + MapFormatReader.getHex(this.minLat) + " ("
+				+ this.minLat + ")");
+
+		// Maximum longitude (4B)
+		this.maxLon = getNextInt();
+		System.out.println("Maximum longitude: " + MapFormatReader.getHex(this.maxLon) + " ("
+				+ this.maxLon + ")");
+
+		// Map start position (8B)
+		if ((this.flags & 0x02) == 0x02) {
+			// Map start longitude (4B)
+			this.mapStartLon = getNextInt();
+			System.out.println("Map start longitude: " + MapFormatReader.getHex(this.mapStartLon)
+					+ " ("
+					+ this.mapStartLon + ")");
+
+			// Map start latidute (4B)
+			this.mapStartLat = getNextInt();
+			System.out.println("Map start latitude: " + MapFormatReader.getHex(this.mapStartLat)
+					+ " ("
+					+ this.mapStartLat + ")");
+		}
+
+		// Date of creation (8B)
+		this.dateOfCreation = getNextLong();
+		System.out.println("Date of creation: " + MapFormatReader.getHex(this.dateOfCreation)
+				+ " ("
+				+ this.dateOfCreation + ")");
+
+		// POI tag mapping (variable)
+		// amount of mappings (2B)
+		this.numPOIMappings = getNextDword();
+		System.out.println("Number of POI mappings: "
+				+ MapFormatReader.getHex(this.buffer[1]) + " ("
+				+ this.numPOIMappings + ")");
+
+		// POI tag mapping (variable)
+		int tagID;
+		String tagName;
+		System.out.println("Reading POI mappings: ");
+		for (int i = 0; i < this.numPOIMappings; i++) {
+
+			// Tag name (variable)
+			tagName = getNextString();
+
+			// tag ID (2B)
+			tagID = getNextDword();
+			System.out.println("  " + tagName + " => " + tagID);
+		}
+
+		// Way tag mapping (variable)
+		// amount of mappings (2B)
+		this.f.seek(offset);
+		this.f.read(this.buffer, 0, 2);
+		this.numWayTagMappings = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
+		this.offset += 2;
+		System.out.println("Number of Way Tag mappings: "
+				+ MapFormatReader.getHex(this.buffer[1]) + " ("
+				+ this.numPOIMappings + ")");
+
+		// Way tag mapping (variable)
+		System.out.println("Reading way tag mappings: ");
+		for (int i = 0; i < this.numWayTagMappings; i++) {
+
+			// tag name (variable)
+			tagName = getNextString();
+
+			// tag ID (2B)
+			tagID = getNextDword();
+			System.out.println("  " + tagName + " => " + tagID);
+		}
+
+		// Comment (variable)
+		this.comment = getNextString();
+		System.out.println("Comment: " + this.comment);
+
+		// Zoom interval configuration (variable)
+		this.baseZoomLevel = new byte[this.numZoomIntervals];
+		this.minimalZoomLevel = new byte[this.numZoomIntervals];
+		this.maximalZoomLevel = new byte[this.numZoomIntervals];
+		this.absoluteStartPosition = new long[this.numZoomIntervals];
+		this.subFileSize = new long[this.numZoomIntervals];
+
+		for (int i = 0; i < this.numZoomIntervals; i++) {
+			System.out.println("Zoomlevel: " + i);
+
+			// Base zoom level
+			this.baseZoomLevel[i] = getNextByte();
+			System.out.println("  Base zoom level: " + this.baseZoomLevel[i]);
+
+			// Minimal zoom Level
+			this.minimalZoomLevel[i] = getNextByte();
+			System.out.println("  Minimal zoom level: " + this.minimalZoomLevel[i]);
+
+			// Maximal zoom Level
+			this.maximalZoomLevel[i] = getNextByte();
+			System.out.println("  Maximal zoom level: " + this.baseZoomLevel[i]);
+
+			// TODO Absolute start position
+			this.absoluteStartPosition[i] = getNextLong5();
+			System.out.println("  Absolute start position: " + getHex(this.absoluteStartPosition[i])
+					+ " (" + this.absoluteStartPosition[i] + ")");
+
+			// TODO Subfile size
+			this.subFileSize[i] = getNextLong5();
+			System.out.println("  Subfile size: " + getHex(this.subFileSize[i]) + " ("
+					+ this.subFileSize[i] + ")");
+		}
+
+	}
+
+	private void parseSubFile(byte zoomInterval) throws IOException {
+		System.out.println("------ S U B F I L E " + zoomInterval + " ------");
+
+		this.offset = this.absoluteStartPosition[zoomInterval];
+		this.f.seek(this.offset);
+
+		// Calculate number of blocks in the file index
+		// x,y tile coordinates of the first and last tile in the index
+		long firstX = MercatorProjection.longitudeToTileX(this.minLon
+				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
+		long lastX = MercatorProjection.longitudeToTileX(this.maxLon
+				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
+		long firstY = MercatorProjection.latitudeToTileY(this.minLat
+				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
+		long lastY = MercatorProjection.latitudeToTileY(this.maxLat
+				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
+
+		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
+		System.out.println("Number of blocks in this subfile: " + numBlocks);
+
+		// Tile index segment
+		// index signature (16B, optional)
+		if ((this.flags & 0x02) != 0) {
+			this.f.read(this.buffer, 0, 16);
+			this.offset += 16;
+			System.out.println("Index signature: " + new String(this.buffer, 0, 16));
+		}
+
+		// Get all tile indexes
+		System.out.println("Tile# \tOffset");
+		long tileOffset;
+		this.tileOffsets[zoomInterval] = new ArrayList<Long>();
+		for (long i = 0; i < numBlocks; i++) {
+			tileOffset = getNextLong5();
+			this.tileOffsets[zoomInterval].add(tileOffset);
+			System.out.println(i + ": \t" + getHex(tileOffset) + " (" + tileOffset + ")");
+		}
+
 	}
 
 	private static String getHex(byte[] raw) {
@@ -114,8 +335,8 @@ public class MapFormatReader {
 	}
 
 	private static int byteArrayToInt(byte[] bytes) {
-		return (bytes[0] << 24) + ((bytes[1] & 0xff) << 16) + ((bytes[2] & 0xff) << 8)
-				+ (bytes[3] & 0xff);
+		return (bytes[0] << 24) | ((bytes[1] & 0xff) << 16) | ((bytes[2] & 0xff) << 8)
+				| (bytes[3] & 0xff);
 	}
 
 	private static long byteArrayToLong(byte[] bytes) {
@@ -123,279 +344,55 @@ public class MapFormatReader {
 		return bb.getLong();
 	}
 
-	/**
-	 * Parses the map file and stores its structure.
-	 * 
-	 * @throws IOException
-	 *             when the file cannot be read.
-	 */
-	public void parseFile() throws IOException {
-		parseHeader();
+	private int getNextInt() throws IOException {
+		this.f.seek(this.offset);
+		this.f.read(this.buffer, 0, 4);
+		this.offset += 4;
+		return MapFormatReader.byteArrayToInt(this.buffer);
 	}
 
-	private void parseHeader() throws IOException {
-		System.out.println("------ H E A D E R ------");
-
-		// Magic bytes (20B)
-		this.magicData = new byte[20];
-		this.f.read(this.magicData, 0, 20);
-		this.offset += 20;
-		System.out.println("Magic bytes: " + MapFormatReader.getHex(this.magicData));
-
-		// Header Length (4B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 4);
-		this.headerLength = MapFormatReader.byteArrayToInt(buffer);
-		this.offset += 4;
-		System.out.println("Header lenght: " + MapFormatReader.getHex(this.headerLength) + " ("
-				+ this.headerLength + ")");
-
-		// File version (4B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 4);
-		this.fileVersion = MapFormatReader.byteArrayToInt(buffer);
-		this.offset += 4;
-		System.out.println("File version: " + MapFormatReader.getHex(this.fileVersion) + " ("
-				+ this.fileVersion + ")");
-
-		// Flags (1B)
-		this.f.seek(offset);
+	private byte getNextByte() throws IOException {
+		this.f.seek(this.offset);
 		this.f.read(this.buffer, 0, 1);
-		this.flags = this.buffer[0];
 		this.offset += 1;
-		System.out.println("Flags: " + MapFormatReader.getHex(this.flags));
 
-		// Number of zoom intervals (1B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 1);
-		this.numZoomIntervals = this.buffer[0];
-		this.offset += 1;
-		System.out.println("#zoom intervals: " + MapFormatReader.getHex(this.numZoomIntervals) + " ("
-				+ this.numZoomIntervals + ")");
+		return this.buffer[0];
+	}
 
-		// Projection Name length (1B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 1);
-		this.projectionNameStringLength = this.buffer[0];
-		this.offset += 1;
-		System.out.println("Projection name string length: "
-				+ MapFormatReader.getHex(this.projectionNameStringLength) + " ("
-				+ this.projectionNameStringLength + ")");
+	private String getNextString() throws IOException {
+		int strlen = getNextByte();
+		this.f.seek(this.offset);
+		this.f.read(this.buffer, 0, strlen);
+		this.buffer[strlen] = '\0';
+		this.offset += strlen;
 
-		// Projection name (variable)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, this.projectionNameStringLength);
-		this.buffer[this.projectionNameStringLength] = '\0';
-		this.projectionName = new String(this.buffer);
-		this.offset += this.projectionNameStringLength;
-		System.out.println("Projection name: " + this.projectionName);
+		return new String(this.buffer).substring(0, strlen);
+	}
 
-		// Tile size (2B)
-		this.f.seek(offset);
+	private int getNextDword() throws IOException {
+		this.f.seek(this.offset);
 		this.f.read(this.buffer, 0, 2);
-		this.tileSize = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
 		this.offset += 2;
-		System.out.println("Tile size: "
-				+ MapFormatReader.getHex(Arrays.copyOfRange(this.buffer, 0, 2)) + " ("
-				+ this.tileSize + ")");
 
-		// Maximum latitude (4B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 4);
-		this.maxLat = MapFormatReader.byteArrayToInt(buffer);
-		this.offset += 4;
-		System.out.println("Maximum latitude: " + MapFormatReader.getHex(this.maxLat) + " ("
-				+ this.maxLat + ")");
+		return (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
+	}
 
-		// Minimum longitude (4B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 4);
-		this.minLon = MapFormatReader.byteArrayToInt(buffer);
-		this.offset += 4;
-		System.out.println("Minimum longitude: " + MapFormatReader.getHex(this.minLon) + " ("
-				+ this.minLon + ")");
-
-		// Minimum latitude (4B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 4);
-		this.minLat = MapFormatReader.byteArrayToInt(buffer);
-		this.offset += 4;
-		System.out.println("Minimum latitude: " + MapFormatReader.getHex(this.minLat) + " ("
-				+ this.minLat + ")");
-
-		// Maximum longitude (4B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 4);
-		this.maxLon = MapFormatReader.byteArrayToInt(buffer);
-		this.offset += 4;
-		System.out.println("Maximum longitude: " + MapFormatReader.getHex(this.maxLon) + " ("
-				+ this.maxLon + ")");
-
-		// Map start position (8B)
-		if ((this.flags & 0x02) == 0x02) {
-			// Map start longitude (4B)
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 4);
-			this.mapStartLon = MapFormatReader.byteArrayToInt(buffer);
-			this.offset += 4;
-			System.out.println("Map start longitude: " + MapFormatReader.getHex(this.mapStartLon)
-					+ " ("
-					+ this.mapStartLon + ")");
-
-			// Map start latidute (4B)
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 4);
-			this.mapStartLat = MapFormatReader.byteArrayToInt(buffer);
-			this.offset += 4;
-			System.out.println("Map start latitude: " + MapFormatReader.getHex(this.mapStartLat)
-					+ " ("
-					+ this.mapStartLat + ")");
-		}
-
-		// Date of creation (8B)
-		this.f.seek(offset);
+	private long getNextLong() throws IOException {
+		this.f.seek(this.offset);
 		this.f.read(this.buffer, 0, 8);
-		this.dateOfCreation = MapFormatReader.byteArrayToLong(buffer);
 		this.offset += 8;
-		System.out.println("Date of creation: " + MapFormatReader.getHex(this.dateOfCreation)
-				+ " ("
-				+ this.dateOfCreation + ")");
 
-		// POI tag mapping (variable)
-		// amount of mappings (2B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 2);
-		this.numPOIMappings = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
-		this.offset += 2;
-		System.out.println("Number of POI mappings: "
-				+ MapFormatReader.getHex(this.buffer[1]) + " ("
-				+ this.numPOIMappings + ")");
+		return MapFormatReader.byteArrayToLong(buffer);
+	}
 
-		// POI tag mapping (variable)
-		int strLen;
-		int tagID;
-		String tagName;
-		System.out.println("Reading POI mappings: ");
-		for (int i = 0; i < this.numPOIMappings; i++) {
-			// string length
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 1);
-			strLen = this.buffer[0];
-			this.offset += 1;
+	private long getNextLong5() throws IOException {
+		this.f.seek(this.offset);
+		this.f.read(this.buffer, 0, 5);
+		this.offset += 5;
 
-			// tag name
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, strLen);
-			this.buffer[strLen] = '\0';
-			tagName = new String(this.buffer).substring(0, strLen);
-			this.offset += strLen;
-
-			// tag ID
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 2);
-			tagID = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
-			this.offset += 2;
-
-			System.out.println("  " + tagName + " => " + tagID);
-		}
-
-		// Way tag mapping (variable)
-		// amount of mappings (2B)
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 2);
-		this.numWayTagMappings = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
-		this.offset += 2;
-		System.out.println("Number of Way Tag mappings: "
-				+ MapFormatReader.getHex(this.buffer[1]) + " ("
-				+ this.numPOIMappings + ")");
-
-		// Way tag mapping (variable)
-		System.out.println("Reading way tag mappings: ");
-		for (int i = 0; i < this.numWayTagMappings; i++) {
-			// string length
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 1);
-			strLen = this.buffer[0];
-			this.offset += 1;
-
-			// tag name
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, strLen);
-			this.buffer[strLen] = '\0';
-			tagName = new String(this.buffer).substring(0, strLen);
-			this.offset += strLen;
-
-			// tag ID
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 2);
-			tagID = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
-			this.offset += 2;
-
-			System.out.println("  " + tagName + " => " + tagID);
-		}
-
-		// Comment (variable)
-		// string length
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, 1);
-		this.commentStringLength = this.buffer[0];
-		this.offset += 1;
-
-		// the comment
-		this.f.seek(offset);
-		this.f.read(this.buffer, 0, this.commentStringLength);
-		this.buffer[this.commentStringLength] = '\0';
-		this.comment = new String(this.buffer).substring(0, this.commentStringLength);
-		this.offset += this.commentStringLength;
-		System.out.println("Comment: " + this.comment);
-
-		// Zoom interval configuration (variable)
-		this.baseZoomLevel = new byte[this.numZoomIntervals];
-		this.minimalZoomLevel = new byte[this.numZoomIntervals];
-		this.maximalZoomLevel = new byte[this.numZoomIntervals];
-		this.absoluteStartPosition = new long[this.numZoomIntervals];
-		this.subFileSize = new long[this.numZoomIntervals];
-
-		for (int i = 0; i < this.numZoomIntervals; i++) {
-			System.out.println("Zoomlevel: " + i);
-
-			// Base zoom level
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 1);
-			this.baseZoomLevel[i] = this.buffer[0];
-			this.offset += 1;
-			System.out.println("  Base zoom level: " + this.baseZoomLevel[i]);
-
-			// Minimal zoom Level
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 1);
-			this.minimalZoomLevel[i] = this.buffer[0];
-			this.offset += 1;
-			System.out.println("  Minimal zoom level: " + this.minimalZoomLevel[i]);
-
-			// Maximal zoom Level
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 1);
-			this.maximalZoomLevel[i] = this.buffer[0];
-			this.offset += 1;
-			System.out.println("  Maximal zoom level: " + this.baseZoomLevel[i]);
-
-			// TODO Absolute start position
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 5);
-			this.absoluteStartPosition[i] = byteArrayToLong(buffer);
-			this.offset += 5;
-			System.out.println("  Absolute start position: " + getHex(this.absoluteStartPosition[i])
-					+ " (" + this.absoluteStartPosition[i] + ")");
-
-			// TODO Subfile size
-			this.f.seek(offset);
-			this.f.read(this.buffer, 0, 5);
-			this.subFileSize[i] = byteArrayToLong(buffer);
-			this.offset += 5;
-			System.out.println("  Subfile size: " + getHex(this.subFileSize[i]) + " ("
-					+ this.subFileSize[i] + ")");
-		}
+		return (this.buffer[0] & 0xffL) << 32 | (this.buffer[1] & 0xffL) << 24
+				| (this.buffer[2] & 0xffL) << 16 | (this.buffer[3] & 0xffL) << 8
+				| (this.buffer[4] & 0xffL);
 
 	}
 
