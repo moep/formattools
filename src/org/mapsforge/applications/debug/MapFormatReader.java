@@ -47,22 +47,39 @@ public class MapFormatReader {
 	private int minLon;
 	private int minLat;
 	private int maxLon;
-
 	private int mapStartLon;
-
 	private int mapStartLat;
-
 	private long dateOfCreation;
-
 	private int numPOIMappings;
+	private int numWayTagMappings;
+	private byte commentStringLength;
+	private String comment;
+	private byte[] baseZoomLevel;
+	private byte[] minimalZoomLevel;
+	private byte[] maximalZoomLevel;
+	private long[] absoluteStartPosition;
+	private long[] subFileSize;
 
+	/**
+	 * The constructor.
+	 * 
+	 * @param path
+	 *            Path to the map file that should be read.
+	 * @throws FileNotFoundException
+	 *             when file cannot be found.
+	 */
 	public MapFormatReader(String path) throws FileNotFoundException {
-		this.mapFile = mapFile;
 		this.f = new RandomAccessFile(path, "r");
 
 		this.buffer = new byte[1024];
 	}
 
+	/**
+	 * Closes the file handler.
+	 * 
+	 * @throws IOException
+	 *             when your disk is going to die.
+	 */
 	public void close() throws IOException {
 		if (this.f != null)
 			this.f.close();
@@ -106,6 +123,12 @@ public class MapFormatReader {
 		return bb.getLong();
 	}
 
+	/**
+	 * Parses the map file and stores its structure.
+	 * 
+	 * @throws IOException
+	 *             when the file cannot be read.
+	 */
 	public void parseFile() throws IOException {
 		parseHeader();
 	}
@@ -252,7 +275,7 @@ public class MapFormatReader {
 		int strLen;
 		int tagID;
 		String tagName;
-		System.out.println("Reading mappings: ");
+		System.out.println("Reading POI mappings: ");
 		for (int i = 0; i < this.numPOIMappings; i++) {
 			// string length
 			this.f.seek(offset);
@@ -275,6 +298,105 @@ public class MapFormatReader {
 
 			System.out.println("  " + tagName + " => " + tagID);
 		}
+
+		// Way tag mapping (variable)
+		// amount of mappings (2B)
+		this.f.seek(offset);
+		this.f.read(this.buffer, 0, 2);
+		this.numWayTagMappings = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
+		this.offset += 2;
+		System.out.println("Number of Way Tag mappings: "
+				+ MapFormatReader.getHex(this.buffer[1]) + " ("
+				+ this.numPOIMappings + ")");
+
+		// Way tag mapping (variable)
+		System.out.println("Reading way tag mappings: ");
+		for (int i = 0; i < this.numWayTagMappings; i++) {
+			// string length
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 1);
+			strLen = this.buffer[0];
+			this.offset += 1;
+
+			// tag name
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, strLen);
+			this.buffer[strLen] = '\0';
+			tagName = new String(this.buffer).substring(0, strLen);
+			this.offset += strLen;
+
+			// tag ID
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 2);
+			tagID = (this.buffer[0] << 8) + (this.buffer[1] & 0xff);
+			this.offset += 2;
+
+			System.out.println("  " + tagName + " => " + tagID);
+		}
+
+		// Comment (variable)
+		// string length
+		this.f.seek(offset);
+		this.f.read(this.buffer, 0, 1);
+		this.commentStringLength = this.buffer[0];
+		this.offset += 1;
+
+		// the comment
+		this.f.seek(offset);
+		this.f.read(this.buffer, 0, this.commentStringLength);
+		this.buffer[this.commentStringLength] = '\0';
+		this.comment = new String(this.buffer).substring(0, this.commentStringLength);
+		this.offset += this.commentStringLength;
+		System.out.println("Comment: " + this.comment);
+
+		// Zoom interval configuration (variable)
+		this.baseZoomLevel = new byte[this.numZoomIntervals];
+		this.minimalZoomLevel = new byte[this.numZoomIntervals];
+		this.maximalZoomLevel = new byte[this.numZoomIntervals];
+		this.absoluteStartPosition = new long[this.numZoomIntervals];
+		this.subFileSize = new long[this.numZoomIntervals];
+
+		for (int i = 0; i < this.numZoomIntervals; i++) {
+			System.out.println("Zoomlevel: " + i);
+
+			// Base zoom level
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 1);
+			this.baseZoomLevel[i] = this.buffer[0];
+			this.offset += 1;
+			System.out.println("  Base zoom level: " + this.baseZoomLevel[i]);
+
+			// Minimal zoom Level
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 1);
+			this.minimalZoomLevel[i] = this.buffer[0];
+			this.offset += 1;
+			System.out.println("  Minimal zoom level: " + this.minimalZoomLevel[i]);
+
+			// Maximal zoom Level
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 1);
+			this.maximalZoomLevel[i] = this.buffer[0];
+			this.offset += 1;
+			System.out.println("  Maximal zoom level: " + this.baseZoomLevel[i]);
+
+			// TODO Absolute start position
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 5);
+			this.absoluteStartPosition[i] = byteArrayToLong(buffer);
+			this.offset += 5;
+			System.out.println("  Absolute start position: " + getHex(this.absoluteStartPosition[i])
+					+ " (" + this.absoluteStartPosition[i] + ")");
+
+			// TODO Subfile size
+			this.f.seek(offset);
+			this.f.read(this.buffer, 0, 5);
+			this.subFileSize[i] = byteArrayToLong(buffer);
+			this.offset += 5;
+			System.out.println("  Subfile size: " + getHex(this.subFileSize[i]) + " ("
+					+ this.subFileSize[i] + ")");
+		}
+
 	}
 
 }
