@@ -72,6 +72,7 @@ public class MapFormatReader {
 	 */
 	public MapFormatReader(String path) throws FileNotFoundException {
 		this.f = new RandomAccessFile(path, "r");
+		// this.f = new RAF(path, "r");
 
 		this.buffer = new byte[1024];
 	}
@@ -87,9 +88,10 @@ public class MapFormatReader {
 
 		this.tileOffsets = new ArrayList[this.numZoomIntervals];
 
-		for (byte i = 0; i < this.numZoomIntervals; i++) {
-			parseSubFile(i);
-		}
+		parseSubFile((byte) 0);
+		// for (byte i = 0; i < this.numZoomIntervals; i++) {
+		// parseSubFile((byte) i);
+		// }
 	}
 
 	/**
@@ -164,18 +166,18 @@ public class MapFormatReader {
 				+ this.maxLon + ")");
 
 		// Map start position (8B)
-		if ((this.flags & 0x02) == 0x02) {
-			// Map start longitude (4B)
-			this.mapStartLon = getNextInt();
-			System.out.println("Map start longitude: " + MapFormatReader.getHex(this.mapStartLon)
-					+ " ("
-					+ this.mapStartLon + ")");
-
+		if ((this.flags & 0x40) != 0) {
 			// Map start latidute (4B)
 			this.mapStartLat = getNextInt();
 			System.out.println("Map start latitude: " + MapFormatReader.getHex(this.mapStartLat)
 					+ " ("
 					+ this.mapStartLat + ")");
+
+			// Map start longitude (4B)
+			this.mapStartLon = getNextInt();
+			System.out.println("Map start longitude: " + MapFormatReader.getHex(this.mapStartLon)
+					+ " ("
+					+ this.mapStartLon + ")");
 		}
 
 		// Date of creation (8B)
@@ -288,20 +290,102 @@ public class MapFormatReader {
 
 		// Tile index segment
 		// index signature (16B, optional)
-		if ((this.flags & 0x02) != 0) {
+		if ((this.flags & 0x80) != 0) {
 			this.f.read(this.buffer, 0, 16);
 			this.offset += 16;
 			System.out.println("Index signature: " + new String(this.buffer, 0, 16));
 		}
 
-		// Get all tile indexes
-		System.out.println("Tile# \tOffset");
+		// Get all tile offsets
+		// TODO correct handling of water tiles
+		System.out.println("Tile# \tOffset \t\t\t\tWater bit");
 		long tileOffset;
 		this.tileOffsets[zoomInterval] = new ArrayList<Long>();
 		for (long i = 0; i < numBlocks; i++) {
 			tileOffset = getNextLong5();
 			this.tileOffsets[zoomInterval].add(tileOffset);
-			System.out.println(i + ": \t" + getHex(tileOffset) + " (" + tileOffset + ")");
+			System.out.println(i + ": \t" + getHex(tileOffset) + " (" + tileOffset + ")\t"
+					+ ((tileOffset & 0x000000010000000000L) != 0));
+		}
+
+		// Headers, POIs and ways
+		byte specialByte;
+		byte numTags;
+		byte poiFlags;
+		for (long i = 0; i < numBlocks; i++) {
+			System.out.println("-- B L O C K " + i + " --");
+
+			// H E A D E R
+
+			// Tile signature (32B, optional)
+			if ((this.flags & 0x80) != 0) {
+				this.f.seek(this.offset);
+				this.f.read(this.buffer, 0, 32);
+				this.offset += 32;
+				System.out.println(new String(this.buffer, 0, 32));
+			}
+
+			// Zoom table (variable)
+			// TODO implement
+			this.offset += (this.maximalZoomLevel[zoomInterval] - this.minimalZoomLevel[zoomInterval]) * 4;
+			this.f.seek(this.offset);
+
+			// First way offset (VBE-U)
+			// TODO save data
+			System.out.println("First way offset: " + getNextVBEUInt());
+
+			// TODO why is this needed?
+			this.offset += 4;
+
+			// P O I s
+
+			// POI signature (32B, optional)
+			if ((this.flags & 0x80) != 0) {
+				this.f.seek(this.offset);
+				this.f.read(this.buffer, 0, 32);
+				this.offset += 32;
+				System.out.println(new String(this.buffer, 0, 32));
+			}
+
+			// Position (2 * VBE-S)
+			// TODO save data
+			System.out.println("lat diff: " + getNextVBESInt());
+			System.out.println("lon diff: " + getNextVBESInt());
+
+			// Special byte (1B)
+			specialByte = getNextByte();
+			System.out.println("Special byte: " + getHex(specialByte));
+			numTags = (byte) (specialByte & 0x0f);
+			System.out.println("#Tags: " + getHex(numTags) + " (" + numTags + ")");
+
+			// POI tags (variable)
+			for (byte j = 0; j < numTags; j++) {
+				System.out.println("Tag: " + getNextVBEUInt());
+			}
+
+			// Flags (1B)
+			poiFlags = getNextByte();
+
+			// POI name (variable, optional)
+			if ((poiFlags & 0x80) != 0) {
+				// TODO store variable
+				System.out.println("POI Name: " + getNextString());
+			}
+
+			// POI elevation (VBE-S, optional)
+			if ((poiFlags & 0x40) != 0) {
+				// TODO store value
+				System.out.println("Elevation: " + getNextVBESInt());
+			}
+
+			// House number (String, optional)
+			if ((poiFlags & 0x20) != 0) {
+				// TODO store value
+				System.out.println("House number: " + getNextString());
+			}
+
+			System.out.println("OFFSET: " + this.offset);
+
 		}
 
 	}
@@ -319,7 +403,7 @@ public class MapFormatReader {
 		return hex.toString();
 	}
 
-	private static String getHex(int raw) {
+	static String getHex(int raw) {
 		return MapFormatReader.getHex(new byte[] { (byte) (raw >>> 24), (byte) (raw >>> 16),
 				(byte) (raw >>> 8), (byte) (raw & 0xff) });
 	}
@@ -396,4 +480,31 @@ public class MapFormatReader {
 
 	}
 
+	private int getNextVBEUInt() throws IOException {
+		// TODO implement
+
+		f.seek(this.offset);
+		this.f.read(this.buffer, 0, 4);
+		for (int i = 0; i < 4; i++) {
+			this.offset += 1;
+			if ((this.buffer[i] & 0x80) == 0)
+				break;
+		}
+
+		return 42;
+	}
+
+	private int getNextVBESInt() throws IOException {
+		// TODO implement
+
+		f.seek(this.offset);
+		this.f.read(this.buffer, 0, 4);
+		for (int i = 0; i < 4; i++) {
+			this.offset += 1;
+			if ((this.buffer[i] & 0x80) == 0)
+				break;
+		}
+
+		return 1337;
+	}
 }

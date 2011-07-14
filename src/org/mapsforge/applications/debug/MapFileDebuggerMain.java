@@ -78,7 +78,7 @@ public class MapFileDebuggerMain {
 	public static void main(String[] args) {
 		MapFormatReader mfr = null;
 		try {
-			mfr = new MapFormatReader("/home/moep/berlin.map");
+			mfr = new MapFormatReader("/home/moep/bremen.map");
 			mfr.parseFile();
 			mfr.close();
 		} catch (IOException e) {
