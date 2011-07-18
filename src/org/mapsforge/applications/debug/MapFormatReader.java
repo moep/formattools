@@ -253,7 +253,7 @@ public class MapFormatReader {
 
 			// Maximal zoom Level
 			this.maximalZoomLevel[i] = getNextByte();
-			System.out.println("  Maximal zoom level: " + this.baseZoomLevel[i]);
+			System.out.println("  Maximal zoom level: " + this.maximalZoomLevel[i]);
 
 			// TODO Absolute start position
 			this.absoluteStartPosition[i] = getNextLong5();
@@ -318,6 +318,7 @@ public class MapFormatReader {
 			// H E A D E R
 
 			// Tile signature (32B, optional)
+			// ###TileStart
 			if ((this.flags & 0x80) != 0) {
 				this.f.seek(this.offset);
 				this.f.read(this.buffer, 0, 32);
@@ -326,18 +327,24 @@ public class MapFormatReader {
 			}
 
 			// Zoom table (variable)
-			// TODO implement
-			this.offset += (this.maximalZoomLevel[zoomInterval] - this.minimalZoomLevel[zoomInterval]) * 4;
-			this.f.seek(this.offset);
+			System.out.println("Zoom level \t#POIs\t#Ways");
+			for (int row = this.minimalZoomLevel[zoomInterval]; row <= this.maximalZoomLevel[zoomInterval]; row++) {
+				// TODO save values
+				System.out.println(row + "\t\t" + getNextDword() + "\t" + getNextDword());
+			}
+
+			// OLD
+			// this.offset += (this.maximalZoomLevel[zoomInterval] - this.minimalZoomLevel[zoomInterval]
+			// + 1) * 4;
+			// this.f.seek(this.offset);
+			// !OLD
 
 			// First way offset (VBE-U)
 			// TODO save data
 			System.out.println("First way offset: " + getNextVBEUInt());
 
-			// TODO why is this needed?
-			this.offset += 4;
-
 			// P O I s
+			// TODO for loop (how?)
 
 			// POI signature (32B, optional)
 			if ((this.flags & 0x80) != 0) {
@@ -382,6 +389,85 @@ public class MapFormatReader {
 			if ((poiFlags & 0x20) != 0) {
 				// TODO store value
 				System.out.println("House number: " + getNextString());
+			}
+
+			// W A Y S
+			// TODO loop
+
+			// Way signature (32B, optional)
+			// TODO save data
+			if ((this.flags & 0x80) != 0) {
+				this.f.seek(this.offset);
+				this.f.read(this.buffer, 0, 32);
+				this.offset += 32;
+				System.out.println(new String(this.buffer, 0, 32));
+			}
+
+			// Way size (VBE-U)
+			// TODO save data
+			System.out.println("Way size: " + getNextVBEUInt());
+
+			// Sub tile bitmap (2B)
+			// TODO save data
+			System.out.println("Sub tile bitmap: " + getNextDword());
+
+			// Special byte 1 (1B)
+			// TODO save data
+			byte waySpecialByte1 = getNextByte();
+			System.out.println("Special byte 1: " + getHex(waySpecialByte1));
+
+			// Special byte 1 (1B)
+			// TODO save data
+			System.out.println("Special byte 2: " + getHex(getNextByte()));
+
+			// Way type bitmap (1B)
+			// TODO save data
+			System.out.println("Way type bitmap: " + getHex(getNextByte()));
+
+			// Tag ID (n * VBE-U)
+			// for each tag ...
+			System.out.println("Tag \t Tag ID");
+			for (byte tag = 0; tag < (waySpecialByte1 & 0x0f); tag++) {
+				// TODO save data
+				System.out.println(tag + "\t" + getHex(getNextVBEUInt()));
+			}
+
+			// Way node amount (VBE-U)
+			// TODO save data
+			System.out.println("Amount of way nodes: " + getNextVBEUInt());
+
+			// First way node (2*VBE-S)
+			// TODO save data
+			System.out.println("First way node lat diff:" + getNextVBESInt());
+			System.out.println("First way node lon diff:" + getNextVBESInt());
+
+			// Way nodes (2*VBE-S)
+			// TODO save data
+			System.out.println("Way node lat diff:" + getNextVBESInt());
+			System.out.println("Way node lon diff:" + getNextVBESInt());
+
+			// Flags
+			// TODO save data
+			byte wayFlags = getNextByte();
+			System.out.println("Flags: " + getHex(wayFlags));
+
+			// Name (String, optional)
+			// TODO save data
+			if ((wayFlags & 0x80) != 0) {
+				System.out.println("Name: " + getNextString());
+			}
+
+			// Reference (String, optional)
+			// TODO save data
+			if ((wayFlags & 0x40) != 0) {
+				System.out.println("Reference: " + getNextString());
+			}
+
+			// Label position (2*VBE-S)
+			// TODO save data
+			if ((wayFlags & 0x20) != 0) {
+				System.out.println("Way node lat diff:" + getNextVBESInt());
+				System.out.println("Way node lon diff:" + getNextVBESInt());
 			}
 
 			System.out.println("OFFSET: " + this.offset);
