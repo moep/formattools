@@ -77,13 +77,17 @@ public class MapFileDebuggerMain {
 	 */
 	public static void main(String[] args) {
 		MapFormatReader mfr = null;
+		MapFile mf = null;
 		try {
-			mfr = new MapFormatReader("/home/moep/berlin.map");
-			mfr.parseFile();
+			mfr = new MapFormatReader("/home/moep/shropshire.map");
+			mf = mfr.parseFile();
 			mfr.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		if (mf != null)
+			System.out.println(mf.headerToString());
 
 		// createFileDataStructure(300, 300, 5);
 		// createSQLiteDataStructure(300, 300, 5);
