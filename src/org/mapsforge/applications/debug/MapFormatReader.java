@@ -99,8 +99,8 @@ public class MapFormatReader {
 	public MapFile parseFile() throws IOException {
 		parseHeader();
 
-		// this.tileOffsets = new ArrayList[this.amountOfZoomIntervals];
-		// parseSubFile((byte) 0);
+		this.tileOffsets = new ArrayList[this.mapFile.getAmountOfZoomIntervals()];
+		parseSubFile((byte) 0);
 
 		// for (byte i = 0; i < this.numZoomIntervals; i++) {
 		// parseSubFile((byte) i);
@@ -181,15 +181,13 @@ public class MapFormatReader {
 		this.mapFile.prepareWayTagMappings();
 
 		// Way tag mapping (variable)
-		System.out.println("Reading way tag mappings: ");
-		for (int i = 0; i < this.numWayTagMappings; i++) {
+		for (int i = 0; i < this.mapFile.getAmountOfWayTagMappings(); i++) {
 
 			// tag name (variable)
 			tagName = getNextString();
 
 			// tag ID (2B)
 			tagID = getNextDword();
-
 			this.mapFile.getWayTagMappings()[tagID] = tagName;
 		}
 
@@ -198,7 +196,7 @@ public class MapFormatReader {
 
 		// Zoom interval configuration (variable)
 		this.mapFile.prepareZoomIntervalConfiguration();
-		for (int i = 0; i < this.amountOfZoomIntervals; i++) {
+		for (int i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
 			this.mapFile.setZoomIntervalConfiguration(i, getNextByte(), getNextByte(), getNextByte(),
 					getNextLong5(), getNextLong5());
 		}
@@ -206,57 +204,56 @@ public class MapFormatReader {
 	}
 
 	private void parseSubFile(byte zoomInterval) throws IOException {
-		System.out.println("------ S U B F I L E " + zoomInterval + " ------");
+		SubFile sf = new SubFile(this.mapFile, zoomInterval);
+		this.mapFile.addSubFile(sf);
 
-		this.offset = this.absoluteStartPosition[zoomInterval];
+		this.offset = this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		this.f.seek(this.offset);
 
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
-		long firstX = MercatorProjection.longitudeToTileX(this.minLon
-				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
-		long lastX = MercatorProjection.longitudeToTileX(this.maxLon
-				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
-		long firstY = MercatorProjection.latitudeToTileY(this.minLat
-				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
-		long lastY = MercatorProjection.latitudeToTileY(this.maxLat
-				/ MapFormatReader.COORDINATES_FACTOR, this.baseZoomLevel[zoomInterval]);
+		long firstX = MercatorProjection.longitudeToTileX(this.mapFile.getMinLon()
+				/ MapFormatReader.COORDINATES_FACTOR, this.mapFile.getBaseZoomLevel()[zoomInterval]);
+		long lastX = MercatorProjection.longitudeToTileX(this.mapFile.getMaxLon()
+				/ MapFormatReader.COORDINATES_FACTOR, this.mapFile.getBaseZoomLevel()[zoomInterval]);
+		long firstY = MercatorProjection.latitudeToTileY(this.mapFile.getMinLat()
+				/ MapFormatReader.COORDINATES_FACTOR, this.mapFile.getBaseZoomLevel()[zoomInterval]);
+		long lastY = MercatorProjection.latitudeToTileY(this.mapFile.getMaxLat()
+				/ MapFormatReader.COORDINATES_FACTOR, this.mapFile.getBaseZoomLevel()[zoomInterval]);
 
 		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
 		System.out.println("Number of blocks in this subfile: " + numBlocks);
 
 		// Tile index segment
 		// index signature (16B, optional)
-		if ((this.flags & 0x80) != 0) {
+		if (this.mapFile.isDebugFlagSet()) {
 			this.f.read(this.buffer, 0, 16);
 			this.offset += 16;
-			System.out.println("Index signature: " + new String(this.buffer, 0, 16));
+
+			sf.setIndexSignature(new String(this.buffer, 0, 16));
 		}
 
-		// Get all tile offsets
-		// TODO correct handling of water tiles
-		System.out.println("Tile# \tOffset \t\t\t\tWater bit");
-		long tileOffset;
-		this.tileOffsets[zoomInterval] = new ArrayList<Long>();
+		// Get all tile offsets (TileNr, Data, Water Block)
 		for (long i = 0; i < numBlocks; i++) {
-			tileOffset = getNextLong5();
-			this.tileOffsets[zoomInterval].add(tileOffset);
-			System.out.println(i + ": \t" + getHex(tileOffset) + " (" + tileOffset + ")\t"
-					+ ((tileOffset & 0x000000010000000000L) != 0));
+			sf.addIndexEntry(getNextLong5());
+			// System.out.println(i + ": \t" + getHex(tileOffset) + " (" + tileOffset + ")\t"
+			// + ((tileOffset & 0x000000010000000000L) != 0));
 		}
 
 		// Headers, POIs and ways
+		Tile t;
 		byte specialByte;
 		byte numTags;
 		byte poiFlags;
 		for (long i = 0; i < numBlocks; i++) {
-			System.out.println("-- B L O C K " + i + " --");
+			t = new Tile();
+			sf.addTile(t);
 
 			// H E A D E R
 
 			// Tile signature (32B, optional)
 			// ###TileStart
-			if ((this.flags & 0x80) != 0) {
+			if (this.mapFile.isDebugFlagSet()) {
 				this.f.seek(this.offset);
 				this.f.read(this.buffer, 0, 32);
 				this.offset += 32;
@@ -264,17 +261,10 @@ public class MapFormatReader {
 			}
 
 			// Zoom table (variable)
-			System.out.println("Zoom level \t#POIs\t#Ways");
-			for (int row = this.minimalZoomLevel[zoomInterval]; row <= this.maximalZoomLevel[zoomInterval]; row++) {
-				// TODO save values
-				System.out.println(row + "\t\t" + getNextDword() + "\t" + getNextDword());
+			for (int row = this.mapFile.getMinimalZoomLevel()[zoomInterval]; row <= this.mapFile
+					.getMaximalZoomLevel()[zoomInterval]; row++) {
+				t.addZoomTableRow(row, getNextDword(), getNextDword());
 			}
-
-			// OLD
-			// this.offset += (this.maximalZoomLevel[zoomInterval] - this.minimalZoomLevel[zoomInterval]
-			// + 1) * 4;
-			// this.f.seek(this.offset);
-			// !OLD
 
 			// First way offset (VBE-U)
 			// TODO save data

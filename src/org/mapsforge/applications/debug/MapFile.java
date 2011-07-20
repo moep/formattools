@@ -14,8 +14,10 @@
  */
 package org.mapsforge.applications.debug;
 
-import java.util.ArrayList;
 import static org.mapsforge.applications.debug.MapFormatReader.getHex;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class is a representation of a map file. It contains its basic structure with ways and POIs.
@@ -24,7 +26,7 @@ import static org.mapsforge.applications.debug.MapFormatReader.getHex;
  * @author Karsten
  * 
  */
-public class MapFile {
+class MapFile {
 
 	private static final String NL = "\r\n";
 
@@ -64,13 +66,21 @@ public class MapFile {
 	private byte[] maximalZoomLevel;
 	private long[] absoluteStartPosition;
 	private long[] subFileSize;
-	private ArrayList<Long>[] tileOffsets;
+
+	// Subfiles
+	private List<SubFile> subFiles;
 
 	/**
 	 * The constructor.
 	 */
 	public MapFile() {
 		// Log.d("Map file has been initialized");
+		this.subFiles = new LinkedList();
+	}
+
+	@Override
+	public String toString() {
+		return this.headerToString();
 	}
 
 	/**
@@ -79,15 +89,80 @@ public class MapFile {
 	 */
 	public String headerToString() {
 		// TODO finish
-		System.out.println("bla");
 		StringBuilder sb = new StringBuilder();
 		sb.append("------ H E A D E R ------").append(MapFile.NL);
 		sb.append("Magic bytes: " + getHex(this.magicByte) + " (" + new String(this.magicByte) + ")")
 				.append(MapFile.NL);
 		sb.append("Header size: " + getHex(this.headerSize) + " (" + this.headerSize + ")").append(
 				MapFile.NL);
+		sb.append("File version: " + getHex(this.fileVersion) + " (" + this.fileVersion + ")").append(
+				MapFile.NL);
+		sb.append("Flags: " + getHex(this.flags)).append(MapFile.NL);
+		sb.append(
+				"Amount of zoom intervals: " + getHex(this.amountOfZoomIntervals) + " ("
+						+ this.amountOfZoomIntervals + ")").append(MapFile.NL);
+		sb.append("Projection: " + this.projection).append(MapFile.NL);
+		sb.append("Tile size: " + getHex(this.tileSize) + " (" + this.tileSize + ")")
+				.append(MapFile.NL);
+		sb.append("Bounding box: ").append(MapFile.NL);
+		sb.append("  Max lat: " + getHex(this.maxLat) + " (" + this.maxLat + ")").append(MapFile.NL);
+		sb.append("  Min lon: " + getHex(this.minLon) + " (" + this.minLon + ")").append(MapFile.NL);
+		sb.append("  Min Lat: " + getHex(this.minLat) + " (" + this.minLat + ")").append(MapFile.NL);
+		sb.append("  Max Lon: " + getHex(this.maxLon) + " (" + this.maxLon + ")").append(MapFile.NL);
+
+		if (isMapStartPositionFlagSet()) {
+			sb.append("Map start position (lon/lat): " + this.mapStartLon + " " + this.mapStartLat)
+					.append(
+							MapFile.NL);
+		}
+
+		sb
+				.append(
+						"Date of creation: " + getHex(this.dateOfCreation) + " (" + this.dateOfCreation
+								+ ")").append(MapFile.NL);
+		sb.append(
+				"Amount of POI mappings: " + getHex(this.amountOfPOIMappings) + " ("
+						+ this.amountOfPOIMappings + ")").append(MapFile.NL);
+		for (int id = 0; id < this.amountOfPOIMappings; ++id) {
+			sb.append("  " + id + " => " + this.poiMappings[id]).append(MapFile.NL);
+		}
+
+		sb.append(
+				"Amount of way mappings: " + getHex(this.amountOfWayTagMappings) + " ("
+						+ this.amountOfWayTagMappings + ")").append(MapFile.NL);
+		for (int id = 0; id < this.amountOfWayTagMappings; ++id) {
+			sb.append("  " + id + " => " + this.wayTagMappings[id]).append(MapFile.NL);
+		}
+
+		sb.append("Comment: " + this.comment).append(MapFile.NL);
+		sb.append("Zoom interval configuration:").append(MapFile.NL);
+		sb
+				.append(
+						"  Zoom interval\tBase zoom level\tMinimal zoom level\tMaximal zoom level\tAbsolute start position\tSubfile size")
+				.append(MapFile.NL);
+		for (int interval = 0; interval < this.amountOfZoomIntervals; ++interval) {
+			sb.append(
+					"  " + interval + "\t\t" + this.baseZoomLevel[interval] + "\t\t"
+							+ this.minimalZoomLevel[interval] + "\t\t\t"
+							+ this.maximalZoomLevel[interval]
+							+ "\t\t\t" + this.absoluteStartPosition[interval] + "\t\t\t"
+							+ this.subFileSize[interval]).append(MapFile.NL);
+		}
+
+		sb.append("").append(MapFile.NL);
+		sb.append("").append(MapFile.NL);
+		sb.append("").append(MapFile.NL);
+		sb.append("").append(MapFile.NL);
 
 		return sb.toString();
+	}
+
+	boolean isMapStartPositionFlagSet() {
+		return (this.flags & 0x40) != 0;
+	}
+
+	boolean isDebugFlagSet() {
+		return (this.flags & 0x80) != 0;
 	}
 
 	/**
@@ -101,7 +176,7 @@ public class MapFile {
 	 * This method prepares the array that contains the mappings for tag IDs to tag names for ways.
 	 */
 	public void prepareWayTagMappings() {
-		this.wayTagMappings = new String[this.amountOfPOIMappings];
+		this.wayTagMappings = new String[this.amountOfWayTagMappings];
 	}
 
 	/**
@@ -114,6 +189,16 @@ public class MapFile {
 		this.maximalZoomLevel = new byte[this.amountOfZoomIntervals];
 		this.absoluteStartPosition = new long[this.amountOfZoomIntervals];
 		this.subFileSize = new long[this.amountOfZoomIntervals];
+	}
+
+	/**
+	 * Adds a subfile for a base zoom interval.
+	 * 
+	 * @param sf
+	 *            The subfile (@link {@link SubFile})
+	 */
+	public void addSubFile(SubFile sf) {
+		this.subFiles.add(sf);
 	}
 
 	public byte[] getMagicByte() {
@@ -269,12 +354,53 @@ public class MapFile {
 
 	public void setZoomIntervalConfiguration(int zoomInterval, byte baseZoomLevel,
 			byte minimalZoomLevel, byte maximalZoomLevel, long absoluteStartPosition, long subFileSize) {
+
+		// System.out.println("setZoomIntervalConfiguration(" + zoomInterval + "," + this.baseZoomLevel
+		// + "," + this.minimalZoomLevel + "," + maximalZoomLevel + "," + absoluteStartPosition
+		// + "," + subFileSize + ")");
+
 		this.baseZoomLevel[zoomInterval] = baseZoomLevel;
 		this.minimalZoomLevel[zoomInterval] = minimalZoomLevel;
 		this.maximalZoomLevel[zoomInterval] = maximalZoomLevel;
 		this.absoluteStartPosition[zoomInterval] = absoluteStartPosition;
 		this.subFileSize[zoomInterval] = subFileSize;
 
+	}
+
+	public int getMaxLat() {
+		return maxLat;
+	}
+
+	public int getMinLon() {
+		return minLon;
+	}
+
+	public int getMinLat() {
+		return minLat;
+	}
+
+	public int getMaxLon() {
+		return maxLon;
+	}
+
+	public byte[] getBaseZoomLevel() {
+		return baseZoomLevel;
+	}
+
+	public byte[] getMinimalZoomLevel() {
+		return minimalZoomLevel;
+	}
+
+	public byte[] getMaximalZoomLevel() {
+		return maximalZoomLevel;
+	}
+
+	public long[] getAbsoluteStartPosition() {
+		return absoluteStartPosition;
+	}
+
+	long[] getSubFileSize() {
+		return subFileSize;
 	}
 
 }

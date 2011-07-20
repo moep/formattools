@@ -79,7 +79,7 @@ public class MapFileDebuggerMain {
 		MapFormatReader mfr = null;
 		MapFile mf = null;
 		try {
-			mfr = new MapFormatReader("/home/moep/shropshire.map");
+			mfr = new MapFormatReader("/home/moep/berlin.map");
 			mf = mfr.parseFile();
 			mfr.close();
 		} catch (IOException e) {
