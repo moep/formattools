@@ -210,6 +210,8 @@ public class MapFormatReader {
 		this.offset = this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		this.f.seek(this.offset);
 
+		System.out.println("Subfile start offset: " + this.offset);
+
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
 		long firstX = MercatorProjection.longitudeToTileX(this.mapFile.getMinLon()
@@ -240,13 +242,16 @@ public class MapFormatReader {
 			// + ((tileOffset & 0x000000010000000000L) != 0));
 		}
 
+		System.out.println("Subtile end / Tiles start offset: " + this.offset);
+
 		// Headers, POIs and ways
 		Tile t;
 		byte specialByte;
 		byte numTags;
 		byte poiFlags;
 		for (long i = 0; i < numBlocks; i++) {
-			t = new Tile();
+			System.out.println("Tile start offset: " + this.offset);
+			t = new Tile(this.mapFile, sf);
 			sf.addTile(t);
 
 			// H E A D E R
@@ -257,7 +262,7 @@ public class MapFormatReader {
 				this.f.seek(this.offset);
 				this.f.read(this.buffer, 0, 32);
 				this.offset += 32;
-				System.out.println(new String(this.buffer, 0, 32));
+				t.setTileSignature(new String(this.buffer, 0, 32));
 			}
 
 			// Zoom table (variable)
@@ -267,62 +272,65 @@ public class MapFormatReader {
 			}
 
 			// First way offset (VBE-U)
-			// TODO save data
-			System.out.println("First way offset: " + getNextVBEUInt());
+			t.setFirstWayOffset(getNextVBEUInt());
+
+			System.out.println("Added tile");
+			System.out.println(t);
+			System.out.println("Tile start offset: " + this.offset);
+
+			// FINISHED TILE //
 
 			// P O I s
-			// TODO for loop (how?)
+			// TODO get base zoom level
+			System.out.println("Parsing " + t.getCumulatedNumberOfPoisOnZoomlevel(10) + " POIs...");
+			POI p;
+			for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(10); poi++) {
+				p = new POI();
+				System.out.println("POI start offset: " + this.offset);
 
-			for (int poi = 0; poi < 3; poi++) {
 				// POI signature (32B, optional)
-				if ((this.flags & 0x80) != 0) {
+				if (this.mapFile.isDebugFlagSet()) {
 					this.f.seek(this.offset);
 					this.f.read(this.buffer, 0, 32);
 					this.offset += 32;
-					System.out.println(new String(this.buffer, 0, 32));
+					p.setPoiSignature(new String(this.buffer, 0, 32));
 				}
 
 				// Position (2 * VBE-S)
-				// TODO save data
-				System.out.println("lat diff: " + getNextVBESInt());
-				System.out.println("lon diff: " + getNextVBESInt());
+				p.setPosition(getNextVBESInt(), getNextVBESInt());
 
 				// Special byte (1B)
-				specialByte = getNextByte();
-				System.out.println("Special byte: " + getHex(specialByte));
-				numTags = (byte) (specialByte & 0x0f);
-				System.out.println("#Tags: " + getHex(numTags) + " (" + numTags + ")");
+				p.setSpecialByte(getNextByte());
 
 				// POI tags (variable)
-				for (byte j = 0; j < numTags; j++) {
-					System.out.println("Tag: " + getNextVBEUInt());
+				for (byte j = 0; j < p.getAmountOfTags(); j++) {
+					p.addTagID(getNextVBEUInt());
 				}
 
 				// Flags (1B)
-				poiFlags = getNextByte();
+				p.setFlags(getNextByte());
 
 				// POI name (variable, optional)
-				if ((poiFlags & 0x80) != 0) {
-					// TODO store variable
-					System.out.println("POI Name: " + getNextString());
+				if (p.isPOINameFlagSet()) {
+					p.setName(getNextString());
 				}
 
 				// POI elevation (VBE-S, optional)
-				if ((poiFlags & 0x40) != 0) {
-					// TODO store value
-					System.out.println("Elevation: " + getNextVBESInt());
+				if (p.isElevationFlagSet()) {
+					p.setElevation(getNextVBESInt());
 				}
 
 				// House number (String, optional)
-				if ((poiFlags & 0x20) != 0) {
-					// TODO store value
-					System.out.println("House number: " + getNextString());
+				if (p.isHouseNumberFlagSet()) {
+					p.setHouseNumber(getNextString());
 				}
 			}
 
 			// W A Y S
-			for (int way = 0; way < 14099; way++) {
-
+			// TODO loop
+			System.out.println("Reading + " + t.getCumulatedNumberOfWaysOnZoomLevel(10) + " ways...");
+			for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(10); way++) {
+				System.out.println("Way start offset: " + this.offset);
 				// Way signature (32B, optional)
 				// TODO save data
 				if ((this.flags & 0x80) != 0) {
@@ -516,16 +524,20 @@ public class MapFormatReader {
 	}
 
 	private int getNextVBESInt() throws IOException {
-		// TODO implement
-
-		f.seek(this.offset);
-		this.f.read(this.buffer, 0, 4);
+		int ret = 0x0;
+		byte b;
 		for (int i = 0; i < 4; i++) {
-			this.offset += 1;
-			if ((this.buffer[i] & 0x80) == 0)
+			b = getNextByte();
+			ret |= b & 0x7f;
+
+			if ((b & 0x80) == 0) {
 				break;
+			}
+
+			ret = ret << 7;
+
 		}
 
-		return 1337;
+		return (ret & 0x80000000) == 0 ? ret : -ret;
 	}
 }

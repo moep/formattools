@@ -28,7 +28,7 @@ import java.util.List;
  */
 class MapFile {
 
-	private static final String NL = "\r\n";
+	static final String NL = "\r\n";
 
 	private byte[] magicByte;
 	private int headerSize;
@@ -401,6 +401,13 @@ class MapFile {
 
 	long[] getSubFileSize() {
 		return subFileSize;
+	}
+
+	/**
+	 * @return the subFiles
+	 */
+	public List<SubFile> getSubFiles() {
+		return subFiles;
 	}
 
 }

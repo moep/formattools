@@ -14,6 +14,9 @@
  */
 package org.mapsforge.applications.debug;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Container class for POIs.
  * 
@@ -21,5 +24,158 @@ package org.mapsforge.applications.debug;
  * 
  */
 public class POI {
+	private String poiSignature;
+	// Position
+	private int latDiff;
+	private int lonDiff;
+	private byte specialByte;
+	private List<Integer> tagID;
+	private byte flags;
+	private String name;
+	private int elevation;
+	private String houseNumber;
+
+	public POI() {
+		this.tagID = new LinkedList<Integer>();
+	}
+
+	/**
+	 * @return Layer (OSM-Tag: layer=...) + 5 (to avoid negative values).
+	 */
+	private int getLayer() {
+		return this.specialByte & 0xf0 + 5;
+	}
+
+	/**
+	 * @return Amount of tags for the POI.
+	 */
+	int getAmountOfTags() {
+		return this.specialByte & 0x0f;
+	}
+
+	boolean isPOINameFlagSet() {
+		return (this.flags & 0x80) != 0;
+	}
+
+	boolean isElevationFlagSet() {
+		return (this.flags & 0x40) != 0;
+	}
+
+	boolean isHouseNumberFlagSet() {
+		return (this.flags & 0x20) != 0;
+	}
+
+	public void addTagID(int tagID) {
+		this.tagID.add(tagID);
+	}
+
+	/**
+	 * @return the poiSignature
+	 */
+	public String getPoiSignature() {
+		return poiSignature;
+	}
+
+	/**
+	 * @param poiSignature
+	 *            the poiSignature to set
+	 */
+	public void setPoiSignature(String poiSignature) {
+		this.poiSignature = poiSignature;
+	}
+
+	/**
+	 * @return the flags
+	 */
+	public byte getFlags() {
+		return flags;
+	}
+
+	/**
+	 * @param flags
+	 *            the flags to set
+	 */
+	public void setFlags(byte flags) {
+		this.flags = flags;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name
+	 *            the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the elevation
+	 */
+	public int getElevation() {
+		return elevation;
+	}
+
+	/**
+	 * @param elevation
+	 *            the elevation to set
+	 */
+	public void setElevation(int elevation) {
+		this.elevation = elevation;
+	}
+
+	/**
+	 * @return the houseNumber
+	 */
+	public String getHouseNumber() {
+		return houseNumber;
+	}
+
+	/**
+	 * @param houseNumber
+	 *            the houseNumber to set
+	 */
+	public void setHouseNumber(String houseNumber) {
+		this.houseNumber = houseNumber;
+	}
+
+	/**
+	 * @return the latDiff
+	 */
+	public int getLatDiff() {
+		return latDiff;
+	}
+
+	/**
+	 * @return the lonDiff
+	 */
+	public int getLonDiff() {
+		return lonDiff;
+	}
+
+	public void setPosition(int latDiff, int lonDiff) {
+		this.latDiff = latDiff;
+		this.lonDiff = lonDiff;
+	}
+
+	/**
+	 * @return the specialByte
+	 */
+	public byte getSpecialByte() {
+		return specialByte;
+	}
+
+	/**
+	 * @param specialByte
+	 *            the specialByte to set
+	 */
+	public void setSpecialByte(byte specialByte) {
+		this.specialByte = specialByte;
+	}
 
 }

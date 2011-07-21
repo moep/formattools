@@ -86,8 +86,12 @@ public class MapFileDebuggerMain {
 			e.printStackTrace();
 		}
 
-		if (mf != null)
-			System.out.println(mf.headerToString());
+		if (mf != null) {
+			// System.out.println(mf);
+			for (SubFile sf : mf.getSubFiles()) {
+				// System.out.println(sf);
+			}
+		}
 
 		// createFileDataStructure(300, 300, 5);
 		// createSQLiteDataStructure(300, 300, 5);

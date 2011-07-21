@@ -28,6 +28,7 @@ import java.util.List;
 class SubFile {
 	/** The sub file's parent file. (The {@link MapFile}) */
 	private MapFile parentFile;
+	/** The base zoom interval of this tile. (For debugging purposes.) */
 	private byte baseZoomInterval;
 
 	// Tile index segment
@@ -43,17 +44,35 @@ class SubFile {
 	 *            The parent file object that holds this subfile.
 	 */
 	SubFile(MapFile parentFile, byte baseZoomInterval) {
-		System.out.println("Creating new subfile.");
 		this.parentFile = parentFile;
 		this.tiles = new LinkedList<Tile>();
 
 		this.indexEntry = new ArrayList<Long>(this.parentFile.getMaximalZoomLevel()[baseZoomInterval]
-						- this.parentFile.getMinimalZoomLevel()[baseZoomInterval] + 1);
+				- this.parentFile.getMinimalZoomLevel()[baseZoomInterval] + 1);
 
 		// this.indexEntry = new long[this.parentFile.getMaximalZoomLevel()[baseZoomInterval]
 		// - this.parentFile.getMinimalZoomLevel()[baseZoomInterval] + 1];
 
 		this.baseZoomInterval = baseZoomInterval;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("--- S U B F I L E ").append(this.baseZoomInterval).append(" ---").append(MapFile.NL);
+		sb.append("Tile ID\tIndex\tWater tile").append(MapFile.NL);
+
+		int i = 0;
+		for (Long indexEntry : this.indexEntry) {
+			sb.append(i).append("\t").append(indexEntry).append("\t").append(isWaterTile(i))
+					.append(MapFile.NL);
+			++i;
+		}
+
+		sb.append("#Tiles: " + this.tiles.size()).append(MapFile.NL);
+
+		return sb.toString();
 	}
 
 	/**
