@@ -100,7 +100,7 @@ public class MapFormatReader {
 		parseHeader();
 
 		this.tileOffsets = new ArrayList[this.mapFile.getAmountOfZoomIntervals()];
-		parseSubFile((byte) 0);
+		getNextSubFile((byte) 0);
 
 		// for (byte i = 0; i < this.numZoomIntervals; i++) {
 		// parseSubFile((byte) i);
@@ -121,6 +121,7 @@ public class MapFormatReader {
 	}
 
 	private void parseHeader() throws IOException {
+		System.out.println("Parsing header...");
 		// Magic bytes (20B)
 		this.magicByte = new byte[20];
 		this.f.read(this.magicByte, 0, 20);
@@ -203,14 +204,15 @@ public class MapFormatReader {
 
 	}
 
-	private void parseSubFile(byte zoomInterval) throws IOException {
+	private void getNextSubFile(byte zoomInterval) throws IOException {
+		System.out.println("Parsing subfile " + zoomInterval + "...");
 		SubFile sf = new SubFile(this.mapFile, zoomInterval);
 		this.mapFile.addSubFile(sf);
 
 		this.offset = this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		this.f.seek(this.offset);
 
-		System.out.println("Subfile start offset: " + this.offset);
+		System.out.println("  Subfile start offset: " + this.offset);
 
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
@@ -224,7 +226,7 @@ public class MapFormatReader {
 				/ MapFormatReader.COORDINATES_FACTOR, this.mapFile.getBaseZoomLevel()[zoomInterval]);
 
 		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
-		System.out.println("Number of blocks in this subfile: " + numBlocks);
+		System.out.println("  Number of tiles (blocks) in this subfile: " + numBlocks);
 
 		// Tile index segment
 		// index signature (16B, optional)
@@ -238,180 +240,190 @@ public class MapFormatReader {
 		// Get all tile offsets (TileNr, Data, Water Block)
 		for (long i = 0; i < numBlocks; i++) {
 			sf.addIndexEntry(getNextLong5());
-			// System.out.println(i + ": \t" + getHex(tileOffset) + " (" + tileOffset + ")\t"
-			// + ((tileOffset & 0x000000010000000000L) != 0));
 		}
 
-		System.out.println("Subtile end / Tiles start offset: " + this.offset);
+		for (long i = 0; i < numBlocks; i++) {
+			sf.addTile(getNextTile(sf, zoomInterval));
+		}
+
+	}
+
+	private Tile getNextTile(SubFile sf, byte zoomInterval) throws IOException {
+		System.out.println("Parsing tile for zoom interval " + zoomInterval + "...");
 
 		// Headers, POIs and ways
 		Tile t;
-		byte specialByte;
-		byte numTags;
-		byte poiFlags;
-		for (long i = 0; i < numBlocks; i++) {
-			System.out.println("Tile start offset: " + this.offset);
-			t = new Tile(this.mapFile, sf);
-			sf.addTile(t);
+		System.out.println("  Tile start offset: " + this.offset);
+		t = new Tile(this.mapFile, sf);
 
-			// H E A D E R
+		// H E A D E R
 
-			// Tile signature (32B, optional)
-			// ###TileStart
-			if (this.mapFile.isDebugFlagSet()) {
-				this.f.seek(this.offset);
-				this.f.read(this.buffer, 0, 32);
-				this.offset += 32;
-				t.setTileSignature(new String(this.buffer, 0, 32));
-			}
-
-			// Zoom table (variable)
-			for (int row = this.mapFile.getMinimalZoomLevel()[zoomInterval]; row <= this.mapFile
-					.getMaximalZoomLevel()[zoomInterval]; row++) {
-				t.addZoomTableRow(row, getNextDword(), getNextDword());
-			}
-
-			// First way offset (VBE-U)
-			t.setFirstWayOffset(getNextVBEUInt());
-
-			System.out.println("Added tile");
-			System.out.println(t);
-			System.out.println("Tile start offset: " + this.offset);
-
-			// FINISHED TILE //
-
-			// P O I s
-			// TODO get base zoom level
-			System.out.println("Parsing " + t.getCumulatedNumberOfPoisOnZoomlevel(10) + " POIs...");
-			POI p;
-			for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(10); poi++) {
-				p = new POI();
-				System.out.println("POI start offset: " + this.offset);
-
-				// POI signature (32B, optional)
-				if (this.mapFile.isDebugFlagSet()) {
-					this.f.seek(this.offset);
-					this.f.read(this.buffer, 0, 32);
-					this.offset += 32;
-					p.setPoiSignature(new String(this.buffer, 0, 32));
-				}
-
-				// Position (2 * VBE-S)
-				p.setPosition(getNextVBESInt(), getNextVBESInt());
-
-				// Special byte (1B)
-				p.setSpecialByte(getNextByte());
-
-				// POI tags (variable)
-				for (byte j = 0; j < p.getAmountOfTags(); j++) {
-					p.addTagID(getNextVBEUInt());
-				}
-
-				// Flags (1B)
-				p.setFlags(getNextByte());
-
-				// POI name (variable, optional)
-				if (p.isPOINameFlagSet()) {
-					p.setName(getNextString());
-				}
-
-				// POI elevation (VBE-S, optional)
-				if (p.isElevationFlagSet()) {
-					p.setElevation(getNextVBESInt());
-				}
-
-				// House number (String, optional)
-				if (p.isHouseNumberFlagSet()) {
-					p.setHouseNumber(getNextString());
-				}
-			}
-
-			// W A Y S
-			// TODO loop
-			System.out.println("Reading + " + t.getCumulatedNumberOfWaysOnZoomLevel(10) + " ways...");
-			for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(10); way++) {
-				System.out.println("Way start offset: " + this.offset);
-				// Way signature (32B, optional)
-				// TODO save data
-				if ((this.flags & 0x80) != 0) {
-					this.f.seek(this.offset);
-					this.f.read(this.buffer, 0, 32);
-					this.offset += 32;
-					System.out.println(new String(this.buffer, 0, 32));
-				}
-
-				// Way size (VBE-U)
-				// TODO save data
-				System.out.println("Way size: " + getNextVBEUInt());
-
-				// Sub tile bitmap (2B)
-				// TODO save data
-				System.out.println("Sub tile bitmap: " + getNextDword());
-
-				// Special byte 1 (1B)
-				// TODO save data
-				byte waySpecialByte1 = getNextByte();
-				System.out.println("Special byte 1: " + getHex(waySpecialByte1));
-
-				// Special byte 1 (1B)
-				// TODO save data
-				System.out.println("Special byte 2: " + getHex(getNextByte()));
-
-				// Way type bitmap (1B)
-				// TODO save data
-				System.out.println("Way type bitmap: " + getHex(getNextByte()));
-
-				// Tag ID (n * VBE-U)
-				// for each tag ...
-				System.out.println("Tag \t Tag ID");
-				for (byte tag = 0; tag < (waySpecialByte1 & 0x0f); tag++) {
-					// TODO save data
-					System.out.println(tag + "\t" + getHex(getNextVBEUInt()));
-				}
-
-				// Way node amount (VBE-U)
-				// TODO save data
-				System.out.println("Amount of way nodes: " + getNextVBEUInt());
-
-				// First way node (2*VBE-S)
-				// TODO save data
-				System.out.println("First way node lat diff:" + getNextVBESInt());
-				System.out.println("First way node lon diff:" + getNextVBESInt());
-
-				// Way nodes (2*VBE-S)
-				// TODO save data
-				System.out.println("Way node lat diff:" + getNextVBESInt());
-				System.out.println("Way node lon diff:" + getNextVBESInt());
-
-				// Flags
-				// TODO save data
-				byte wayFlags = getNextByte();
-				System.out.println("Flags: " + getHex(wayFlags));
-
-				// Name (String, optional)
-				// TODO save data
-				if ((wayFlags & 0x80) != 0) {
-					System.out.println("Name: " + getNextString());
-				}
-
-				// Reference (String, optional)
-				// TODO save data
-				if ((wayFlags & 0x40) != 0) {
-					System.out.println("Reference: " + getNextString());
-				}
-
-				// Label position (2*VBE-S)
-				// TODO save data
-				if ((wayFlags & 0x20) != 0) {
-					System.out.println("Way node lat diff:" + getNextVBESInt());
-					System.out.println("Way node lon diff:" + getNextVBESInt());
-				}
-
-				System.out.println("OFFSET: " + this.offset);
-
-			}
-
+		// Tile signature (32B, optional)
+		// ###TileStart
+		if (this.mapFile.isDebugFlagSet()) {
+			this.f.seek(this.offset);
+			this.f.read(this.buffer, 0, 32);
+			this.offset += 32;
+			t.setTileSignature(new String(this.buffer, 0, 32));
 		}
+
+		// Zoom table (variable)
+		for (int row = this.mapFile.getMinimalZoomLevel()[zoomInterval]; row <= this.mapFile
+				.getMaximalZoomLevel()[zoomInterval]; row++) {
+			t.addZoomTableRow(row, getNextDword(), getNextDword());
+		}
+
+		// First way offset (VBE-U)
+		t.setFirstWayOffset(getNextVBEUInt());
+
+		// FINISHED TILE //
+
+		// P O I s
+		// TODO get base zoom level
+		// TODO save data
+		System.out.println("  This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(10) + " POIs.");
+
+		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(10); poi++) {
+			// TODO add POIs to tile
+			getNextPOI();
+		}
+
+		// W A Y S
+		// TODO save data
+		System.out.println("  This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(10) + " ways.");
+		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(10); way++) {
+			getNextWay();
+		}
+
+		return t;
+
+	}
+
+	private POI getNextPOI() throws IOException {
+		POI p = new POI();
+		System.out.println("  Parsing POI at offset " + this.offset + "...");
+
+		// POI signature (32B, optional)
+		if (this.mapFile.isDebugFlagSet()) {
+			this.f.seek(this.offset);
+			this.f.read(this.buffer, 0, 32);
+			this.offset += 32;
+			p.setPoiSignature(new String(this.buffer, 0, 32));
+		}
+
+		// Position (2 * VBE-S)
+		p.setPosition(getNextVBESInt(), getNextVBESInt());
+
+		// Special byte (1B)
+		p.setSpecialByte(getNextByte());
+
+		// POI tags (variable)
+		for (byte j = 0; j < p.getAmountOfTags(); j++) {
+			p.addTagID(getNextVBEUInt());
+		}
+
+		// Flags (1B)
+		p.setFlags(getNextByte());
+
+		// POI name (variable, optional)
+		if (p.isPOINameFlagSet()) {
+			p.setName(getNextString());
+		}
+
+		// POI elevation (VBE-S, optional)
+		if (p.isElevationFlagSet()) {
+			p.setElevation(getNextVBESInt());
+		}
+
+		// House number (String, optional)
+		if (p.isHouseNumberFlagSet()) {
+			p.setHouseNumber(getNextString());
+		}
+
+		return p;
+	}
+
+	private Way getNextWay() throws IOException {
+		Way w = new Way();
+
+		System.out.println("  Parsing way at offset " + this.offset + "...");
+		// Way signature (32B, optional)
+		if (this.mapFile.isDebugFlagSet()) {
+			this.f.seek(this.offset);
+			this.f.read(this.buffer, 0, 32);
+			this.offset += 32;
+			System.out.println();
+			w.setWaySignature(new String(this.buffer, 0, 32));
+		}
+
+		// Way size (VBE-U)
+		w.setWaySize(getNextVBEUInt());
+
+		// Sub tile bitmap (2B)
+		w.setSubTileBitmap(getNextByte(), getNextByte());
+
+		// Special byte 1 (1B)
+		w.setSpecialByte1(getNextByte());
+
+		// Special byte 2 (1B)
+		w.setSpecialByte1(getNextByte());
+
+		// Way type bitmap (1B)
+		w.setWayTypeBitmap(getNextByte());
+
+		// Tag ID (n * VBE-U)
+		for (byte tag = 0; tag < w.getAmountOfTags(); tag++) {
+			w.addTagID(getNextVBEUInt());
+		}
+
+		// Way node amount (VBE-U)
+		w.setWayNodeAmount(getNextVBEUInt());
+
+		// First way node (2*VBE-S)
+		// TODO save data
+		w.setFirstWayNodeLatDiff(getNextVBESInt());
+		w.setFirstWayNodeLonDiff(getNextVBESInt());
+
+		// Way nodes (n*2*VBE-S)
+		for (int i = 0; i < w.getWayNodeAmount(); i++) {
+			w.addWayNodesLatDiff(getNextVBESInt());
+			w.addWayNodesLonDiff(getNextVBESInt());
+		}
+
+		// Flags (1B)
+		w.setFlags(getNextByte());
+
+		// Name (String, optional)
+		// TODO save data
+		if (w.isWayFlagSet()) {
+			w.setName(getNextString());
+		}
+
+		// Reference (String, optional)
+		if (w.isReferenceFlagSet()) {
+			w.setReference(getNextString());
+		}
+
+		// Label position (2*VBE-S, optional)
+		if (w.isLabelPositionFlagSet()) {
+			w.setLabelPositionLatDiff(getNextVBESInt());
+			w.setLabelPositionLonDiff(getNextVBESInt());
+		}
+
+		// Multipolygon (variable, optional)
+		if (w.isMultipolygonFlagSet()) {
+			int amountOfInnerWays = getNextVBEUInt();
+
+			// Remaining inner way nodes
+			for (int i = 0; i < amountOfInnerWays; ++i) {
+				// TODO save data
+				getNextVBESInt();
+				getNextVBESInt();
+
+			}
+		}
+
+		return w;
 
 	}
 
