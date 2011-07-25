@@ -39,6 +39,26 @@ public class POI {
 		this.tagID = new LinkedList<Integer>();
 	}
 
+	@Override
+	public String toString() {
+		// TODO handle flags
+		StringBuilder sb = new StringBuilder();
+		sb.append("--- P O I ---").append(MapFile.NL);
+		sb.append("POI signature: ").append(this.poiSignature).append(MapFile.NL);
+		sb.append("Lat diff: ").append(this.latDiff).append(MapFile.NL);
+		sb.append("Lon diff: ").append(this.lonDiff).append(MapFile.NL);
+		sb.append("Special byte: ").append(MapFormatReader.getHex(this.specialByte)).append(MapFile.NL);
+		sb.append("Tag IDs: ").append(MapFile.NL);
+		for (Integer i : tagID) {
+			sb.append(i).append(MapFile.NL);
+		}
+		sb.append("Flags: ").append(MapFormatReader.getHex(this.specialByte)).append(MapFile.NL);
+		sb.append("Name: ").append(this.name).append(MapFile.NL);
+		sb.append("Elevation: ").append(this.elevation).append(MapFile.NL);
+		sb.append("Hosue number: ").append(this.houseNumber).append(MapFile.NL);
+		return sb.toString();
+	}
+
 	/**
 	 * @return Layer (OSM-Tag: layer=...) + 5 (to avoid negative values).
 	 */

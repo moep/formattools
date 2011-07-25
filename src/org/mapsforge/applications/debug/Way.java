@@ -59,6 +59,22 @@ public class Way {
 		this.wayNodesLonDiff = new LinkedList<Integer>();
 	}
 
+	@Override
+	public String toString() {
+		// TODO finish
+		StringBuilder sb = new StringBuilder();
+		sb.append("--- W A Y ---").append(MapFile.NL);
+		sb.append("Way signature: ").append(this.waySignature).append(MapFile.NL);
+		sb.append("Way size: ").append(this.waySize).append(MapFile.NL);
+		sb.append("Sub tile bitmap ").append(MapFormatReader.getHex(this.subTileBitmap[0])).append(" ")
+				.append(MapFormatReader.getHex(this.subTileBitmap[1])).append(MapFile.NL);
+		sb.append("Special byte 1: ").append(MapFormatReader.getHex(this.specialByte1))
+				.append(MapFile.NL);
+		sb.append("Special byte 2: ").append(MapFormatReader.getHex(this.specialByte2))
+				.append(MapFile.NL);
+		return sb.toString();
+	}
+
 	public int getLayer() {
 		return this.specialByte1 & 0xf0 + 5;
 	}
@@ -128,6 +144,8 @@ public class Way {
 	}
 
 	public boolean isMultipolygonFlagSet() {
+		if ((this.flags & 0x10) != 0)
+			System.out.println("****** OMFG multipolygon!!! ******");
 		return (this.flags & 0x10) != 0;
 	}
 

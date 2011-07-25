@@ -42,6 +42,7 @@ public class MapFormatReader {
 	private byte[] magicByte;
 	private int headerSize;
 	private int fileVersion;
+	// TODO store value in MapFile
 	private byte flags;
 	private byte amountOfZoomIntervals;
 	private String projection;
@@ -212,7 +213,7 @@ public class MapFormatReader {
 		this.offset = this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		this.f.seek(this.offset);
 
-		System.out.println("  Subfile start offset: " + this.offset);
+		System.out.println("  Subfile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
 
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
@@ -242,18 +243,20 @@ public class MapFormatReader {
 			sf.addIndexEntry(getNextLong5());
 		}
 
+		Tile t;
 		for (long i = 0; i < numBlocks; i++) {
-			sf.addTile(getNextTile(sf, zoomInterval));
+			t = getNextTile(sf, zoomInterval);
+			System.out.println("Adding tile: (zoomInterval=" + zoomInterval + ")");
+			System.out.println(t);
+			sf.addTile(t);
 		}
 
 	}
 
 	private Tile getNextTile(SubFile sf, byte zoomInterval) throws IOException {
-		System.out.println("Parsing tile for zoom interval " + zoomInterval + "...");
-
 		// Headers, POIs and ways
 		Tile t;
-		System.out.println("  Tile start offset: " + this.offset);
+		System.out.println("  Tile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
 		t = new Tile(this.mapFile, sf);
 
 		// H E A D E R
@@ -281,17 +284,24 @@ public class MapFormatReader {
 		// P O I s
 		// TODO get base zoom level
 		// TODO save data
-		System.out.println("  This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(10) + " POIs.");
-
-		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(10); poi++) {
+		System.out
+				.println("  This tile has "
+						+ t.getCumulatedNumberOfPoisOnZoomlevel(10)
+						+ " POIs.");
+		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
+				.getMaximalZoomLevel()[zoomInterval]); poi++) {
 			// TODO add POIs to tile
 			getNextPOI();
 		}
 
 		// W A Y S
 		// TODO save data
-		System.out.println("  This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(10) + " ways.");
-		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(10); way++) {
+		System.out
+				.println("  This tile has "
+						+ t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile.getMaximalZoomLevel()[zoomInterval])
+						+ " ways.");
+		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
+				.getMaximalZoomLevel()[zoomInterval]); way++) {
 			getNextWay();
 		}
 
@@ -301,7 +311,8 @@ public class MapFormatReader {
 
 	private POI getNextPOI() throws IOException {
 		POI p = new POI();
-		System.out.println("  Parsing POI at offset " + this.offset + "...");
+		System.out.println("  Parsing POI at offset " + this.offset + " (" + getHex(this.offset)
+				+ ") ...");
 
 		// POI signature (32B, optional)
 		if (this.mapFile.isDebugFlagSet()) {
@@ -343,63 +354,75 @@ public class MapFormatReader {
 		return p;
 	}
 
+	// TODO bug in bremen.map @ 35028 (---WayStart41416940---)
 	private Way getNextWay() throws IOException {
 		Way w = new Way();
 
-		System.out.println("  Parsing way at offset " + this.offset + "...");
+		System.out.println("  Parsing way at offset " + this.offset + " (" + getHex(this.offset)
+				+ ") ...");
 		// Way signature (32B, optional)
 		if (this.mapFile.isDebugFlagSet()) {
 			this.f.seek(this.offset);
 			this.f.read(this.buffer, 0, 32);
 			this.offset += 32;
-			System.out.println();
 			w.setWaySignature(new String(this.buffer, 0, 32));
 		}
 
 		// Way size (VBE-U)
+		System.out.println("Way size offset: " + this.offset);
 		w.setWaySize(getNextVBEUInt());
 
 		// Sub tile bitmap (2B)
+		System.out.println("Sub tile bitmap offset: " + this.offset);
 		w.setSubTileBitmap(getNextByte(), getNextByte());
 
 		// Special byte 1 (1B)
+		System.out.println("Special byte 1 offset: " + this.offset);
 		w.setSpecialByte1(getNextByte());
 
 		// Special byte 2 (1B)
-		w.setSpecialByte1(getNextByte());
+		System.out.println("Special byte 2 offset: " + this.offset);
+		w.setSpecialByte2(getNextByte());
 
 		// Way type bitmap (1B)
+		System.out.println("Way type offset: " + this.offset);
 		w.setWayTypeBitmap(getNextByte());
 
 		// Tag ID (n * VBE-U)
+		System.out.println("Tag ID offset: " + this.offset);
+		System.out.println("  Storing " + w.getAmountOfTags() + " tag IDs");
 		for (byte tag = 0; tag < w.getAmountOfTags(); tag++) {
 			w.addTagID(getNextVBEUInt());
 		}
 
 		// Way node amount (VBE-U)
+		System.out.println("Way node amount offset: " + this.offset);
 		w.setWayNodeAmount(getNextVBEUInt());
 
 		// First way node (2*VBE-S)
-		// TODO save data
+		System.out.println("First way node offset: " + this.offset);
 		w.setFirstWayNodeLatDiff(getNextVBESInt());
 		w.setFirstWayNodeLonDiff(getNextVBESInt());
 
 		// Way nodes (n*2*VBE-S)
-		for (int i = 0; i < w.getWayNodeAmount(); i++) {
+		System.out.println("  Storing " + (w.getWayNodeAmount() - 1) + " additional way nodes");
+		for (int i = 0; i < w.getWayNodeAmount() - 1; i++) {
 			w.addWayNodesLatDiff(getNextVBESInt());
 			w.addWayNodesLonDiff(getNextVBESInt());
 		}
 
 		// Flags (1B)
+		System.out.println("Flags offset: " + this.offset);
 		w.setFlags(getNextByte());
 
 		// Name (String, optional)
-		// TODO save data
+		System.out.println("Name offset: " + this.offset);
 		if (w.isWayFlagSet()) {
 			w.setName(getNextString());
 		}
 
 		// Reference (String, optional)
+		System.out.println("Reference string offset: " + this.offset);
 		if (w.isReferenceFlagSet()) {
 			w.setReference(getNextString());
 		}
@@ -411,12 +434,13 @@ public class MapFormatReader {
 		}
 
 		// Multipolygon (variable, optional)
+		// TODO save values
+		System.out.println("Multipolygon offset: " + this.offset);
 		if (w.isMultipolygonFlagSet()) {
 			int amountOfInnerWays = getNextVBEUInt();
-
+			System.out.println("Amount of inner ways: " + amountOfInnerWays);
 			// Remaining inner way nodes
 			for (int i = 0; i < amountOfInnerWays; ++i) {
-				// TODO save data
 				getNextVBESInt();
 				getNextVBESInt();
 
@@ -424,7 +448,6 @@ public class MapFormatReader {
 		}
 
 		return w;
-
 	}
 
 	static String getHex(byte[] raw) {
@@ -518,37 +541,36 @@ public class MapFormatReader {
 	}
 
 	private int getNextVBEUInt() throws IOException {
-		int ret = 0x0;
+		byte shift = 0;
+		int ret = 0;
 		byte b;
-		for (int i = 0; i < 4; i++) {
-			b = getNextByte();
-			ret |= b & 0x7f;
 
-			if ((b & 0x80) == 0) {
-				break;
-			}
-
-			ret = ret << 7;
-
+		// Bytes with continuation bit (low order bytes)
+		while (((b = getNextByte()) & 0x80) != 0) {
+			ret |= (b & 0x7f) << shift;
+			shift += 7;
 		}
+
+		// High order byte (last byte)
+		ret |= (b & 0x7f) << shift;
 
 		return ret;
 	}
 
 	private int getNextVBESInt() throws IOException {
-		int ret = 0x0;
+		// TODO test
+		byte shift = 0;
+		int ret = 0;
 		byte b;
-		for (int i = 0; i < 4; i++) {
-			b = getNextByte();
-			ret |= b & 0x7f;
 
-			if ((b & 0x80) == 0) {
-				break;
-			}
-
-			ret = ret << 7;
-
+		// Bytes with continuation bit (low order bytes)
+		while (((b = getNextByte()) & 0x80) != 0) {
+			ret |= (b & 0x7f) << shift;
+			shift += 7;
 		}
+
+		// High order byte (last byte)
+		ret |= (b & 0x7f) << shift;
 
 		return (ret & 0x80000000) == 0 ? ret : -ret;
 	}
