@@ -75,6 +75,13 @@ class SubFile {
 		return sb.toString();
 	}
 
+	public boolean isEmptyTile(int tileID) {
+		// TODO find a better solution without casting
+		if (tileID == 0)
+			return false;
+		return indexEntry.get(tileID).equals(indexEntry.get(tileID - 1));
+	}
+
 	/**
 	 * Returns the n-th tile in this subfile.
 	 * 

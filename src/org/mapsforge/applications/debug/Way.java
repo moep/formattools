@@ -144,8 +144,6 @@ public class Way {
 	}
 
 	public boolean isMultipolygonFlagSet() {
-		if ((this.flags & 0x10) != 0)
-			System.out.println("****** OMFG multipolygon!!! ******");
 		return (this.flags & 0x10) != 0;
 	}
 

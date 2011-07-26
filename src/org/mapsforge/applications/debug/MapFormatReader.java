@@ -87,7 +87,7 @@ public class MapFormatReader {
 		this.f = new RandomAccessFile(path, "r");
 		// this.f = new RAF(path, "r");
 
-		this.buffer = new byte[1024];
+		this.buffer = new byte[1024 * 100];
 		this.mapFile = new MapFile();
 	}
 
@@ -101,11 +101,13 @@ public class MapFormatReader {
 		parseHeader();
 
 		this.tileOffsets = new ArrayList[this.mapFile.getAmountOfZoomIntervals()];
-		getNextSubFile((byte) 0);
 
-		// for (byte i = 0; i < this.numZoomIntervals; i++) {
-		// parseSubFile((byte) i);
-		// }
+		for (byte i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
+			System.out.println("Subfile offset: " + this.offset);
+			getNextSubFile((byte) i);
+		}
+
+		System.out.println("####DONE");
 
 		return this.mapFile;
 	}
@@ -206,7 +208,7 @@ public class MapFormatReader {
 	}
 
 	private void getNextSubFile(byte zoomInterval) throws IOException {
-		System.out.println("Parsing subfile " + zoomInterval + "...");
+		System.out.println("--- S U B F I L E " + zoomInterval + " ---");
 		SubFile sf = new SubFile(this.mapFile, zoomInterval);
 		this.mapFile.addSubFile(sf);
 
@@ -226,6 +228,12 @@ public class MapFormatReader {
 		long lastY = MercatorProjection.latitudeToTileY(this.mapFile.getMaxLat()
 				/ MapFormatReader.COORDINATES_FACTOR, this.mapFile.getBaseZoomLevel()[zoomInterval]);
 
+		// System.out.println("First x: " + firstX);
+		// System.out.println("Last x: " + lastX);
+		// System.out.println("First y: " + firstY);
+		// System.out.println("Last y: " + lastY);
+		// System.out.println("Base zoom level: " + this.mapFile.getBaseZoomLevel()[zoomInterval]);
+
 		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
 		System.out.println("  Number of tiles (blocks) in this subfile: " + numBlocks);
 
@@ -244,19 +252,23 @@ public class MapFormatReader {
 		}
 
 		Tile t;
-		for (long i = 0; i < numBlocks; i++) {
+		for (int i = 0; i < numBlocks; i++) {
+			System.out.println("Get next tile (" + i + " / " + numBlocks + ")");
+			System.out.println("Index should be: " + sf.getTileOffset(i));
+			if (sf.isEmptyTile(i)) {
+				System.out.println("**SKIPPING EMTPY TILE**");
+				continue;
+			}
 			t = getNextTile(sf, zoomInterval);
-			System.out.println("Adding tile: (zoomInterval=" + zoomInterval + ")");
-			System.out.println(t);
 			sf.addTile(t);
 		}
 
 	}
 
 	private Tile getNextTile(SubFile sf, byte zoomInterval) throws IOException {
+		System.out.println("Offset: " + this.offset);
 		// Headers, POIs and ways
 		Tile t;
-		System.out.println("  Tile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
 		t = new Tile(this.mapFile, sf);
 
 		// H E A D E R
@@ -284,10 +296,8 @@ public class MapFormatReader {
 		// P O I s
 		// TODO get base zoom level
 		// TODO save data
-		System.out
-				.println("  This tile has "
-						+ t.getCumulatedNumberOfPoisOnZoomlevel(10)
-						+ " POIs.");
+		// System.out.println("This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
+		// .getMaximalZoomLevel()[zoomInterval]) + " POIs");
 		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); poi++) {
 			// TODO add POIs to tile
@@ -296,10 +306,8 @@ public class MapFormatReader {
 
 		// W A Y S
 		// TODO save data
-		System.out
-				.println("  This tile has "
-						+ t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile.getMaximalZoomLevel()[zoomInterval])
-						+ " ways.");
+		// System.out.println("This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
+		// .getMaximalZoomLevel()[zoomInterval]) + " ways");
 		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); way++) {
 			getNextWay();
@@ -311,8 +319,6 @@ public class MapFormatReader {
 
 	private POI getNextPOI() throws IOException {
 		POI p = new POI();
-		System.out.println("  Parsing POI at offset " + this.offset + " (" + getHex(this.offset)
-				+ ") ...");
 
 		// POI signature (32B, optional)
 		if (this.mapFile.isDebugFlagSet()) {
@@ -358,8 +364,6 @@ public class MapFormatReader {
 	private Way getNextWay() throws IOException {
 		Way w = new Way();
 
-		System.out.println("  Parsing way at offset " + this.offset + " (" + getHex(this.offset)
-				+ ") ...");
 		// Way signature (32B, optional)
 		if (this.mapFile.isDebugFlagSet()) {
 			this.f.seek(this.offset);
@@ -369,60 +373,47 @@ public class MapFormatReader {
 		}
 
 		// Way size (VBE-U)
-		System.out.println("Way size offset: " + this.offset);
 		w.setWaySize(getNextVBEUInt());
 
 		// Sub tile bitmap (2B)
-		System.out.println("Sub tile bitmap offset: " + this.offset);
 		w.setSubTileBitmap(getNextByte(), getNextByte());
 
 		// Special byte 1 (1B)
-		System.out.println("Special byte 1 offset: " + this.offset);
 		w.setSpecialByte1(getNextByte());
 
 		// Special byte 2 (1B)
-		System.out.println("Special byte 2 offset: " + this.offset);
 		w.setSpecialByte2(getNextByte());
 
 		// Way type bitmap (1B)
-		System.out.println("Way type offset: " + this.offset);
 		w.setWayTypeBitmap(getNextByte());
 
 		// Tag ID (n * VBE-U)
-		System.out.println("Tag ID offset: " + this.offset);
-		System.out.println("  Storing " + w.getAmountOfTags() + " tag IDs");
 		for (byte tag = 0; tag < w.getAmountOfTags(); tag++) {
 			w.addTagID(getNextVBEUInt());
 		}
 
 		// Way node amount (VBE-U)
-		System.out.println("Way node amount offset: " + this.offset);
 		w.setWayNodeAmount(getNextVBEUInt());
 
 		// First way node (2*VBE-S)
-		System.out.println("First way node offset: " + this.offset);
 		w.setFirstWayNodeLatDiff(getNextVBESInt());
 		w.setFirstWayNodeLonDiff(getNextVBESInt());
 
 		// Way nodes (n*2*VBE-S)
-		System.out.println("  Storing " + (w.getWayNodeAmount() - 1) + " additional way nodes");
 		for (int i = 0; i < w.getWayNodeAmount() - 1; i++) {
 			w.addWayNodesLatDiff(getNextVBESInt());
 			w.addWayNodesLonDiff(getNextVBESInt());
 		}
 
 		// Flags (1B)
-		System.out.println("Flags offset: " + this.offset);
 		w.setFlags(getNextByte());
 
 		// Name (String, optional)
-		System.out.println("Name offset: " + this.offset);
 		if (w.isWayFlagSet()) {
 			w.setName(getNextString());
 		}
 
 		// Reference (String, optional)
-		System.out.println("Reference string offset: " + this.offset);
 		if (w.isReferenceFlagSet()) {
 			w.setReference(getNextString());
 		}
@@ -435,14 +426,17 @@ public class MapFormatReader {
 
 		// Multipolygon (variable, optional)
 		// TODO save values
-		System.out.println("Multipolygon offset: " + this.offset);
 		if (w.isMultipolygonFlagSet()) {
 			int amountOfInnerWays = getNextVBEUInt();
-			System.out.println("Amount of inner ways: " + amountOfInnerWays);
+
 			// Remaining inner way nodes
 			for (int i = 0; i < amountOfInnerWays; ++i) {
-				getNextVBESInt();
-				getNextVBESInt();
+				int amountOfInnerWayNodes = getNextVBEUInt();
+
+				for (int j = 0; j < amountOfInnerWayNodes; j++) {
+					getNextVBESInt();
+					getNextVBESInt();
+				}
 
 			}
 		}
@@ -497,14 +491,14 @@ public class MapFormatReader {
 
 	private byte getNextByte() throws IOException {
 		this.f.seek(this.offset);
-		this.f.read(this.buffer, 0, 1);
+		int success = this.f.read(this.buffer, 0, 1);
 		this.offset += 1;
 
 		return this.buffer[0];
 	}
 
 	private String getNextString() throws IOException {
-		int strlen = getNextByte();
+		int strlen = getNextVBEUInt();
 		this.f.seek(this.offset);
 		this.f.read(this.buffer, 0, strlen);
 		this.buffer[strlen] = '\0';
