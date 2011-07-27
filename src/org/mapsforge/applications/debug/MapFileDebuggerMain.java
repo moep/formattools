@@ -79,7 +79,7 @@ public class MapFileDebuggerMain {
 		MapFormatReader mfr = null;
 		MapFile mf = null;
 		try {
-			mfr = new MapFormatReader("/home/moep/bremen.map");
+			mfr = new MapFormatReader("/home/moep/hamburg-0.2.4.map");
 			mf = mfr.parseFile();
 			mfr.close();
 		} catch (IOException e) {

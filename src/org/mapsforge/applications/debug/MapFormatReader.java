@@ -98,13 +98,16 @@ public class MapFormatReader {
 	 *             when the file cannot be read.
 	 */
 	public MapFile parseFile() throws IOException {
+
 		parseHeader();
 
 		this.tileOffsets = new ArrayList[this.mapFile.getAmountOfZoomIntervals()];
 
+		SubFile sf;
 		for (byte i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
 			System.out.println("Subfile offset: " + this.offset);
-			getNextSubFile((byte) i);
+			// TODO add subfile to map file
+			this.mapFile.addSubFile(getNextSubFile(i));
 		}
 
 		System.out.println("####DONE");
@@ -153,7 +156,8 @@ public class MapFormatReader {
 		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
 
 		// Map start position (8B)
-		if ((this.flags & 0x40) != 0) {
+		if (this.mapFile.isMapStartPositionFlagSet()) {
+			System.out.println("Map Start Position");
 			this.mapFile.setMapStartPosition(getNextInt(), getNextInt());
 		}
 
@@ -162,12 +166,14 @@ public class MapFormatReader {
 
 		// POI tag mapping (variable)
 		// amount of mappings (2B)
+		System.out.println("POI tag mapping amount offset: " + this.offset);
 		this.mapFile.setAmountOfPOIMappings(getNextDword());
 		this.mapFile.preparePOIMappings();
 
 		// POI tag mapping (variable)
 		int tagID;
 		String tagName;
+		System.out.println("Adding " + this.mapFile.getAmountOfPOIMappings() + " POIs.");
 		for (int i = 0; i < this.mapFile.getAmountOfPOIMappings(); i++) {
 
 			// Tag name (variable)
@@ -175,7 +181,7 @@ public class MapFormatReader {
 
 			// tag ID (2B)
 			tagID = getNextDword();
-
+			System.out.println(tagID + " => " + tagName);
 			this.mapFile.getPOIMappings()[tagID] = tagName;
 		}
 
@@ -185,13 +191,15 @@ public class MapFormatReader {
 		this.mapFile.prepareWayTagMappings();
 
 		// Way tag mapping (variable)
+		System.out.println("Adding " + this.mapFile.getAmountOfWayTagMappings() + " ways.");
 		for (int i = 0; i < this.mapFile.getAmountOfWayTagMappings(); i++) {
-
+			System.out.println("Way " + i);
 			// tag name (variable)
 			tagName = getNextString();
 
 			// tag ID (2B)
 			tagID = getNextDword();
+			System.out.println(tagID + " => " + tagName);
 			this.mapFile.getWayTagMappings()[tagID] = tagName;
 		}
 
@@ -207,7 +215,7 @@ public class MapFormatReader {
 
 	}
 
-	private void getNextSubFile(byte zoomInterval) throws IOException {
+	private SubFile getNextSubFile(byte zoomInterval) throws IOException {
 		System.out.println("--- S U B F I L E " + zoomInterval + " ---");
 		SubFile sf = new SubFile(this.mapFile, zoomInterval);
 		this.mapFile.addSubFile(sf);
@@ -216,6 +224,7 @@ public class MapFormatReader {
 		this.f.seek(this.offset);
 
 		System.out.println("  Subfile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
+		long subFileOffset = this.offset;
 
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
@@ -251,23 +260,30 @@ public class MapFormatReader {
 			sf.addIndexEntry(getNextLong5());
 		}
 
-		Tile t;
+		Tile t = null;
+		int tilesProcessed = 0;
 		for (int i = 0; i < numBlocks; i++) {
-			System.out.println("Get next tile (" + i + " / " + numBlocks + ")");
-			System.out.println("Index should be: " + sf.getTileOffset(i));
+			++tilesProcessed;
+			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ") @ " + this.offset
+					+ "...");
 			if (sf.isEmptyTile(i)) {
-				System.out.println("**SKIPPING EMTPY TILE**");
+				sf.addTile(null);
+				System.out.println("skipped.");
 				continue;
 			}
 			t = getNextTile(sf, zoomInterval);
 			sf.addTile(t);
+			System.out.println("done.");
+			System.out.println(t);
 		}
 
+		System.out.println("Processed " + tilesProcessed + " tiles.");
+
+		return sf;
 	}
 
 	private Tile getNextTile(SubFile sf, byte zoomInterval) throws IOException {
-		System.out.println("Offset: " + this.offset);
-		// Headers, POIs and ways
+
 		Tile t;
 		t = new Tile(this.mapFile, sf);
 
@@ -360,7 +376,6 @@ public class MapFormatReader {
 		return p;
 	}
 
-	// TODO bug in bremen.map @ 35028 (---WayStart41416940---)
 	private Way getNextWay() throws IOException {
 		Way w = new Way();
 
@@ -491,7 +506,7 @@ public class MapFormatReader {
 
 	private byte getNextByte() throws IOException {
 		this.f.seek(this.offset);
-		int success = this.f.read(this.buffer, 0, 1);
+		this.f.read(this.buffer, 0, 1);
 		this.offset += 1;
 
 		return this.buffer[0];
@@ -524,13 +539,18 @@ public class MapFormatReader {
 	}
 
 	private long getNextLong5() throws IOException {
+
 		this.f.seek(this.offset);
 		this.f.read(this.buffer, 0, 5);
-		this.offset += 5;
 
-		return (this.buffer[0] & 0xffL) << 32 | (this.buffer[1] & 0xffL) << 24
+		long ret = (this.buffer[0] & 0xffL) << 32 | (this.buffer[1] & 0xffL) << 24
 				| (this.buffer[2] & 0xffL) << 16 | (this.buffer[3] & 0xffL) << 8
 				| (this.buffer[4] & 0xffL);
+		ret = ret & 0x7FFFFFFFFFL;
+
+		this.offset += 5;
+
+		return ret;
 
 	}
 
