@@ -105,7 +105,6 @@ public class MapFormatReader {
 
 		SubFile sf;
 		for (byte i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
-			System.out.println("Subfile offset: " + this.offset);
 			// TODO add subfile to map file
 			this.mapFile.addSubFile(getNextSubFile(i));
 		}
@@ -157,7 +156,6 @@ public class MapFormatReader {
 
 		// Map start position (8B)
 		if (this.mapFile.isMapStartPositionFlagSet()) {
-			System.out.println("Map Start Position");
 			this.mapFile.setMapStartPosition(getNextInt(), getNextInt());
 		}
 
@@ -166,14 +164,12 @@ public class MapFormatReader {
 
 		// POI tag mapping (variable)
 		// amount of mappings (2B)
-		System.out.println("POI tag mapping amount offset: " + this.offset);
 		this.mapFile.setAmountOfPOIMappings(getNextDword());
 		this.mapFile.preparePOIMappings();
 
 		// POI tag mapping (variable)
 		int tagID;
 		String tagName;
-		System.out.println("Adding " + this.mapFile.getAmountOfPOIMappings() + " POIs.");
 		for (int i = 0; i < this.mapFile.getAmountOfPOIMappings(); i++) {
 
 			// Tag name (variable)
@@ -181,7 +177,6 @@ public class MapFormatReader {
 
 			// tag ID (2B)
 			tagID = getNextDword();
-			System.out.println(tagID + " => " + tagName);
 			this.mapFile.getPOIMappings()[tagID] = tagName;
 		}
 
@@ -191,20 +186,19 @@ public class MapFormatReader {
 		this.mapFile.prepareWayTagMappings();
 
 		// Way tag mapping (variable)
-		System.out.println("Adding " + this.mapFile.getAmountOfWayTagMappings() + " ways.");
 		for (int i = 0; i < this.mapFile.getAmountOfWayTagMappings(); i++) {
-			System.out.println("Way " + i);
 			// tag name (variable)
 			tagName = getNextString();
 
 			// tag ID (2B)
 			tagID = getNextDword();
-			System.out.println(tagID + " => " + tagName);
 			this.mapFile.getWayTagMappings()[tagID] = tagName;
 		}
 
 		// Comment (variable)
 		this.mapFile.setComment(getNextString());
+
+		System.out.println("Index offset offset: " + this.offset);
 
 		// Zoom interval configuration (variable)
 		this.mapFile.prepareZoomIntervalConfiguration();
@@ -216,6 +210,7 @@ public class MapFormatReader {
 	}
 
 	private SubFile getNextSubFile(byte zoomInterval) throws IOException {
+		long indexOffset;
 		System.out.println("--- S U B F I L E " + zoomInterval + " ---");
 		SubFile sf = new SubFile(this.mapFile, zoomInterval);
 		this.mapFile.addSubFile(sf);
@@ -224,7 +219,6 @@ public class MapFormatReader {
 		this.f.seek(this.offset);
 
 		System.out.println("  Subfile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
-		long subFileOffset = this.offset;
 
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
@@ -246,6 +240,10 @@ public class MapFormatReader {
 		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
 		System.out.println("  Number of tiles (blocks) in this subfile: " + numBlocks);
 
+		// Save the index offset (for debug purposes)
+		indexOffset = this.offset;
+		System.out.println("Index offset: " + this.offset);
+
 		// Tile index segment
 		// index signature (16B, optional)
 		if (this.mapFile.isDebugFlagSet()) {
@@ -257,15 +255,20 @@ public class MapFormatReader {
 
 		// Get all tile offsets (TileNr, Data, Water Block)
 		for (long i = 0; i < numBlocks; i++) {
-			sf.addIndexEntry(getNextLong5());
+			long val = getNextLong5();
+			System.out.println(i + ": Offset: " + this.offset + " long5: " + val);
+			sf.addIndexEntry(val);
 		}
+
+		System.out.println("There are " + sf.getAmountOfTilesInIndex() + " tiles in the index.");
 
 		Tile t = null;
 		int tilesProcessed = 0;
-		for (int i = 0; i < numBlocks; i++) {
+		for (int i = 0; i < sf.getAmountOfTilesInIndex(); i++) {
 			++tilesProcessed;
-			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ") @ " + this.offset
-					+ "...");
+			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ") @ "
+					+ this.offset
+					+ "(" + (sf.getTileOffset(i) + indexOffset) + ")...");
 			if (sf.isEmptyTile(i)) {
 				sf.addTile(null);
 				System.out.println("skipped.");
@@ -274,7 +277,6 @@ public class MapFormatReader {
 			t = getNextTile(sf, zoomInterval);
 			sf.addTile(t);
 			System.out.println("done.");
-			System.out.println(t);
 		}
 
 		System.out.println("Processed " + tilesProcessed + " tiles.");

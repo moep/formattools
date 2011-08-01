@@ -34,7 +34,7 @@ class SubFile {
 	// Tile index segment
 	private String indexSignature;
 	List<Long> indexEntry;
-
+	// This subfiles' tiles
 	List<Tile> tiles;
 
 	/**
@@ -73,6 +73,10 @@ class SubFile {
 		sb.append("#Tiles: " + this.tiles.size()).append(MapFile.NL);
 
 		return sb.toString();
+	}
+
+	public int getAmountOfTilesInIndex() {
+		return this.indexEntry.size();
 	}
 
 	public boolean isEmptyTile(int tileID) {
@@ -125,6 +129,5 @@ class SubFile {
 	public void setIndexSignature(String indexSignature) {
 		this.indexSignature = indexSignature;
 	}
-	
-	
+
 }
