@@ -80,10 +80,12 @@ class SubFile {
 	}
 
 	public boolean isEmptyTile(int tileID) {
-		// TODO find a better solution without casting
-		if (tileID == 0)
-			return false;
-		return indexEntry.get(tileID).equals(indexEntry.get(tileID - 1));
+		// Last tile? (Cannot be empty)
+		if (tileID == indexEntry.size() - 1) {
+			return indexEntry.get(tileID).equals(indexEntry.get(tileID - 1));
+		}
+
+		return indexEntry.get(tileID).equals(indexEntry.get(tileID + 1));
 	}
 
 	/**

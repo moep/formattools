@@ -1,0 +1,867 @@
+###TileStart137,83###
+###TileStart137,84###
+Empty tile: 8787 5361
+Empty tile: 8788 5361
+Empty tile: 8789 5361
+Empty tile: 8790 5361
+Empty tile: 8791 5361
+Empty tile: 8792 5361
+Empty tile: 8793 5361
+###TileStart8794,5361###
+###TileStart8795,5361###
+###TileStart8796,5361###
+###TileStart8797,5361###
+###TileStart8798,5361###
+###TileStart8799,5361###
+###TileStart8800,5361###
+###TileStart8801,5361###
+###TileStart8802,5361###
+###TileStart8803,5361###
+###TileStart8804,5361###
+###TileStart8805,5361###
+###TileStart8806,5361###
+Empty tile: 8807 5361
+Empty tile: 8808 5361
+Empty tile: 8809 5361
+Empty tile: 8810 5361
+Empty tile: 8811 5361
+Empty tile: 8812 5361
+Empty tile: 8813 5361
+Empty tile: 8814 5361
+Empty tile: 8815 5361
+Empty tile: 8816 5361
+Empty tile: 8817 5361
+Empty tile: 8818 5361
+Empty tile: 8787 5362
+Empty tile: 8788 5362
+Empty tile: 8789 5362
+Empty tile: 8790 5362
+Empty tile: 8791 5362
+Empty tile: 8792 5362
+###TileStart8793,5362###
+###TileStart8794,5362###
+###TileStart8795,5362###
+###TileStart8796,5362###
+###TileStart8797,5362###
+###TileStart8798,5362###
+###TileStart8799,5362###
+###TileStart8800,5362###
+###TileStart8801,5362###
+###TileStart8802,5362###
+###TileStart8803,5362###
+###TileStart8804,5362###
+###TileStart8805,5362###
+###TileStart8806,5362###
+###TileStart8807,5362###
+###TileStart8808,5362###
+Empty tile: 8809 5362
+Empty tile: 8810 5362
+Empty tile: 8811 5362
+Empty tile: 8812 5362
+Empty tile: 8813 5362
+Empty tile: 8814 5362
+Empty tile: 8815 5362
+Empty tile: 8816 5362
+Empty tile: 8817 5362
+Empty tile: 8818 5362
+Empty tile: 8787 5363
+Empty tile: 8788 5363
+Empty tile: 8789 5363
+Empty tile: 8790 5363
+Empty tile: 8791 5363
+Empty tile: 8792 5363
+###TileStart8793,5363###
+###TileStart8794,5363###
+###TileStart8795,5363###
+###TileStart8796,5363###
+###TileStart8797,5363###
+###TileStart8798,5363###
+###TileStart8799,5363###
+###TileStart8800,5363###
+###TileStart8801,5363###
+###TileStart8802,5363###
+###TileStart8803,5363###
+###TileStart8804,5363###
+###TileStart8805,5363###
+###TileStart8806,5363###
+###TileStart8807,5363###
+###TileStart8808,5363###
+###TileStart8809,5363###
+Empty tile: 8810 5363
+Empty tile: 8811 5363
+Empty tile: 8812 5363
+Empty tile: 8813 5363
+Empty tile: 8814 5363
+Empty tile: 8815 5363
+Empty tile: 8816 5363
+Empty tile: 8817 5363
+Empty tile: 8818 5363
+###TileStart8787,5364###
+###TileStart8788,5364###
+Empty tile: 8789 5364
+###TileStart8790,5364###
+###TileStart8791,5364###
+###TileStart8792,5364###
+###TileStart8793,5364###
+###TileStart8794,5364###
+###TileStart8795,5364###
+###TileStart8796,5364###
+###TileStart8797,5364###
+###TileStart8798,5364###
+###TileStart8799,5364###
+###TileStart8800,5364###
+###TileStart8801,5364###
+###TileStart8802,5364###
+###TileStart8803,5364###
+###TileStart8804,5364###
+###TileStart8805,5364###
+###TileStart8806,5364###
+###TileStart8807,5364###
+###TileStart8808,5364###
+###TileStart8809,5364###
+Empty tile: 8810 5364
+Empty tile: 8811 5364
+Empty tile: 8812 5364
+Empty tile: 8813 5364
+Empty tile: 8814 5364
+Empty tile: 8815 5364
+Empty tile: 8816 5364
+Empty tile: 8817 5364
+Empty tile: 8818 5364
+###TileStart8787,5365###
+###TileStart8788,5365###
+###TileStart8789,5365###
+###TileStart8790,5365###
+###TileStart8791,5365###
+###TileStart8792,5365###
+###TileStart8793,5365###
+###TileStart8794,5365###
+###TileStart8795,5365###
+###TileStart8796,5365###
+###TileStart8797,5365###
+###TileStart8798,5365###
+###TileStart8799,5365###
+###TileStart8800,5365###
+###TileStart8801,5365###
+###TileStart8802,5365###
+###TileStart8803,5365###
+###TileStart8804,5365###
+###TileStart8805,5365###
+###TileStart8806,5365###
+###TileStart8807,5365###
+###TileStart8808,5365###
+###TileStart8809,5365###
+###TileStart8810,5365###
+###TileStart8811,5365###
+###TileStart8812,5365###
+Empty tile: 8813 5365
+Empty tile: 8814 5365
+Empty tile: 8815 5365
+Empty tile: 8816 5365
+Empty tile: 8817 5365
+Empty tile: 8818 5365
+###TileStart8787,5366###
+###TileStart8788,5366###
+###TileStart8789,5366###
+###TileStart8790,5366###
+###TileStart8791,5366###
+###TileStart8792,5366###
+###TileStart8793,5366###
+###TileStart8794,5366###
+###TileStart8795,5366###
+###TileStart8796,5366###
+###TileStart8797,5366###
+###TileStart8798,5366###
+###TileStart8799,5366###
+###TileStart8800,5366###
+###TileStart8801,5366###
+###TileStart8802,5366###
+###TileStart8803,5366###
+###TileStart8804,5366###
+###TileStart8805,5366###
+###TileStart8806,5366###
+###TileStart8807,5366###
+###TileStart8808,5366###
+###TileStart8809,5366###
+###TileStart8810,5366###
+Empty tile: 8811 5366
+Empty tile: 8812 5366
+###TileStart8813,5366###
+Empty tile: 8814 5366
+Empty tile: 8815 5366
+Empty tile: 8816 5366
+Empty tile: 8817 5366
+Empty tile: 8818 5366
+###TileStart8787,5367###
+###TileStart8788,5367###
+###TileStart8789,5367###
+###TileStart8790,5367###
+###TileStart8791,5367###
+###TileStart8792,5367###
+###TileStart8793,5367###
+###TileStart8794,5367###
+###TileStart8795,5367###
+###TileStart8796,5367###
+###TileStart8797,5367###
+###TileStart8798,5367###
+###TileStart8799,5367###
+###TileStart8800,5367###
+###TileStart8801,5367###
+###TileStart8802,5367###
+###TileStart8803,5367###
+###TileStart8804,5367###
+###TileStart8805,5367###
+###TileStart8806,5367###
+###TileStart8807,5367###
+###TileStart8808,5367###
+###TileStart8809,5367###
+###TileStart8810,5367###
+###TileStart8811,5367###
+Empty tile: 8812 5367
+###TileStart8813,5367###
+###TileStart8814,5367###
+Empty tile: 8815 5367
+Empty tile: 8816 5367
+Empty tile: 8817 5367
+Empty tile: 8818 5367
+###TileStart8787,5368###
+###TileStart8788,5368###
+###TileStart8789,5368###
+###TileStart8790,5368###
+###TileStart8791,5368###
+###TileStart8792,5368###
+###TileStart8793,5368###
+###TileStart8794,5368###
+###TileStart8795,5368###
+###TileStart8796,5368###
+###TileStart8797,5368###
+###TileStart8798,5368###
+###TileStart8799,5368###
+###TileStart8800,5368###
+###TileStart8801,5368###
+###TileStart8802,5368###
+###TileStart8803,5368###
+###TileStart8804,5368###
+###TileStart8805,5368###
+###TileStart8806,5368###
+###TileStart8807,5368###
+###TileStart8808,5368###
+###TileStart8809,5368###
+###TileStart8810,5368###
+###TileStart8811,5368###
+Empty tile: 8812 5368
+Empty tile: 8813 5368
+###TileStart8814,5368###
+Empty tile: 8815 5368
+Empty tile: 8816 5368
+Empty tile: 8817 5368
+Empty tile: 8818 5368
+Empty tile: 8787 5369
+###TileStart8788,5369###
+###TileStart8789,5369###
+###TileStart8790,5369###
+###TileStart8791,5369###
+###TileStart8792,5369###
+###TileStart8793,5369###
+###TileStart8794,5369###
+###TileStart8795,5369###
+###TileStart8796,5369###
+###TileStart8797,5369###
+###TileStart8798,5369###
+###TileStart8799,5369###
+###TileStart8800,5369###
+###TileStart8801,5369###
+###TileStart8802,5369###
+###TileStart8803,5369###
+###TileStart8804,5369###
+###TileStart8805,5369###
+###TileStart8806,5369###
+###TileStart8807,5369###
+###TileStart8808,5369###
+###TileStart8809,5369###
+###TileStart8810,5369###
+###TileStart8811,5369###
+Empty tile: 8812 5369
+Empty tile: 8813 5369
+###TileStart8814,5369###
+###TileStart8815,5369###
+Empty tile: 8816 5369
+Empty tile: 8817 5369
+Empty tile: 8818 5369
+###TileStart8787,5370###
+Empty tile: 8788 5370
+###TileStart8789,5370###
+###TileStart8790,5370###
+###TileStart8791,5370###
+###TileStart8792,5370###
+###TileStart8793,5370###
+###TileStart8794,5370###
+###TileStart8795,5370###
+###TileStart8796,5370###
+###TileStart8797,5370###
+###TileStart8798,5370###
+###TileStart8799,5370###
+###TileStart8800,5370###
+###TileStart8801,5370###
+###TileStart8802,5370###
+###TileStart8803,5370###
+###TileStart8804,5370###
+###TileStart8805,5370###
+###TileStart8806,5370###
+###TileStart8807,5370###
+###TileStart8808,5370###
+###TileStart8809,5370###
+###TileStart8810,5370###
+###TileStart8811,5370###
+###TileStart8812,5370###
+###TileStart8813,5370###
+###TileStart8814,5370###
+###TileStart8815,5370###
+Empty tile: 8816 5370
+Empty tile: 8817 5370
+Empty tile: 8818 5370
+###TileStart8787,5371###
+###TileStart8788,5371###
+###TileStart8789,5371###
+###TileStart8790,5371###
+###TileStart8791,5371###
+###TileStart8792,5371###
+###TileStart8793,5371###
+###TileStart8794,5371###
+###TileStart8795,5371###
+###TileStart8796,5371###
+###TileStart8797,5371###
+###TileStart8798,5371###
+###TileStart8799,5371###
+###TileStart8800,5371###
+###TileStart8801,5371###
+###TileStart8802,5371###
+###TileStart8803,5371###
+###TileStart8804,5371###
+###TileStart8805,5371###
+###TileStart8806,5371###
+###TileStart8807,5371###
+###TileStart8808,5371###
+###TileStart8809,5371###
+###TileStart8810,5371###
+###TileStart8811,5371###
+###TileStart8812,5371###
+###TileStart8813,5371###
+###TileStart8814,5371###
+###TileStart8815,5371###
+###TileStart8816,5371###
+Empty tile: 8817 5371
+Empty tile: 8818 5371
+###TileStart8787,5372###
+###TileStart8788,5372###
+###TileStart8789,5372###
+###TileStart8790,5372###
+###TileStart8791,5372###
+###TileStart8792,5372###
+###TileStart8793,5372###
+###TileStart8794,5372###
+###TileStart8795,5372###
+###TileStart8796,5372###
+###TileStart8797,5372###
+###TileStart8798,5372###
+###TileStart8799,5372###
+###TileStart8800,5372###
+###TileStart8801,5372###
+###TileStart8802,5372###
+###TileStart8803,5372###
+###TileStart8804,5372###
+###TileStart8805,5372###
+###TileStart8806,5372###
+###TileStart8807,5372###
+###TileStart8808,5372###
+###TileStart8809,5372###
+###TileStart8810,5372###
+###TileStart8811,5372###
+###TileStart8812,5372###
+###TileStart8813,5372###
+###TileStart8814,5372###
+###TileStart8815,5372###
+###TileStart8816,5372###
+Empty tile: 8817 5372
+Empty tile: 8818 5372
+Empty tile: 8787 5373
+###TileStart8788,5373###
+###TileStart8789,5373###
+###TileStart8790,5373###
+###TileStart8791,5373###
+###TileStart8792,5373###
+###TileStart8793,5373###
+###TileStart8794,5373###
+###TileStart8795,5373###
+###TileStart8796,5373###
+###TileStart8797,5373###
+###TileStart8798,5373###
+###TileStart8799,5373###
+###TileStart8800,5373###
+###TileStart8801,5373###
+###TileStart8802,5373###
+###TileStart8803,5373###
+###TileStart8804,5373###
+###TileStart8805,5373###
+###TileStart8806,5373###
+###TileStart8807,5373###
+###TileStart8808,5373###
+###TileStart8809,5373###
+###TileStart8810,5373###
+###TileStart8811,5373###
+###TileStart8812,5373###
+###TileStart8813,5373###
+###TileStart8814,5373###
+###TileStart8815,5373###
+###TileStart8816,5373###
+Empty tile: 8817 5373
+Empty tile: 8818 5373
+Empty tile: 8787 5374
+###TileStart8788,5374###
+###TileStart8789,5374###
+###TileStart8790,5374###
+###TileStart8791,5374###
+###TileStart8792,5374###
+###TileStart8793,5374###
+###TileStart8794,5374###
+###TileStart8795,5374###
+###TileStart8796,5374###
+###TileStart8797,5374###
+###TileStart8798,5374###
+###TileStart8799,5374###
+###TileStart8800,5374###
+###TileStart8801,5374###
+###TileStart8802,5374###
+###TileStart8803,5374###
+###TileStart8804,5374###
+###TileStart8805,5374###
+###TileStart8806,5374###
+###TileStart8807,5374###
+###TileStart8808,5374###
+###TileStart8809,5374###
+###TileStart8810,5374###
+###TileStart8811,5374###
+###TileStart8812,5374###
+###TileStart8813,5374###
+###TileStart8814,5374###
+###TileStart8815,5374###
+###TileStart8816,5374###
+Empty tile: 8817 5374
+Empty tile: 8818 5374
+Empty tile: 8787 5375
+###TileStart8788,5375###
+###TileStart8789,5375###
+###TileStart8790,5375###
+###TileStart8791,5375###
+###TileStart8792,5375###
+###TileStart8793,5375###
+###TileStart8794,5375###
+###TileStart8795,5375###
+###TileStart8796,5375###
+###TileStart8797,5375###
+###TileStart8798,5375###
+###TileStart8799,5375###
+###TileStart8800,5375###
+###TileStart8801,5375###
+###TileStart8802,5375###
+###TileStart8803,5375###
+###TileStart8804,5375###
+###TileStart8805,5375###
+###TileStart8806,5375###
+###TileStart8807,5375###
+###TileStart8808,5375###
+###TileStart8809,5375###
+###TileStart8810,5375###
+###TileStart8811,5375###
+###TileStart8812,5375###
+###TileStart8813,5375###
+###TileStart8814,5375###
+###TileStart8815,5375###
+###TileStart8816,5375###
+Empty tile: 8817 5375
+Empty tile: 8818 5375
+###TileStart8787,5376###
+###TileStart8788,5376###
+###TileStart8789,5376###
+###TileStart8790,5376###
+###TileStart8791,5376###
+###TileStart8792,5376###
+###TileStart8793,5376###
+###TileStart8794,5376###
+###TileStart8795,5376###
+###TileStart8796,5376###
+###TileStart8797,5376###
+###TileStart8798,5376###
+###TileStart8799,5376###
+###TileStart8800,5376###
+###TileStart8801,5376###
+###TileStart8802,5376###
+###TileStart8803,5376###
+###TileStart8804,5376###
+###TileStart8805,5376###
+###TileStart8806,5376###
+###TileStart8807,5376###
+###TileStart8808,5376###
+###TileStart8809,5376###
+###TileStart8810,5376###
+###TileStart8811,5376###
+###TileStart8812,5376###
+###TileStart8813,5376###
+###TileStart8814,5376###
+###TileStart8815,5376###
+###TileStart8816,5376###
+###TileStart8817,5376###
+###TileStart8818,5376###
+###TileStart8787,5377###
+###TileStart8788,5377###
+###TileStart8789,5377###
+###TileStart8790,5377###
+###TileStart8791,5377###
+###TileStart8792,5377###
+###TileStart8793,5377###
+###TileStart8794,5377###
+###TileStart8795,5377###
+###TileStart8796,5377###
+###TileStart8797,5377###
+###TileStart8798,5377###
+###TileStart8799,5377###
+###TileStart8800,5377###
+###TileStart8801,5377###
+###TileStart8802,5377###
+###TileStart8803,5377###
+###TileStart8804,5377###
+###TileStart8805,5377###
+###TileStart8806,5377###
+###TileStart8807,5377###
+###TileStart8808,5377###
+###TileStart8809,5377###
+###TileStart8810,5377###
+###TileStart8811,5377###
+###TileStart8812,5377###
+###TileStart8813,5377###
+###TileStart8814,5377###
+###TileStart8815,5377###
+###TileStart8816,5377###
+###TileStart8817,5377###
+###TileStart8818,5377###
+###TileStart8787,5378###
+###TileStart8788,5378###
+###TileStart8789,5378###
+###TileStart8790,5378###
+###TileStart8791,5378###
+###TileStart8792,5378###
+###TileStart8793,5378###
+###TileStart8794,5378###
+###TileStart8795,5378###
+###TileStart8796,5378###
+###TileStart8797,5378###
+###TileStart8798,5378###
+###TileStart8799,5378###
+###TileStart8800,5378###
+###TileStart8801,5378###
+###TileStart8802,5378###
+###TileStart8803,5378###
+###TileStart8804,5378###
+###TileStart8805,5378###
+###TileStart8806,5378###
+###TileStart8807,5378###
+###TileStart8808,5378###
+###TileStart8809,5378###
+###TileStart8810,5378###
+###TileStart8811,5378###
+###TileStart8812,5378###
+###TileStart8813,5378###
+###TileStart8814,5378###
+###TileStart8815,5378###
+###TileStart8816,5378###
+###TileStart8817,5378###
+###TileStart8818,5378###
+###TileStart8787,5379###
+###TileStart8788,5379###
+###TileStart8789,5379###
+###TileStart8790,5379###
+###TileStart8791,5379###
+###TileStart8792,5379###
+###TileStart8793,5379###
+###TileStart8794,5379###
+###TileStart8795,5379###
+###TileStart8796,5379###
+###TileStart8797,5379###
+###TileStart8798,5379###
+###TileStart8799,5379###
+###TileStart8800,5379###
+###TileStart8801,5379###
+###TileStart8802,5379###
+###TileStart8803,5379###
+###TileStart8804,5379###
+###TileStart8805,5379###
+###TileStart8806,5379###
+###TileStart8807,5379###
+###TileStart8808,5379###
+###TileStart8809,5379###
+###TileStart8810,5379###
+###TileStart8811,5379###
+###TileStart8812,5379###
+###TileStart8813,5379###
+###TileStart8814,5379###
+###TileStart8815,5379###
+###TileStart8816,5379###
+###TileStart8817,5379###
+###TileStart8818,5379###
+###TileStart8787,5380###
+###TileStart8788,5380###
+###TileStart8789,5380###
+###TileStart8790,5380###
+###TileStart8791,5380###
+###TileStart8792,5380###
+###TileStart8793,5380###
+###TileStart8794,5380###
+###TileStart8795,5380###
+###TileStart8796,5380###
+###TileStart8797,5380###
+###TileStart8798,5380###
+###TileStart8799,5380###
+###TileStart8800,5380###
+###TileStart8801,5380###
+###TileStart8802,5380###
+###TileStart8803,5380###
+###TileStart8804,5380###
+###TileStart8805,5380###
+###TileStart8806,5380###
+###TileStart8807,5380###
+###TileStart8808,5380###
+###TileStart8809,5380###
+###TileStart8810,5380###
+###TileStart8811,5380###
+###TileStart8812,5380###
+###TileStart8813,5380###
+###TileStart8814,5380###
+###TileStart8815,5380###
+###TileStart8816,5380###
+###TileStart8817,5380###
+###TileStart8818,5380###
+###TileStart8787,5381###
+###TileStart8788,5381###
+###TileStart8789,5381###
+###TileStart8790,5381###
+###TileStart8791,5381###
+###TileStart8792,5381###
+###TileStart8793,5381###
+###TileStart8794,5381###
+###TileStart8795,5381###
+###TileStart8796,5381###
+###TileStart8797,5381###
+###TileStart8798,5381###
+###TileStart8799,5381###
+###TileStart8800,5381###
+###TileStart8801,5381###
+###TileStart8802,5381###
+###TileStart8803,5381###
+###TileStart8804,5381###
+###TileStart8805,5381###
+###TileStart8806,5381###
+###TileStart8807,5381###
+###TileStart8808,5381###
+###TileStart8809,5381###
+###TileStart8810,5381###
+###TileStart8811,5381###
+###TileStart8812,5381###
+###TileStart8813,5381###
+###TileStart8814,5381###
+###TileStart8815,5381###
+###TileStart8816,5381###
+###TileStart8817,5381###
+Empty tile: 8818 5381
+###TileStart8787,5382###
+###TileStart8788,5382###
+###TileStart8789,5382###
+###TileStart8790,5382###
+###TileStart8791,5382###
+###TileStart8792,5382###
+###TileStart8793,5382###
+###TileStart8794,5382###
+###TileStart8795,5382###
+###TileStart8796,5382###
+###TileStart8797,5382###
+###TileStart8798,5382###
+###TileStart8799,5382###
+###TileStart8800,5382###
+###TileStart8801,5382###
+###TileStart8802,5382###
+###TileStart8803,5382###
+###TileStart8804,5382###
+###TileStart8805,5382###
+###TileStart8806,5382###
+###TileStart8807,5382###
+###TileStart8808,5382###
+###TileStart8809,5382###
+###TileStart8810,5382###
+###TileStart8811,5382###
+###TileStart8812,5382###
+###TileStart8813,5382###
+###TileStart8814,5382###
+###TileStart8815,5382###
+###TileStart8816,5382###
+###TileStart8817,5382###
+Empty tile: 8818 5382
+###TileStart8787,5383###
+###TileStart8788,5383###
+###TileStart8789,5383###
+###TileStart8790,5383###
+###TileStart8791,5383###
+###TileStart8792,5383###
+Empty tile: 8793 5383
+Empty tile: 8794 5383
+Empty tile: 8795 5383
+Empty tile: 8796 5383
+###TileStart8797,5383###
+###TileStart8798,5383###
+###TileStart8799,5383###
+###TileStart8800,5383###
+###TileStart8801,5383###
+###TileStart8802,5383###
+###TileStart8803,5383###
+###TileStart8804,5383###
+###TileStart8805,5383###
+###TileStart8806,5383###
+###TileStart8807,5383###
+###TileStart8808,5383###
+###TileStart8809,5383###
+###TileStart8810,5383###
+###TileStart8811,5383###
+###TileStart8812,5383###
+###TileStart8813,5383###
+###TileStart8814,5383###
+###TileStart8815,5383###
+###TileStart8816,5383###
+###TileStart8817,5383###
+Empty tile: 8818 5383
+Empty tile: 8787 5384
+###TileStart8788,5384###
+###TileStart8789,5384###
+###TileStart8790,5384###
+###TileStart8791,5384###
+Empty tile: 8792 5384
+Empty tile: 8793 5384
+Empty tile: 8794 5384
+Empty tile: 8795 5384
+###TileStart8796,5384###
+###TileStart8797,5384###
+Empty tile: 8798 5384
+###TileStart8799,5384###
+###TileStart8800,5384###
+###TileStart8801,5384###
+###TileStart8802,5384###
+###TileStart8803,5384###
+###TileStart8804,5384###
+###TileStart8805,5384###
+Empty tile: 8806 5384
+###TileStart8807,5384###
+###TileStart8808,5384###
+###TileStart8809,5384###
+###TileStart8810,5384###
+###TileStart8811,5384###
+###TileStart8812,5384###
+###TileStart8813,5384###
+###TileStart8814,5384###
+###TileStart8815,5384###
+###TileStart8816,5384###
+###TileStart8817,5384###
+Empty tile: 8818 5384
+Empty tile: 8787 5385
+Empty tile: 8788 5385
+Empty tile: 8789 5385
+Empty tile: 8790 5385
+Empty tile: 8791 5385
+Empty tile: 8792 5385
+Empty tile: 8793 5385
+Empty tile: 8794 5385
+###TileStart8795,5385###
+###TileStart8796,5385###
+Empty tile: 8797 5385
+Empty tile: 8798 5385
+Empty tile: 8799 5385
+###TileStart8800,5385###
+###TileStart8801,5385###
+###TileStart8802,5385###
+###TileStart8803,5385###
+Empty tile: 8804 5385
+Empty tile: 8805 5385
+Empty tile: 8806 5385
+Empty tile: 8807 5385
+Empty tile: 8808 5385
+###TileStart8809,5385###
+Empty tile: 8810 5385
+###TileStart8811,5385###
+###TileStart8812,5385###
+###TileStart8813,5385###
+###TileStart8814,5385###
+###TileStart8815,5385###
+###TileStart8816,5385###
+###TileStart8817,5385###
+###TileStart8818,5385###
+Empty tile: 8787 5386
+Empty tile: 8788 5386
+Empty tile: 8789 5386
+Empty tile: 8790 5386
+Empty tile: 8791 5386
+Empty tile: 8792 5386
+Empty tile: 8793 5386
+Empty tile: 8794 5386
+Empty tile: 8795 5386
+Empty tile: 8796 5386
+Empty tile: 8797 5386
+Empty tile: 8798 5386
+Empty tile: 8799 5386
+###TileStart8800,5386###
+Empty tile: 8801 5386
+Empty tile: 8802 5386
+Empty tile: 8803 5386
+Empty tile: 8804 5386
+Empty tile: 8805 5386
+Empty tile: 8806 5386
+Empty tile: 8807 5386
+Empty tile: 8808 5386
+Empty tile: 8809 5386
+Empty tile: 8810 5386
+###TileStart8811,5386###
+###TileStart8812,5386###
+###TileStart8813,5386###
+###TileStart8814,5386###
+###TileStart8815,5386###
+###TileStart8816,5386###
+###TileStart8817,5386###
+###TileStart8818,5386###
+Empty tile: 8787 5387
+Empty tile: 8788 5387
+Empty tile: 8789 5387
+Empty tile: 8790 5387
+Empty tile: 8791 5387
+Empty tile: 8792 5387
+Empty tile: 8793 5387
+Empty tile: 8794 5387
+Empty tile: 8795 5387
+Empty tile: 8796 5387
+Empty tile: 8797 5387
+Empty tile: 8798 5387
+###TileStart8799,5387###
+###TileStart8800,5387###
+Empty tile: 8801 5387
+Empty tile: 8802 5387
+Empty tile: 8803 5387
+Empty tile: 8804 5387
+Empty tile: 8805 5387
+Empty tile: 8806 5387
+Empty tile: 8807 5387
+Empty tile: 8808 5387
+Empty tile: 8809 5387
+###TileStart8810,5387###
+###TileStart8811,5387###
+###TileStart8812,5387###
+###TileStart8813,5387###
+###TileStart8814,5387###
+###TileStart8815,5387###
+###TileStart8816,5387###
+Empty tile: 8817 5387
+Empty tile: 8818 5387
+

@@ -256,7 +256,7 @@ public class MapFormatReader {
 		// Get all tile offsets (TileNr, Data, Water Block)
 		for (long i = 0; i < numBlocks; i++) {
 			long val = getNextLong5();
-			System.out.println(i + ": Offset: " + this.offset + " long5: " + val);
+			System.out.println(val);
 			sf.addIndexEntry(val);
 		}
 
@@ -268,10 +268,11 @@ public class MapFormatReader {
 			++tilesProcessed;
 			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ") @ "
 					+ this.offset
-					+ "(" + (sf.getTileOffset(i) + indexOffset) + ")...");
+					// + "(" + (sf.getTileOffset(i) + indexOffset) + ")...");
+					+ "(" + (sf.getTileOffset(i)) + ")...");
 			if (sf.isEmptyTile(i)) {
 				sf.addTile(null);
-				System.out.println("skipped.");
+				System.out.println("empty.");
 				continue;
 			}
 			t = getNextTile(sf, zoomInterval);
