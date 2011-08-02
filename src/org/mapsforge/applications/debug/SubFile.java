@@ -42,6 +42,8 @@ class SubFile {
 	 * 
 	 * @param parentFile
 	 *            The parent file object that holds this subfile.
+	 * @param baseZoomInterval
+	 *            The base zoom interval that is covered by this tile.
 	 */
 	SubFile(MapFile parentFile, byte baseZoomInterval) {
 		this.parentFile = parentFile;
@@ -64,8 +66,8 @@ class SubFile {
 		sb.append("Tile ID\tIndex\tWater tile").append(MapFile.NL);
 
 		int i = 0;
-		for (Long indexEntry : this.indexEntry) {
-			sb.append(i).append("\t").append(indexEntry).append("\t").append(isWaterTile(i))
+		for (Long ie : this.indexEntry) {
+			sb.append(i).append("\t").append(ie).append("\t").append(isWaterTile(i))
 					.append(MapFile.NL);
 			++i;
 		}
@@ -108,12 +110,11 @@ class SubFile {
 	}
 
 	public boolean isWaterTile(int index) {
-		return (this.indexEntry.get(index) & 0x000000010000000000L) != 0;
+		return (this.indexEntry.get(index) & 0x1000000000L) != 0;
 	}
 
 	public long getTileOffset(int index) {
-		// TODO correct handling of water tiles
-		return this.indexEntry.get(index);
+		return this.indexEntry.get(index) & 0x7FFFFFFFFFL;
 	}
 
 	public byte getBaseZoomInterval() {

@@ -18,7 +18,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 import org.mapsforge.core.MercatorProjection;
 
@@ -29,51 +28,17 @@ import org.mapsforge.core.MercatorProjection;
  * 
  */
 public class MapFormatReader {
+	/** Used in {@link #getHex(byte)}. */
 	private static final String HEXES = "0123456789ABCDEF";
-
-	private RandomAccessFile f;
-	private byte[] buffer;
-	private long offset = 0;
-	/** for switching between a long and double representation of longitude and latitude values */
+	/** For switching between a long and double representation of longitude and latitude values */
 	private static final double COORDINATES_FACTOR = 1000000.0;
 
+	private final RandomAccessFile f;
+
+	private byte[] buffer;
+	private long offset = 0;
 	private MapFile mapFile;
-
 	private byte[] magicByte;
-	private int headerSize;
-	private int fileVersion;
-	// TODO store value in MapFile
-	private byte flags;
-	private byte amountOfZoomIntervals;
-	private String projection;
-	private int tileSize;
-
-	// Bounding box
-	private int maxLat;
-	private int minLon;
-	private int minLat;
-	private int maxLon;
-
-	// Map start position
-	private int mapStartLon;
-	private int mapStartLat;
-	private long dateOfCreation;
-
-	// POI tag mapping
-	private int numPOIMappings;
-
-	// Ways tag mapping
-	private int numWayTagMappings;
-
-	private String comment;
-
-	// Zoom interval configuration
-	private byte[] baseZoomLevel;
-	private byte[] minimalZoomLevel;
-	private byte[] maximalZoomLevel;
-	private long[] absoluteStartPosition;
-	private long[] subFileSize;
-	private ArrayList<Long>[] tileOffsets;
 
 	/**
 	 * The constructor.
@@ -96,16 +61,13 @@ public class MapFormatReader {
 	 * 
 	 * @throws IOException
 	 *             when the file cannot be read.
+	 * @return {@link MapFile}-object. (Container for map data.)
 	 */
 	public MapFile parseFile() throws IOException {
 
 		parseHeader();
 
-		this.tileOffsets = new ArrayList[this.mapFile.getAmountOfZoomIntervals()];
-
-		SubFile sf;
 		for (byte i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
-			// TODO add subfile to map file
 			this.mapFile.addSubFile(getNextSubFile(i));
 		}
 
@@ -198,8 +160,6 @@ public class MapFormatReader {
 		// Comment (variable)
 		this.mapFile.setComment(getNextString());
 
-		System.out.println("Index offset offset: " + this.offset);
-
 		// Zoom interval configuration (variable)
 		this.mapFile.prepareZoomIntervalConfiguration();
 		for (int i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
@@ -210,7 +170,6 @@ public class MapFormatReader {
 	}
 
 	private SubFile getNextSubFile(byte zoomInterval) throws IOException {
-		long indexOffset;
 		System.out.println("--- S U B F I L E " + zoomInterval + " ---");
 		SubFile sf = new SubFile(this.mapFile, zoomInterval);
 		this.mapFile.addSubFile(sf);
@@ -218,7 +177,7 @@ public class MapFormatReader {
 		this.offset = this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		this.f.seek(this.offset);
 
-		System.out.println("  Subfile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
+		System.out.println("Subfile start offset: " + this.offset + " (" + getHex(this.offset) + ")");
 
 		// Calculate number of blocks in the file index
 		// x,y tile coordinates of the first and last tile in the index
@@ -238,11 +197,6 @@ public class MapFormatReader {
 		// System.out.println("Base zoom level: " + this.mapFile.getBaseZoomLevel()[zoomInterval]);
 
 		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
-		System.out.println("  Number of tiles (blocks) in this subfile: " + numBlocks);
-
-		// Save the index offset (for debug purposes)
-		indexOffset = this.offset;
-		System.out.println("Index offset: " + this.offset);
 
 		// Tile index segment
 		// index signature (16B, optional)
@@ -255,32 +209,30 @@ public class MapFormatReader {
 
 		// Get all tile offsets (TileNr, Data, Water Block)
 		for (long i = 0; i < numBlocks; i++) {
-			long val = getNextLong5();
-			System.out.println(val);
-			sf.addIndexEntry(val);
+			sf.addIndexEntry(getNextLong5());
 		}
 
-		System.out.println("There are " + sf.getAmountOfTilesInIndex() + " tiles in the index.");
-
 		Tile t = null;
-		int tilesProcessed = 0;
 		for (int i = 0; i < sf.getAmountOfTilesInIndex(); i++) {
-			++tilesProcessed;
-			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ") @ "
-					+ this.offset
-					// + "(" + (sf.getTileOffset(i) + indexOffset) + ")...");
-					+ "(" + (sf.getTileOffset(i)) + ")...");
-			if (sf.isEmptyTile(i)) {
+			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ")...");
+
+			// Is tile empty?
+			if (sf.isEmptyTile(i)
+					|| this.offset >= this.mapFile.getAbsoluteStartPosition()[zoomInterval]
+							+ this.mapFile.getSubFileSize()[zoomInterval]) {
+
+				// Add null tile
 				sf.addTile(null);
 				System.out.println("empty.");
 				continue;
+
 			}
+
+			// Read and add next tile
 			t = getNextTile(sf, zoomInterval);
 			sf.addTile(t);
 			System.out.println("done.");
 		}
-
-		System.out.println("Processed " + tilesProcessed + " tiles.");
 
 		return sf;
 	}
@@ -313,23 +265,19 @@ public class MapFormatReader {
 		// FINISHED TILE //
 
 		// P O I s
-		// TODO get base zoom level
-		// TODO save data
 		// System.out.println("This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
 		// .getMaximalZoomLevel()[zoomInterval]) + " POIs");
 		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); poi++) {
-			// TODO add POIs to tile
-			getNextPOI();
+			t.addPOI(getNextPOI());
 		}
 
 		// W A Y S
-		// TODO save data
 		// System.out.println("This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
 		// .getMaximalZoomLevel()[zoomInterval]) + " ways");
 		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); way++) {
-			getNextWay();
+			t.addWay(getNextWay());
 		}
 
 		return t;
@@ -443,7 +391,7 @@ public class MapFormatReader {
 		}
 
 		// Multipolygon (variable, optional)
-		// TODO save values
+		// TODO save multipolygon values
 		if (w.isMultipolygonFlagSet()) {
 			int amountOfInnerWays = getNextVBEUInt();
 
@@ -549,7 +497,6 @@ public class MapFormatReader {
 		long ret = (this.buffer[0] & 0xffL) << 32 | (this.buffer[1] & 0xffL) << 24
 				| (this.buffer[2] & 0xffL) << 16 | (this.buffer[3] & 0xffL) << 8
 				| (this.buffer[4] & 0xffL);
-		ret = ret & 0x7FFFFFFFFFL;
 
 		this.offset += 5;
 
@@ -575,7 +522,7 @@ public class MapFormatReader {
 	}
 
 	private int getNextVBESInt() throws IOException {
-		// TODO test
+		// TODO test it
 		byte shift = 0;
 		int ret = 0;
 		byte b;

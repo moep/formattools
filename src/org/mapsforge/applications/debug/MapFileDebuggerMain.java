@@ -15,7 +15,6 @@
 package org.mapsforge.applications.debug;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * 
@@ -25,28 +24,45 @@ import java.sql.SQLException;
  */
 
 public class MapFileDebuggerMain {
-
-	private static void createFileDataStructure(int numXDimensions, int numYDimensions, int dataSize) {
+	/**
+	 * @param args
+	 *            not used command line parameters.
+	 */
+	public static void main(String[] args) {
+		MapFormatReader mfr = null;
 		try {
-			System.out.print("Creating file data structure...");
-			FileWriter.createDirStructureWithFiles("files/", numXDimensions, numYDimensions, dataSize);
-			System.out.print("done.\n");
+			mfr = new MapFormatReader("/home/moep/berlin.map");
+			mfr.parseFile();
+			mfr.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 	}
 
-	private static void createSQLiteDataStructure(int numXDimensions, int numYDimensions, int dataSize) {
-		try {
-			System.out.print("Creating SQLite data structure...");
-			FileWriter.createSQLiteDB("test.db", numXDimensions, numYDimensions, dataSize);
-			System.out.print("done.\n");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+	// private static void createFileDataStructure(int numXDimensions, int numYDimensions, int dataSize)
+	// {
+	// try {
+	// System.out.print("Creating file data structure...");
+	// FileWriter.createDirStructureWithFiles("files/", numXDimensions, numYDimensions, dataSize);
+	// System.out.print("done.\n");
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// }
+	// }
+	//
+	// private static void createSQLiteDataStructure(int numXDimensions, int numYDimensions, int
+	// dataSize) {
+	// try {
+	// System.out.print("Creating SQLite data structure...");
+	// FileWriter.createSQLiteDB("test.db", numXDimensions, numYDimensions, dataSize);
+	// System.out.print("done.\n");
+	// } catch (ClassNotFoundException e) {
+	// e.printStackTrace();
+	// } catch (SQLException e) {
+	// e.printStackTrace();
+	// }
+	// }
 
 	// private static List<Tuple<Integer, Integer>> createRandomLookups(long seed, int count) {
 	// LinkedList<Tuple<Integer, Integer>> ret = new LinkedList<Tuple<Integer, Integer>>();
@@ -71,54 +87,4 @@ public class MapFileDebuggerMain {
 	// }
 	// }
 
-	/**
-	 * @param args
-	 *            not used command line parameters.
-	 */
-	public static void main(String[] args) {
-		MapFormatReader mfr = null;
-		MapFile mf = null;
-		try {
-			mfr = new MapFormatReader("/home/moep/berlin.map");
-			mf = mfr.parseFile();
-			mfr.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		if (mf != null) {
-			// System.out.println(mf);
-			for (SubFile sf : mf.getSubFiles()) {
-				// System.out.println(sf);
-			}
-		}
-
-		// createFileDataStructure(300, 300, 5);
-		// createSQLiteDataStructure(300, 300, 5);
-
-		// List<Tuple<Integer, Integer>> queries = createRandomLookups(42, 1000);
-		// performQueries(queries);
-
-		// try {
-		// FileReader fr = new FileReader(512 * 1024, "files/bla.bin");
-		// System.out.println("Reading chunks");
-		// byte[] chunk;
-		// while ((chunk = fr.nextChunk()) != null) {
-		//
-		// }
-		//
-		// fr.close();
-		// } catch (IOException e) {
-		// e.printStackTrace();
-		// }
-		//
-		// System.out.println("Done");
-
-		// try {
-		// FileWriter.createFile("files/bla.bin", 1024 * 300);
-		// } catch (IOException e) {
-		// e.printStackTrace();
-		// }
-
-	}
 }

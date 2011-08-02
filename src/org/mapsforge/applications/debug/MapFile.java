@@ -75,7 +75,7 @@ class MapFile {
 	 */
 	public MapFile() {
 		// Log.d("Map file has been initialized");
-		this.subFiles = new LinkedList();
+		this.subFiles = new LinkedList<SubFile>();
 	}
 
 	@Override
@@ -88,7 +88,6 @@ class MapFile {
 	 * @return a string representation of the file header.
 	 */
 	public String headerToString() {
-		// TODO finish
 		StringBuilder sb = new StringBuilder();
 		sb.append("------ H E A D E R ------").append(MapFile.NL);
 		sb.append("Magic bytes: " + getHex(this.magicByte) + " (" + new String(this.magicByte) + ")")
@@ -149,18 +148,19 @@ class MapFile {
 							+ this.subFileSize[interval]).append(MapFile.NL);
 		}
 
-		sb.append("").append(MapFile.NL);
-		sb.append("").append(MapFile.NL);
-		sb.append("").append(MapFile.NL);
-		sb.append("").append(MapFile.NL);
-
 		return sb.toString();
 	}
 
+	/**
+	 * @return true if the map has map start position data.
+	 */
 	boolean isMapStartPositionFlagSet() {
 		return (this.flags & 0x40) != 0;
 	}
 
+	/**
+	 * @return true if the map is in debug mode.
+	 */
 	boolean isDebugFlagSet() {
 		return (this.flags & 0x80) != 0;
 	}

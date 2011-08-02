@@ -35,6 +35,9 @@ public class POI {
 	private int elevation;
 	private String houseNumber;
 
+	/**
+	 * The constructor.
+	 */
 	public POI() {
 		this.tagID = new LinkedList<Integer>();
 	}
@@ -62,7 +65,7 @@ public class POI {
 	/**
 	 * @return Layer (OSM-Tag: layer=...) + 5 (to avoid negative values).
 	 */
-	private int getLayer() {
+	int getLayer() {
 		return this.specialByte & 0xf0 + 5;
 	}
 
@@ -85,8 +88,8 @@ public class POI {
 		return (this.flags & 0x20) != 0;
 	}
 
-	public void addTagID(int tagID) {
-		this.tagID.add(tagID);
+	void addTagID(int tagID1) {
+		this.tagID.add(tagID1);
 	}
 
 	/**
@@ -178,6 +181,14 @@ public class POI {
 		return lonDiff;
 	}
 
+	/**
+	 * Sets the POI's position difference to the top left corner.
+	 * 
+	 * @param latDiff
+	 *            Latitude difference
+	 * @param lonDiff
+	 *            Longitude difference
+	 */
 	public void setPosition(int latDiff, int lonDiff) {
 		this.latDiff = latDiff;
 		this.lonDiff = lonDiff;

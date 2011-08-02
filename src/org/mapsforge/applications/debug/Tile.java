@@ -15,6 +15,8 @@
 package org.mapsforge.applications.debug;
 
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Container class for tile data. (No image data.)
@@ -37,11 +39,26 @@ class Tile {
 
 	int firstWayOffset;
 
+	// POIs and ways
+	List<POI> pois;
+
+	public List<POI> getPois() {
+		return pois;
+	}
+
+	public List<Way> getWays() {
+		return ways;
+	}
+
+	List<Way> ways;
+
 	/**
 	 * The constructor.
 	 * 
-	 * @param parentFile
-	 *            The @link {@link MapFile} object that contains this tile. (For debugging purposes.)
+	 * @param parentMapFile
+	 *            The {@link MapFile} object that contains this tile's subfile.
+	 * @param parentSubFile
+	 *            The {@link SubFile} object that contains this tile.
 	 */
 	public Tile(MapFile parentMapFile, SubFile parentSubFile) {
 		this.numPOIs = new Hashtable<Integer, Integer>();
@@ -49,6 +66,9 @@ class Tile {
 
 		this.parentMapFile = parentMapFile;
 		this.parentSubFile = parentSubFile;
+
+		this.pois = new LinkedList<POI>();
+		this.ways = new LinkedList<Way>();
 	}
 
 	@Override
@@ -84,9 +104,29 @@ class Tile {
 		return this.numWays.get(zoomLevel);
 	}
 
-	public void addZoomTableRow(int row, int numPois, int numWays) {
+	public void addZoomTableRow(int row, int numPois, int numWays1) {
 		this.numPOIs.put(row, numPois);
-		this.numWays.put(row, numWays);
+		this.numWays.put(row, numWays1);
+	}
+
+	/**
+	 * Adds a POI to this tile.
+	 * 
+	 * @param poi
+	 *            the POI that should be added.
+	 */
+	public void addPOI(POI poi) {
+		this.pois.add(poi);
+	}
+
+	/**
+	 * Adds a way to this tile.
+	 * 
+	 * @param way
+	 *            the way that should be added.
+	 */
+	public void addWay(Way way) {
+		this.ways.add(way);
 	}
 
 	public int getFirstWayOffset() {

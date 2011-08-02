@@ -75,75 +75,75 @@ public class Way {
 		return sb.toString();
 	}
 
-	public int getLayer() {
+	int getLayer() {
 		return this.specialByte1 & 0xf0 + 5;
 	}
 
-	public int getAmountOfTags() {
+	int getAmountOfTags() {
 		return this.specialByte1 & 0x0f;
 	}
 
-	public int getAmountOfRelevantRenderingTags() {
+	int getAmountOfRelevantRenderingTags() {
 		return this.specialByte2 & 0xe0;
 	}
 
-	public boolean isHighwayTagFlagSet() {
+	boolean isHighwayTagFlagSet() {
 		return (this.wayTypeBitmap & 0x80) != 0;
 	}
 
-	public boolean isRailwayTagFlagSet() {
+	boolean isRailwayTagFlagSet() {
 		return (this.wayTypeBitmap & 0x40) != 0;
 	}
 
-	public boolean isBuildingTagFlagSet() {
+	boolean isBuildingTagFlagSet() {
 		return (this.wayTypeBitmap & 0x20) != 0;
 	}
 
-	public boolean isLanduseTagFlagSet() {
+	boolean isLanduseTagFlagSet() {
 		return (this.wayTypeBitmap & 0x10) != 0;
 	}
 
-	public boolean isLeisureTagFlagSet() {
+	boolean isLeisureTagFlagSet() {
 		return (this.wayTypeBitmap & 0x08) != 0;
 	}
 
-	public boolean isAmenityTagFlagSet() {
+	boolean isAmenityTagFlagSet() {
 		return (this.wayTypeBitmap & 0x04) != 0;
 	}
 
-	public boolean isNaturalTagFlagSet() {
+	boolean isNaturalTagFlagSet() {
 		return (this.wayTypeBitmap & 0x02) != 0;
 	}
 
-	public boolean isWaterwayTagFlagSet() {
+	boolean isWaterwayTagFlagSet() {
 		return (this.wayTypeBitmap & 0x01) != 0;
 	}
 
-	public void addTagID(int tag) {
+	void addTagID(int tag) {
 		this.tagID.add(tag);
 	}
 
-	public void addWayNodesLatDiff(int latDiff) {
+	void addWayNodesLatDiff(int latDiff) {
 		this.wayNodesLatDiff.add(latDiff);
 	}
 
-	public void addWayNodesLonDiff(int lonDiff) {
+	void addWayNodesLonDiff(int lonDiff) {
 		this.wayNodesLonDiff.add(lonDiff);
 	}
 
-	public boolean isWayFlagSet() {
+	boolean isWayFlagSet() {
 		return (this.flags & 0x80) != 0;
 	}
 
-	public boolean isReferenceFlagSet() {
+	boolean isReferenceFlagSet() {
 		return (this.flags & 0x40) != 0;
 	}
 
-	public boolean isLabelPositionFlagSet() {
+	boolean isLabelPositionFlagSet() {
 		return (this.flags & 0x20) != 0;
 	}
 
-	public boolean isMultipolygonFlagSet() {
+	boolean isMultipolygonFlagSet() {
 		return (this.flags & 0x10) != 0;
 	}
 
