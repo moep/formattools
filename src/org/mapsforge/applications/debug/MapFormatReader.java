@@ -39,6 +39,7 @@ public class MapFormatReader {
 	private long offset = 0;
 	private MapFile mapFile;
 	private byte[] magicByte;
+	private int strLen;
 
 	/**
 	 * The constructor.
@@ -49,7 +50,7 @@ public class MapFormatReader {
 	 *             when file cannot be found.
 	 */
 	public MapFormatReader(String path) throws FileNotFoundException {
-		this.f = new RandomAccessFile(path, "r");
+		this.f = new BufferedRandomAccessFile(path, "r", 512);
 		// this.f = new RAF(path, "r");
 
 		this.buffer = new byte[1024 * 100];
@@ -72,7 +73,7 @@ public class MapFormatReader {
 		}
 
 		System.out.println("####DONE");
-
+		System.out.println("Way name + reference string length: " + this.strLen);
 		return this.mapFile;
 	}
 
@@ -269,7 +270,8 @@ public class MapFormatReader {
 		// .getMaximalZoomLevel()[zoomInterval]) + " POIs");
 		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); poi++) {
-			t.addPOI(getNextPOI());
+			// t.addPOI(getNextPOI());
+			getNextPOI();
 		}
 
 		// W A Y S
@@ -277,7 +279,8 @@ public class MapFormatReader {
 		// .getMaximalZoomLevel()[zoomInterval]) + " ways");
 		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); way++) {
-			t.addWay(getNextWay());
+			// t.addWay(getNextWay());
+			getNextWay();
 		}
 
 		return t;
@@ -376,12 +379,12 @@ public class MapFormatReader {
 
 		// Name (String, optional)
 		if (w.isWayFlagSet()) {
-			w.setName(getNextString());
+			w.setName(getNextString2());
 		}
 
 		// Reference (String, optional)
 		if (w.isReferenceFlagSet()) {
-			w.setReference(getNextString());
+			w.setReference(getNextString2());
 		}
 
 		// Label position (2*VBE-S, optional)
@@ -469,6 +472,18 @@ public class MapFormatReader {
 		this.f.read(this.buffer, 0, strlen);
 		this.buffer[strlen] = '\0';
 		this.offset += strlen;
+
+		return new String(this.buffer).substring(0, strlen);
+	}
+
+	private String getNextString2() throws IOException {
+		int strlen = getNextVBEUInt();
+		this.f.seek(this.offset);
+		this.f.read(this.buffer, 0, strlen);
+		this.buffer[strlen] = '\0';
+		this.offset += strlen;
+
+		this.strLen += strlen + 1;
 
 		return new String(this.buffer).substring(0, strlen);
 	}
