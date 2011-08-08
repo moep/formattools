@@ -30,12 +30,17 @@ public class MapFileDebuggerMain {
 	 */
 	public static void main(String[] args) {
 		MapFormatReader mfr = null;
+		MapFile mf = null;
 		try {
 			mfr = new MapFormatReader("/home/moep/berlin.map");
-			mfr.parseFile();
+			mf = mfr.parseFile();
 			mfr.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+
+		if (mf != null) {
+			System.out.println(mf.toString());
 		}
 
 	}

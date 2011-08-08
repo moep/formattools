@@ -50,7 +50,7 @@ public class MapFormatReader {
 	 *             when file cannot be found.
 	 */
 	public MapFormatReader(String path) throws FileNotFoundException {
-		this.f = new BufferedRandomAccessFile(path, "r", 512);
+		this.f = new BufferedRandomAccessFile(path, "r", 1024 * 10);
 		// this.f = new RAF(path, "r");
 
 		this.buffer = new byte[1024 * 100];
@@ -270,8 +270,8 @@ public class MapFormatReader {
 		// .getMaximalZoomLevel()[zoomInterval]) + " POIs");
 		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); poi++) {
-			// t.addPOI(getNextPOI());
-			getNextPOI();
+			t.addPOI(getNextPOI());
+			// getNextPOI();
 		}
 
 		// W A Y S
@@ -279,8 +279,8 @@ public class MapFormatReader {
 		// .getMaximalZoomLevel()[zoomInterval]) + " ways");
 		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(this.mapFile
 				.getMaximalZoomLevel()[zoomInterval]); way++) {
-			// t.addWay(getNextWay());
-			getNextWay();
+			t.addWay(getNextWay());
+			// getNextWay();
 		}
 
 		return t;
@@ -295,7 +295,8 @@ public class MapFormatReader {
 			this.f.seek(this.offset);
 			this.f.read(this.buffer, 0, 32);
 			this.offset += 32;
-			p.setPoiSignature(new String(this.buffer, 0, 32));
+			// p.setPoiSignature(new String(this.buffer, 0, 32));
+			p.setPoiSignature("..........1111111111..........11");
 		}
 
 		// Position (2 * VBE-S)
@@ -379,12 +380,12 @@ public class MapFormatReader {
 
 		// Name (String, optional)
 		if (w.isWayFlagSet()) {
-			w.setName(getNextString2());
+			w.setName(getNextString());
 		}
 
 		// Reference (String, optional)
 		if (w.isReferenceFlagSet()) {
-			w.setReference(getNextString2());
+			w.setReference(getNextString());
 		}
 
 		// Label position (2*VBE-S, optional)
@@ -473,19 +474,14 @@ public class MapFormatReader {
 		this.buffer[strlen] = '\0';
 		this.offset += strlen;
 
-		return new String(this.buffer).substring(0, strlen);
-	}
-
-	private String getNextString2() throws IOException {
-		int strlen = getNextVBEUInt();
-		this.f.seek(this.offset);
-		this.f.read(this.buffer, 0, strlen);
-		this.buffer[strlen] = '\0';
-		this.offset += strlen;
-
 		this.strLen += strlen + 1;
 
-		return new String(this.buffer).substring(0, strlen);
+		StringBuffer sb = new StringBuffer(strlen);
+		for (int i = 0; i < strlen; i++) {
+			sb.append((char) this.buffer[i]);
+		}
+		// return new String(this.buffer).substring(0, strlen);
+		return sb.toString();
 	}
 
 	private int getNextDword() throws IOException {
