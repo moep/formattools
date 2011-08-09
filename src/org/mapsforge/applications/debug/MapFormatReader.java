@@ -24,7 +24,7 @@ import org.mapsforge.core.MercatorProjection;
 /**
  * Class for reading the current map format.
  * 
- * @author Karsten
+ * @author Karsten Groll
  * 
  */
 public class MapFormatReader {
@@ -41,20 +41,26 @@ public class MapFormatReader {
 	private byte[] magicByte;
 	private int strLen;
 
+	private boolean rawMode;
+
 	/**
 	 * The constructor.
 	 * 
 	 * @param path
 	 *            Path to the map file that should be read.
+	 * @param rawMode
+	 *            If set to true, tiles will be saved as byte arrays instead of java structures.
 	 * @throws FileNotFoundException
 	 *             when file cannot be found.
+	 * 
 	 */
-	public MapFormatReader(String path) throws FileNotFoundException {
+	public MapFormatReader(String path, boolean rawMode) throws FileNotFoundException {
 		this.f = new BufferedRandomAccessFile(path, "r", 1024 * 10);
 		// this.f = new RAF(path, "r");
 
 		this.buffer = new byte[1024 * 100];
 		this.mapFile = new MapFile();
+		this.rawMode = rawMode;
 	}
 
 	/**
@@ -65,7 +71,7 @@ public class MapFormatReader {
 	 * @return {@link MapFile}-object. (Container for map data.)
 	 */
 	public MapFile parseFile() throws IOException {
-
+		System.out.println("Raw mode: " + (this.rawMode ? "Enabled" : "Disabled"));
 		parseHeader();
 
 		for (byte i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
@@ -198,6 +204,10 @@ public class MapFormatReader {
 		// System.out.println("Base zoom level: " + this.mapFile.getBaseZoomLevel()[zoomInterval]);
 
 		long numBlocks = (Math.abs(lastX - firstX) + 1) * (Math.abs(lastY - firstY) + 1);
+		sf.setNumberOfBlocks((int) numBlocks);
+
+		// Start position of the subfile's tiles
+		sf.setSubfileStartOffset((int) this.offset);
 
 		// Tile index segment
 		// index signature (16B, optional)
@@ -213,29 +223,73 @@ public class MapFormatReader {
 			sf.addIndexEntry(getNextLong5());
 		}
 
-		Tile t = null;
-		for (int i = 0; i < sf.getAmountOfTilesInIndex(); i++) {
-			System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ")...");
+		// Read raw tiles
+		if (this.rawMode) {
+			byte[] rawTile;
+			for (int i = 0; i < sf.getAmountOfTilesInIndex(); i++) {
+				System.out.print("Get next raw tile (" + (i + 1) + " / " + numBlocks + ")...");
 
-			// Is tile empty?
-			if (sf.isEmptyTile(i)
-					|| this.offset >= this.mapFile.getAbsoluteStartPosition()[zoomInterval]
-							+ this.mapFile.getSubFileSize()[zoomInterval]) {
+				// Is tile empty?
+				if (sf.isEmptyTile(i)
+						|| this.offset >= this.mapFile.getAbsoluteStartPosition()[zoomInterval]
+								+ this.mapFile.getSubFileSize()[zoomInterval]) {
 
-				// Add null tile
-				sf.addTile(null);
-				System.out.println("empty.");
-				continue;
+					// Add null tile
+					sf.addTile(null);
+					System.out.println("empty.");
+					continue;
+
+				}
+
+				// Read and add next tile
+				rawTile = getRawTile(sf, i);
+				sf.addRawTile(rawTile, i);
+				System.out.println("done.");
 
 			}
+		} else { // Read detailed tile information
+			Tile t = null;
+			for (int i = 0; i < sf.getAmountOfTilesInIndex(); i++) {
+				System.out.print("Get next tile (" + (i + 1) + " / " + numBlocks + ")...");
 
-			// Read and add next tile
-			t = getNextTile(sf, zoomInterval);
-			sf.addTile(t);
-			System.out.println("done.");
+				// Is tile empty?
+				if (sf.isEmptyTile(i)
+						|| this.offset >= this.mapFile.getAbsoluteStartPosition()[zoomInterval]
+								+ this.mapFile.getSubFileSize()[zoomInterval]) {
+
+					// Add null tile
+					sf.addTile(null);
+					System.out.println("empty.");
+					continue;
+
+				}
+
+				// Read and add next tile
+				t = getNextTile(sf, zoomInterval);
+				sf.addTile(t);
+				System.out.println("done.");
+			}
 		}
 
 		return sf;
+	}
+
+	private byte[] getRawTile(SubFile sf, int tileIndex) throws IOException {
+		int size = (int) (sf.getTileOffset(tileIndex + 1) - sf.getTileOffset(tileIndex));
+
+		if (size == 0) {
+			return null;
+		}
+
+		byte[] ret = new byte[size];
+
+		this.offset = sf.getTileOffset(tileIndex) + sf.getSubfileStartOffset();
+		this.f.seek(this.offset);
+		this.f.read(ret, 0, size);
+		// System.out.println("Offset: " + this.offset);
+		// System.out.println("Tile size: " + size);
+
+		return ret;
 	}
 
 	private Tile getNextTile(SubFile sf, byte zoomInterval) throws IOException {

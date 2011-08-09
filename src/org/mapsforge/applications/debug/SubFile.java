@@ -36,6 +36,9 @@ class SubFile {
 	List<Long> indexEntry;
 	// This subfiles' tiles
 	List<Tile> tiles;
+	private byte[][] rawTiles;
+	private int numBlocks;
+	private int startOffset;
 
 	/**
 	 * The constructor.
@@ -105,6 +108,14 @@ class SubFile {
 		this.tiles.add(tile);
 	}
 
+	public void addRawTile(byte[] tileData, int index) {
+		if (this.rawTiles == null) {
+			this.rawTiles = new byte[this.numBlocks][];
+		}
+
+		this.rawTiles[index] = tileData;
+	}
+
 	public void addIndexEntry(long data) {
 		this.indexEntry.add(data);
 	}
@@ -114,6 +125,9 @@ class SubFile {
 	}
 
 	public long getTileOffset(int index) {
+		if (index >= this.indexEntry.size()) {
+			return this.indexEntry.get(indexEntry.size() - 1) & 0x7FFFFFFFFFL;
+		}
 		return this.indexEntry.get(index) & 0x7FFFFFFFFFL;
 	}
 
@@ -131,6 +145,24 @@ class SubFile {
 
 	public void setIndexSignature(String indexSignature) {
 		this.indexSignature = indexSignature;
+	}
+
+	public void setNumberOfBlocks(int numBlocks) {
+		this.numBlocks = numBlocks;
+
+	}
+
+	public int getNumberOfBlocks() {
+		return this.numBlocks;
+
+	}
+
+	public void setSubfileStartOffset(int tileStartOffset) {
+		this.startOffset = tileStartOffset;
+	}
+
+	public int getSubfileStartOffset() {
+		return this.startOffset;
 	}
 
 }
