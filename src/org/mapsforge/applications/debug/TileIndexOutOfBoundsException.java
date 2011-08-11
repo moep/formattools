@@ -14,27 +14,9 @@
  */
 package org.mapsforge.applications.debug;
 
-import java.io.IOException;
-
-/**
- * 
- * @author Karsten Groll
- * 
- *         Main class for executing various tests helping understanding the map file format.
- */
-
-public class MapFileDebuggerMain {
-	/**
-	 * @param args
-	 *            not used command line parameters.
-	 */
-	public static void main(String[] args) {
-		SimpleTileExtractor ste = null;
-		try {
-			ste = new SimpleTileExtractor("/home/moep/berlin.map");
-		} catch (IOException e) {
-
-		}
+public class TileIndexOutOfBoundsException extends Exception {
+	public TileIndexOutOfBoundsException(int x, int y, byte zoomInterval) {
+		super("Tile coordinates (" + x + ", " + y + ") at zoom interval " + zoomInterval
+				+ " are out of the sub file's bounding box.");
 	}
-
 }
