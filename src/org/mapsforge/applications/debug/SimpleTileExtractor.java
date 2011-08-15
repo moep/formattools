@@ -28,13 +28,13 @@ import org.mapsforge.core.MercatorProjection;
  * 
  */
 public class SimpleTileExtractor {
-	private static final int COORDINATES_FACTOR = 1000000;
+	private static final double COORDINATES_FACTOR = 1000000.0;
 	private byte zoomInterval;
 	private RandomAccessFile f;
 	private MapFile mapFile;
 	private long offset;
 	private byte[] buffer;
-	private int[][] tileOffset;
+	private long[][] tileOffset;
 	private Rect[] tileBoundingBox;
 
 	public SimpleTileExtractor(String path) throws IOException {
@@ -43,10 +43,8 @@ public class SimpleTileExtractor {
 		this.buffer = new byte[1024 * 100];
 		parseMapFileHeader();
 		this.tileBoundingBox = new Rect[this.mapFile.getAmountOfZoomIntervals()];
+		this.tileOffset = new long[this.mapFile.getAmountOfZoomIntervals()][];
 		parseSubFileHeaders();
-
-		this.tileOffset = new int[this.mapFile.getAmountOfZoomIntervals()][];
-
 	}
 
 	private void parseMapFileHeader() throws IOException {
@@ -136,47 +134,78 @@ public class SimpleTileExtractor {
 
 	private void parseSubFileHeaders() throws IOException {
 		for (byte z = 0; z < this.mapFile.getAmountOfZoomIntervals(); z++) {
-			System.out.print("Reading header for subfile " + z);
+			this.offset = this.mapFile.getAbsoluteStartPosition()[z];
+			this.f.seek(this.offset);
+			System.out.print("Reading header for subfile " + z + "...");
 
 			// Read bounding box
 			long firstX = MercatorProjection.longitudeToTileX(this.mapFile.getMinLon()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
-					this.mapFile.getBaseZoomLevel()[zoomInterval]);
+					this.mapFile.getBaseZoomLevel()[z]);
 			long lastX = MercatorProjection.longitudeToTileX(this.mapFile.getMaxLon()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
-					this.mapFile.getBaseZoomLevel()[zoomInterval]);
+					this.mapFile.getBaseZoomLevel()[z]);
 			long firstY = MercatorProjection.latitudeToTileY(this.mapFile.getMinLat()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
-					this.mapFile.getBaseZoomLevel()[zoomInterval]);
+					this.mapFile.getBaseZoomLevel()[z]);
 			long lastY = MercatorProjection.latitudeToTileY(this.mapFile.getMaxLat()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
-					this.mapFile.getBaseZoomLevel()[zoomInterval]);
+					this.mapFile.getBaseZoomLevel()[z]);
 
-			tileBoundingBox[z] = new Rect(firstX, lastX, firstY, lastY);
-			System.out.println("Bounding box: " + tileBoundingBox[z]);
+			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
 
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {
 				this.offset += 16;
 			}
 
-			int numBlocks = (int) ((tileBoundingBox[z].maxX - tileBoundingBox[z].minX + 1) * (tileBoundingBox[z].maxY
-					- tileBoundingBox[z].minY + 1));
-			System.out.println("Number of blocks: " + numBlocks);
+			int numBlocks = (this.tileBoundingBox[z].getMaxX() - this.tileBoundingBox[z].getMinX() + 1)
+					* (this.tileBoundingBox[z].getMaxY() - this.tileBoundingBox[z].getMinY() + 1);
 
-			for (long i = 0; i < numBlocks; i++) {
-				System.out.println(getNextLong5());
+			this.tileOffset[z] = new long[numBlocks];
+			System.out.println("Tile offsets: ");
+			for (int i = 0; i < numBlocks; i++) {
+				this.tileOffset[z][i] = getNextLong5();
+				System.out.println(this.tileOffset[z][i]);
 			}
 
 			System.out.println("done");
 		}
 	}
 
-	public byte[] getTile(int x, int y, byte zoomInterval) throws TileIndexOutOfBoundsException {
+	public byte[] getTile(int x, int y, byte zoomInterval) throws TileIndexOutOfBoundsException,
+			IOException {
 		assert this.mapFile != null;
 
-		System.out.println("Tile offset");
+		System.out.println("(" + x + "," + y + ") @ " + zoomInterval);
 
+		// Goto the tile's position
+		// row = y - minY; col = x - min X
+		// id = row * (maxX - minX) + col
+
+		// 7 9012
+		// 6 5678
+		// 5 1234
+		//
+		// 3456
+
+		int row = (int) (y - this.tileBoundingBox[zoomInterval].getMinY());
+		System.out.println("row: " + row);
+		int col = (int) (x - this.tileBoundingBox[zoomInterval].getMinX());
+		System.out.println("col: " + col);
+		int id = (int) (row
+				* (this.tileBoundingBox[zoomInterval].getMaxX() - this.tileBoundingBox[zoomInterval]
+						.getMinX()) + col);
+		System.out.println("id: " + id);
+		System.out.println("Relative tile offset: " + this.tileOffset[zoomInterval][id]);
+
+		this.offset = this.tileOffset[zoomInterval][id]
+				+ this.mapFile.getAbsoluteStartPosition()[zoomInterval];
+		// this.f.seek(this.offset);
+
+		System.out.println("Getting tile (" + x + ", " + y + ") @ position " + this.offset);
+
+		// TODO read and return tile
 		return null;
 	}
 
@@ -299,11 +328,27 @@ public class SimpleTileExtractor {
 		return (ret & 0x80000000) == 0 ? ret : -ret;
 	}
 
+	public int getMaxX(byte zoomInterval) {
+		return this.tileBoundingBox[zoomInterval].getMaxX();
+	}
+
+	public int getMinX(byte zoomInterval) {
+		return this.tileBoundingBox[zoomInterval].getMinX();
+	}
+
+	public int getMaxY(byte zoomInterval) {
+		return this.tileBoundingBox[zoomInterval].getMaxY();
+	}
+
+	public int getMinY(byte zoomInterval) {
+		return this.tileBoundingBox[zoomInterval].getMinY();
+	}
+
 	private class Rect {
-		private long minX;
-		private long maxX;
-		private long minY;
-		private long maxY;
+		private int minX;
+		private int maxX;
+		private int minY;
+		private int maxY;
 
 		/**
 		 * Sets the values for <code>minX, maxX, minY and maxY</code> by asserting
@@ -318,16 +363,33 @@ public class SimpleTileExtractor {
 		 * @param y2
 		 *            Another value for a y-coordinate.
 		 */
-		Rect(long x1, long x2, long y1, long y2) {
+		Rect(int x1, int x2, int y1, int y2) {
 			this.minX = x1 < x2 ? x1 : x2;
 			this.maxX = x1 < x2 ? x2 : x1;
 			this.minY = y1 < y2 ? y1 : y2;
-			this.minY = y1 < y2 ? y2 : y1;
+			this.maxY = y1 < y2 ? y2 : y1;
 		}
 
 		@Override
 		public String toString() {
 			return "(" + minX + ", " + maxX + ") ... (" + minY + ", " + maxY + ")";
 		}
+
+		public int getMinX() {
+			return minX;
+		}
+
+		public int getMaxX() {
+			return maxX;
+		}
+
+		public int getMinY() {
+			return minY;
+		}
+
+		public int getMaxY() {
+			return maxY;
+		}
+
 	}
 }

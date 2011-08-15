@@ -32,8 +32,11 @@ public class MapFileDebuggerMain {
 		SimpleTileExtractor ste = null;
 		try {
 			ste = new SimpleTileExtractor("/home/moep/berlin.map");
+			ste.getTile(8813, 5373, (byte) 1);
 		} catch (IOException e) {
-
+			e.printStackTrace();
+		} catch (TileIndexOutOfBoundsException e) {
+			System.err.println(e.getMessage());
 		}
 	}
 
