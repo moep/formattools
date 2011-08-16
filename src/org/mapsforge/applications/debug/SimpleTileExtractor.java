@@ -154,6 +154,11 @@ public class SimpleTileExtractor {
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
 
+			System.out.println("FirstX : " + firstX);
+			System.out.println("LastX : " + lastX);
+			System.out.println("FirstY : " + firstY);
+			System.out.println("LastY : " + lastY);
+
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {
 				this.offset += 16;
@@ -163,10 +168,8 @@ public class SimpleTileExtractor {
 					* (this.tileBoundingBox[z].getMaxY() - this.tileBoundingBox[z].getMinY() + 1);
 
 			this.tileOffset[z] = new long[numBlocks];
-			System.out.println("Tile offsets: ");
 			for (int i = 0; i < numBlocks; i++) {
 				this.tileOffset[z][i] = getNextLong5();
-				System.out.println(this.tileOffset[z][i]);
 			}
 
 			System.out.println("done");
@@ -177,11 +180,10 @@ public class SimpleTileExtractor {
 			IOException {
 		assert this.mapFile != null;
 
-		System.out.println("(" + x + "," + y + ") @ " + zoomInterval);
-
 		// Goto the tile's position
 		// row = y - minY; col = x - min X
 		// id = row * (maxX - minX) + col
+		// or id = col * (maxY - minY) + row ??
 
 		// 7 9012
 		// 6 5678
@@ -190,20 +192,19 @@ public class SimpleTileExtractor {
 		// 3456
 
 		int row = (int) (y - this.tileBoundingBox[zoomInterval].getMinY());
-		System.out.println("row: " + row);
 		int col = (int) (x - this.tileBoundingBox[zoomInterval].getMinX());
-		System.out.println("col: " + col);
+		System.out.println("MinX: " + this.tileBoundingBox[zoomInterval].getMinX() + " MaxX:"
+				+ this.tileBoundingBox[zoomInterval].getMaxX());
+		System.out.println("row: " + row + " col: " + col);
 		int id = (int) (row
 				* (this.tileBoundingBox[zoomInterval].getMaxX() - this.tileBoundingBox[zoomInterval]
 						.getMinX()) + col);
-		System.out.println("id: " + id);
-		System.out.println("Relative tile offset: " + this.tileOffset[zoomInterval][id]);
 
 		this.offset = this.tileOffset[zoomInterval][id]
 				+ this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		// this.f.seek(this.offset);
 
-		System.out.println("Getting tile (" + x + ", " + y + ") @ position " + this.offset);
+		System.out.println("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
 
 		// TODO read and return tile
 		return null;
