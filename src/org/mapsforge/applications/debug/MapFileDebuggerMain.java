@@ -30,11 +30,19 @@ public class MapFileDebuggerMain {
 	 */
 	public static void main(String[] args) {
 		SimpleTileExtractor ste = null;
+		byte[][] tiles;
+		tiles = new byte[200000][];
 		try {
-			ste = new SimpleTileExtractor("/home/moep/berlin.map");
-			ste.getTile(8794, 5361, (byte) 1);
-			ste.getTile(8795, 5361, (byte) 1);
-			ste.getTile(8796, 5361, (byte) 1);
+			ste = new SimpleTileExtractor("/home/moep/germany-0.2.4.map");
+			int i = 0;
+			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
+					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
+						tiles[i] = ste.getTile(x, y, zoomInterval);
+					}
+				}
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (TileIndexOutOfBoundsException e) {

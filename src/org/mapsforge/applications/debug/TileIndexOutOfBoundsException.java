@@ -14,7 +14,29 @@
  */
 package org.mapsforge.applications.debug;
 
+/**
+ * This exception is raised whenever a tile is requested that does not lie within a map's bounding box
+ * or zoom intervals.
+ * 
+ * @author Karsten Groll
+ * 
+ */
 public class TileIndexOutOfBoundsException extends Exception {
+	/**
+	 * Automatically generated SUID.
+	 */
+	private static final long serialVersionUID = 4963406980294684666L;
+
+	/**
+	 * Default exception call.
+	 * 
+	 * @param x
+	 *            The requested x-coordinate.
+	 * @param y
+	 *            The requested y-coordinate.
+	 * @param zoomInterval
+	 *            The requested zoom interval.
+	 */
 	public TileIndexOutOfBoundsException(int x, int y, byte zoomInterval) {
 		super("Tile coordinates (" + x + ", " + y + ") at zoom interval " + zoomInterval
 				+ " are out of the sub file's bounding box.");

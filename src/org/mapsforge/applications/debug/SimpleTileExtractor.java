@@ -22,14 +22,13 @@ import org.mapsforge.core.MercatorProjection;
 
 /**
  * A simple Parser that parses the tiles as raw data. Unlike {@link MapFormatReader} this parser does
- * not read all at once. Instead each tile has to be pulled by the {@link #getNextTile()} method.
+ * not read all at once. Instead each tile has to be pulled by the {@link #getTile()} method.
  * 
  * @author Karsten Groll
  * 
  */
 public class SimpleTileExtractor {
 	private static final double COORDINATES_FACTOR = 1000000.0;
-	private byte zoomInterval;
 	private RandomAccessFile f;
 	private MapFile mapFile;
 	private long offset;
@@ -37,8 +36,15 @@ public class SimpleTileExtractor {
 	private long[][] tileOffset;
 	private Rect[] tileBoundingBox;
 
+	/**
+	 * Constructor that parses a map file's header.
+	 * 
+	 * @param path
+	 *            Path to the map file that should be parsed.
+	 * @throws IOException
+	 *             if the file cannot be read.
+	 */
 	public SimpleTileExtractor(String path) throws IOException {
-		this.zoomInterval = zoomInterval;
 		this.f = new BufferedRandomAccessFile(path, "r", 1024 * 10);
 		this.buffer = new byte[1024 * 100];
 		parseMapFileHeader();
@@ -176,9 +182,33 @@ public class SimpleTileExtractor {
 		}
 	}
 
+	/**
+	 * Gets a raw data tile at a given tile coordinate (x,y) and a base zoom interval. The coordinates
+	 * are the squares' coordinates within the default zoom level of the base zoom interval.
+	 * 
+	 * @param x
+	 *            The tile's x-coordinate.
+	 * @param y
+	 *            The tile's y-coordinate.
+	 * @param zoomInterval
+	 *            The base zoom interval.
+	 * @return Raw data as byte array containing the tile's data.
+	 * @throws TileIndexOutOfBoundsException
+	 *             if the given coordinates are not within the map file's defined bounding box or if the
+	 *             base zoom level does not exist.
+	 * @throws IOException
+	 *             if the file could not be read.
+	 */
 	public byte[] getTile(int x, int y, byte zoomInterval) throws TileIndexOutOfBoundsException,
 			IOException {
 		assert this.mapFile != null;
+		assert zoomInterval > 0;
+
+		// TODO test exception
+		if (x < getMinX(zoomInterval) || x > getMaxX(zoomInterval) || y < getMinY(zoomInterval)
+				|| y > getMaxY(zoomInterval) || zoomInterval > this.mapFile.getAmountOfZoomIntervals()) {
+			throw new TileIndexOutOfBoundsException(x, y, zoomInterval);
+		}
 
 		int row = y - this.tileBoundingBox[zoomInterval].getMinY();
 		int col = x - this.tileBoundingBox[zoomInterval].getMinX();
@@ -193,7 +223,7 @@ public class SimpleTileExtractor {
 		System.out.print("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
 
 		if (isEmptyTile(id, zoomInterval)) {
-			System.out.println(" -> empty;");
+			System.out.println(" -> empty");
 			return null;
 		}
 
@@ -201,15 +231,19 @@ public class SimpleTileExtractor {
 
 		// Read the tile
 		int tileSize = getTileSize(id, zoomInterval);
-		byte[] tile;
+		byte[] tile = new byte[tileSize];
+		this.f.read(tile, 0, tileSize);
 
 		System.out.println(" -> " + tileSize);
-		return null;
+
+		return tile;
 	}
 
 	/**
 	 * @param tileID
 	 *            The tile's index position.
+	 * @param zoomInterval
+	 *            the zoom interval the tile is located in.
 	 * @return true if the given tile is empty.
 	 */
 	private boolean isEmptyTile(int tileID, byte zoomInterval) {
@@ -230,13 +264,20 @@ public class SimpleTileExtractor {
 		return (int) (tileOffset[zoomInterval][tileID + 1] - tileOffset[zoomInterval][tileID]);
 	}
 
-	// DEBUG ONLY
+	/**
+	 * Returns the parser's <code>MapFile</code> object for retrieving the map file's meta information.
+	 * 
+	 * @return The parser's {@link MapFile}.
+	 */
 	public MapFile getMapFile() {
 		return this.mapFile;
 	}
 
 	/**
 	 * Tears down the parser and closes all of its handles.
+	 * 
+	 * @throws IOException
+	 *             if the file cannot be closed.
 	 */
 	public void shutdown() throws IOException {
 		System.out.println("Shutting down...");
@@ -331,36 +372,38 @@ public class SimpleTileExtractor {
 		return ret;
 	}
 
-	private int getNextVBESInt() throws IOException {
-		// TODO test it
-		byte shift = 0;
-		int ret = 0;
-		byte b;
-
-		// Bytes with continuation bit (low order bytes)
-		while (((b = getNextByte()) & 0x80) != 0) {
-			ret |= (b & 0x7f) << shift;
-			shift += 7;
-		}
-
-		// High order byte (last byte)
-		ret |= (b & 0x7f) << shift;
-
-		return (ret & 0x80000000) == 0 ? ret : -ret;
-	}
-
+	/**
+	 * @param zoomInterval
+	 *            The zoom interval that should be queried.
+	 * @return Maximum x-coordinate for a tile on a given zoom interval.
+	 */
 	public int getMaxX(byte zoomInterval) {
 		return this.tileBoundingBox[zoomInterval].getMaxX();
 	}
 
+	/**
+	 * @param zoomInterval
+	 *            The zoom interval that should be queried.
+	 * @return Minimum x-coordinate for a tile on a given zoom interval.
+	 */
 	public int getMinX(byte zoomInterval) {
 		return this.tileBoundingBox[zoomInterval].getMinX();
 	}
 
+	/**
+	 * @param zoomInterval
+	 *            The zoom interval that should be queried.
+	 * @return Maximum y-coordinate for a tile on a given zoom interval.
+	 */
 	public int getMaxY(byte zoomInterval) {
 		return this.tileBoundingBox[zoomInterval].getMaxY();
 	}
 
+	/**
+	 * @param zoomInterval
+	 *            The zoom interval that should be queried.
+	 * @return Minimum y-coordinate for a tile on a given zoom interval.
+	 */
 	public int getMinY(byte zoomInterval) {
 		return this.tileBoundingBox[zoomInterval].getMinY();
 	}
