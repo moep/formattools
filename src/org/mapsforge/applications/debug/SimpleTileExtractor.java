@@ -153,11 +153,11 @@ public class SimpleTileExtractor {
 					this.mapFile.getBaseZoomLevel()[z]);
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
-
-			System.out.println("FirstX : " + firstX);
-			System.out.println("LastX : " + lastX);
-			System.out.println("FirstY : " + firstY);
-			System.out.println("LastY : " + lastY);
+			//
+			// System.out.println("FirstX : " + firstX);
+			// System.out.println("LastX : " + lastX);
+			// System.out.println("FirstY : " + firstY);
+			// System.out.println("LastY : " + lastY);
 
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {
@@ -180,34 +180,54 @@ public class SimpleTileExtractor {
 			IOException {
 		assert this.mapFile != null;
 
-		// Goto the tile's position
-		// row = y - minY; col = x - min X
-		// id = row * (maxX - minX) + col
-		// or id = col * (maxY - minY) + row ??
-
-		// 7 9012
-		// 6 5678
-		// 5 1234
-		//
-		// 3456
-
-		int row = (int) (y - this.tileBoundingBox[zoomInterval].getMinY());
-		int col = (int) (x - this.tileBoundingBox[zoomInterval].getMinX());
-		System.out.println("MinX: " + this.tileBoundingBox[zoomInterval].getMinX() + " MaxX:"
-				+ this.tileBoundingBox[zoomInterval].getMaxX());
-		System.out.println("row: " + row + " col: " + col);
-		int id = (int) (row
+		int row = y - this.tileBoundingBox[zoomInterval].getMinY();
+		int col = x - this.tileBoundingBox[zoomInterval].getMinX();
+		int id = row
 				* (this.tileBoundingBox[zoomInterval].getMaxX() - this.tileBoundingBox[zoomInterval]
-						.getMinX()) + col);
+						.getMinX()) + col;
 
 		this.offset = this.tileOffset[zoomInterval][id]
 				+ this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		// this.f.seek(this.offset);
 
-		System.out.println("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
+		System.out.print("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
 
-		// TODO read and return tile
+		if (isEmptyTile(id, zoomInterval)) {
+			System.out.println(" -> empty;");
+			return null;
+		}
+
+		// TODO isEmptyTile <=> getTileSize == 0; merge functions
+
+		// Read the tile
+		int tileSize = getTileSize(id, zoomInterval);
+		byte[] tile;
+
+		System.out.println(" -> " + tileSize);
 		return null;
+	}
+
+	/**
+	 * @param tileID
+	 *            The tile's index position.
+	 * @return true if the given tile is empty.
+	 */
+	private boolean isEmptyTile(int tileID, byte zoomInterval) {
+		// Last tile? (Cannot be empty)
+		if (tileID == this.tileOffset[zoomInterval][tileID] - 1) {
+			return tileOffset[zoomInterval][tileID] == tileOffset[zoomInterval][tileID - 1];
+		}
+
+		return tileOffset[zoomInterval][tileID] == tileOffset[zoomInterval][tileID + 1];
+	}
+
+	private int getTileSize(int tileID, byte zoomInterval) {
+		// Last tile?
+		if (tileID == this.tileOffset[zoomInterval][tileID] - 1) {
+			return (int) (this.mapFile.getSubFileSize()[zoomInterval] - tileOffset[zoomInterval][tileID]);
+		}
+
+		return (int) (tileOffset[zoomInterval][tileID + 1] - tileOffset[zoomInterval][tileID]);
 	}
 
 	// DEBUG ONLY
