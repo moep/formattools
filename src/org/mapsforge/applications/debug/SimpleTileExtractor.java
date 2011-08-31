@@ -232,6 +232,7 @@ public class SimpleTileExtractor {
 		// Read the tile
 		int tileSize = getTileSize(id, zoomInterval);
 		byte[] tile = new byte[tileSize];
+		this.f.seek(this.offset);
 		this.f.read(tile, 0, tileSize);
 
 		System.out.println(" -> " + tileSize);

@@ -54,12 +54,12 @@ class Tile {
 	/**
 	 * The constructor.
 	 */
-	public Tile(MapFile parentMapFile, SubFile parentSubFile) {
+	public Tile() {
 		this.numPOIs = new Hashtable<Integer, Integer>();
 		this.numWays = new Hashtable<Integer, Integer>();
 
-		this.parentMapFile = parentMapFile;
-		this.parentSubFile = parentSubFile;
+		// this.parentMapFile = parentMapFile;
+		// this.parentSubFile = parentSubFile;
 
 		this.pois = new LinkedList<POI>();
 		this.ways = new LinkedList<Way>();

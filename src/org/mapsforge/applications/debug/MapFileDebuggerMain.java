@@ -46,7 +46,8 @@ public class MapFileDebuggerMain {
 			}
 
 			// Parse a single tile from RAM
-			Tile t = TileFactory.getTileFromRawData(tiles[100], (byte) 1, ste.getMapFile());
+			byte[] rawTile = ste.getTile(8801, 5373, (byte) 1);
+			TileFactory.getTileFromRawData(rawTile, (byte) 1, ste.getMapFile());
 			// t.getWays();
 			// t.getPois();
 

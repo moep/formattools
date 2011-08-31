@@ -42,7 +42,7 @@ public class Serializer {
 	public String getNextString(int length) {
 		StringBuilder sb = new StringBuilder(length);
 		for (int i = 0; i < length; i++) {
-			sb.append(this.buffer.getChar());
+			sb.append((char) this.buffer.get());
 		}
 		return sb.toString();
 	}
@@ -52,7 +52,8 @@ public class Serializer {
 
 		StringBuffer sb = new StringBuffer(strlen);
 		for (int i = 0; i < strlen; i++) {
-			sb.append(this.buffer.getChar());
+			// TODO getChar
+			sb.append((char) this.buffer.get());
 		}
 
 		return sb.toString();

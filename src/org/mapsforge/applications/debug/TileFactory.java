@@ -14,11 +14,10 @@
  */
 package org.mapsforge.applications.debug;
 
-
 public class TileFactory {
 	public static Tile getTileFromRawData(byte[] rawData, byte zoomInterval, MapFile mapFile) {
 
-		Tile t = new Tile(mapFile, mapFile.getSubFiles().get(zoomInterval));
+		Tile t = new Tile();
 		Serializer s = new Serializer(rawData);
 
 		System.out.println("Reading tile header");
@@ -27,7 +26,9 @@ public class TileFactory {
 		// Tile signature (32B, optional)
 		// ###TileStart
 		if (mapFile.isDebugFlagSet()) {
-			t.setTileSignature(s.getNextString(32));
+			String signature = s.getNextString(32);
+			System.out.println("Tile signature: " + signature);
+			t.setTileSignature(signature);
 		}
 
 		// Zoom table (variable)
@@ -41,7 +42,6 @@ public class TileFactory {
 
 		// FINISHED TILE //
 
-		System.out.println("POIs");
 		// P O I s
 		System.out.println("This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(mapFile
 				.getMaximalZoomLevel()[zoomInterval]) + " POIs");
@@ -65,10 +65,11 @@ public class TileFactory {
 
 	private static POI getNextPOI(Serializer s, MapFile mapFile) {
 		POI p = new POI();
-
 		// POI signature (32B, optional)
 		if (mapFile.isDebugFlagSet()) {
-			p.setPoiSignature(s.getNextString(32));
+			String signature = s.getNextString(32);
+			// System.out.println("POI Signature: " + signature);
+			p.setPoiSignature(signature);
 		}
 
 		// Position (2 * VBE-S)
@@ -108,7 +109,9 @@ public class TileFactory {
 
 		// Way signature (32B, optional)
 		if (mapFile.isDebugFlagSet()) {
-			w.setWaySignature(s.getNextString(32));
+			String signature = s.getNextString(32);
+			// System.out.println("Way signature: " + signature);
+			w.setWaySignature(signature);
 		}
 
 		// Way size (VBE-U)

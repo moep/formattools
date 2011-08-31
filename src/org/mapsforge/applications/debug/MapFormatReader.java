@@ -295,7 +295,8 @@ public class MapFormatReader {
 	private Tile getNextTile(SubFile sf, byte zoomInterval) throws IOException {
 
 		Tile t;
-		t = new Tile(this.mapFile, sf);
+		// t = new Tile(this.mapFile, sf);
+		t = new Tile();
 
 		// H E A D E R
 
