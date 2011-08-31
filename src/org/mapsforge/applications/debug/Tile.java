@@ -40,7 +40,8 @@ class Tile {
 	int firstWayOffset;
 
 	// POIs and ways
-	List<POI> pois;
+	private List<POI> pois;
+	private List<Way> ways;
 
 	public List<POI> getPois() {
 		return pois;
@@ -50,15 +51,8 @@ class Tile {
 		return ways;
 	}
 
-	List<Way> ways;
-
 	/**
 	 * The constructor.
-	 * 
-	 * @param parentMapFile
-	 *            The {@link MapFile} object that contains this tile's subfile.
-	 * @param parentSubFile
-	 *            The {@link SubFile} object that contains this tile.
 	 */
 	public Tile(MapFile parentMapFile, SubFile parentSubFile) {
 		this.numPOIs = new Hashtable<Integer, Integer>();

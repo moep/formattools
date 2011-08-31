@@ -32,8 +32,10 @@ public class MapFileDebuggerMain {
 		SimpleTileExtractor ste = null;
 		byte[][] tiles;
 		tiles = new byte[200000][];
+
+		// Read all Tiles
 		try {
-			ste = new SimpleTileExtractor("/home/moep/germany-0.2.4.map");
+			ste = new SimpleTileExtractor("/home/moep/berlin.map");
 			int i = 0;
 			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
 				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
@@ -42,6 +44,11 @@ public class MapFileDebuggerMain {
 					}
 				}
 			}
+
+			// Parse a single tile from RAM
+			Tile t = TileFactory.getTileFromRawData(tiles[100], (byte) 1, ste.getMapFile());
+			// t.getWays();
+			// t.getPois();
 
 		} catch (IOException e) {
 			e.printStackTrace();
