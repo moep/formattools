@@ -43,8 +43,8 @@ public class TileFactory {
 		// FINISHED TILE //
 
 		// P O I s
-		System.out.println("This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(mapFile
-				.getMaximalZoomLevel()[zoomInterval]) + " POIs");
+		// System.out.println("This tile has " + t.getCumulatedNumberOfPoisOnZoomlevel(mapFile
+		// .getMaximalZoomLevel()[zoomInterval]) + " POIs");
 		for (int poi = 0; poi < t.getCumulatedNumberOfPoisOnZoomlevel(mapFile
 				.getMaximalZoomLevel()[zoomInterval]); poi++) {
 			t.addPOI(getNextPOI(s, mapFile));
@@ -52,8 +52,8 @@ public class TileFactory {
 
 		System.out.println("Ways");
 		// W A Y S
-		System.out.println("This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(mapFile
-				.getMaximalZoomLevel()[zoomInterval]) + " ways");
+		// System.out.println("This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(mapFile
+		// .getMaximalZoomLevel()[zoomInterval]) + " ways");
 		for (int way = 0; way < t.getCumulatedNumberOfWaysOnZoomLevel(mapFile
 				.getMaximalZoomLevel()[zoomInterval]); way++) {
 			t.addWay(getNextWay(s, mapFile));

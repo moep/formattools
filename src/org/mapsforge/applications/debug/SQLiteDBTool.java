@@ -49,7 +49,7 @@ public class SQLiteDBTool {
 	}
 
 	/**
-	 * Creates a SQLite database with a simple schema and opens the connection.
+	 * Creates a SQLite database with a simple schema (x, y, binary data) and opens the connection.
 	 */
 	public void createDB() {
 		try {
@@ -83,14 +83,14 @@ public class SQLiteDBTool {
 	 */
 	public void insertData(byte[] data, int xTilePos, int yTilePos) {
 		System.out.println("insertData (" + xTilePos + ", " + yTilePos + "); size:" + data.length);
-		// try {
-		// this.pStmt.setInt(1, xTilePos);
-		// this.pStmt.setInt(2, yTilePos);
-		// this.pStmt.setBytes(3, data);
-		// this.pStmt.addBatch();
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// }
+		try {
+			this.pStmt.setInt(1, xTilePos);
+			this.pStmt.setInt(2, yTilePos);
+			this.pStmt.setBytes(3, data);
+			this.pStmt.addBatch();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -99,10 +99,10 @@ public class SQLiteDBTool {
 	public void commit() {
 		System.out.println("***************** COMMIT");
 		try {
-			// this.conn.setAutoCommit(false);
-			// this.pStmt.executeBatch();
-			// this.conn.setAutoCommit(true);
-			// this.conn.close();
+			this.conn.setAutoCommit(false);
+			this.pStmt.executeBatch();
+			this.conn.setAutoCommit(true);
+			this.conn.close();
 			this.conn.close();
 		} catch (SQLException e) {
 			e.printStackTrace();

@@ -33,11 +33,14 @@ public class MapFileDebuggerMain {
 		byte[][] tiles;
 		tiles = new byte[200000][];
 
-		// Read all Tiles
+		// Test if tile coordinates are correct (needs debug file)
 		try {
 			ste = new SimpleTileExtractor("/home/moep/berlin.map");
+			// Expected and given signature
+			String expected;
+			String given;
 			int i = 0;
-			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+			for (byte zoomInterval = 1; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
 				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
 					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
 						tiles[i] = ste.getTile(x, y, zoomInterval);
@@ -57,5 +60,4 @@ public class MapFileDebuggerMain {
 			System.err.println(e.getMessage());
 		}
 	}
-
 }

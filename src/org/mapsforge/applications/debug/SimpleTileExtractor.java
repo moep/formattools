@@ -151,19 +151,19 @@ public class SimpleTileExtractor {
 			long lastX = MercatorProjection.longitudeToTileX(this.mapFile.getMaxLon()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
 					this.mapFile.getBaseZoomLevel()[z]);
-			long firstY = MercatorProjection.latitudeToTileY(this.mapFile.getMinLat()
+			long firstY = MercatorProjection.latitudeToTileY(this.mapFile.getMaxLat()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
 					this.mapFile.getBaseZoomLevel()[z]);
-			long lastY = MercatorProjection.latitudeToTileY(this.mapFile.getMaxLat()
+			long lastY = MercatorProjection.latitudeToTileY(this.mapFile.getMinLat()
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
 					this.mapFile.getBaseZoomLevel()[z]);
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
 			//
-			// System.out.println("FirstX : " + firstX);
-			// System.out.println("LastX : " + lastX);
-			// System.out.println("FirstY : " + firstY);
-			// System.out.println("LastY : " + lastY);
+			System.out.println("FirstX : " + firstX);
+			System.out.println("LastX : " + lastX);
+			System.out.println("FirstY : " + firstY);
+			System.out.println("LastY : " + lastY);
 
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {
@@ -213,8 +213,8 @@ public class SimpleTileExtractor {
 		int row = y - this.tileBoundingBox[zoomInterval].getMinY();
 		int col = x - this.tileBoundingBox[zoomInterval].getMinX();
 		int id = row
-				* (this.tileBoundingBox[zoomInterval].getMaxX() - this.tileBoundingBox[zoomInterval]
-						.getMinX()) + col;
+				* (this.tileBoundingBox[zoomInterval].getMaxX()
+						- this.tileBoundingBox[zoomInterval].getMinX() + 1) + col;
 
 		this.offset = this.tileOffset[zoomInterval][id]
 				+ this.mapFile.getAbsoluteStartPosition()[zoomInterval];
@@ -248,17 +248,12 @@ public class SimpleTileExtractor {
 	 * @return true if the given tile is empty.
 	 */
 	private boolean isEmptyTile(int tileID, byte zoomInterval) {
-		// Last tile? (Cannot be empty)
-		if (tileID == this.tileOffset[zoomInterval][tileID] - 1) {
-			return tileOffset[zoomInterval][tileID] == tileOffset[zoomInterval][tileID - 1];
-		}
-
-		return tileOffset[zoomInterval][tileID] == tileOffset[zoomInterval][tileID + 1];
+		return getTileSize(tileID, zoomInterval) == 0;
 	}
 
 	private int getTileSize(int tileID, byte zoomInterval) {
 		// Last tile?
-		if (tileID == this.tileOffset[zoomInterval][tileID] - 1) {
+		if (tileID == this.tileOffset[zoomInterval].length - 1) {
 			return (int) (this.mapFile.getSubFileSize()[zoomInterval] - tileOffset[zoomInterval][tileID]);
 		}
 
@@ -429,10 +424,10 @@ public class SimpleTileExtractor {
 		 *            Another value for a y-coordinate.
 		 */
 		Rect(int x1, int x2, int y1, int y2) {
-			this.minX = x1 < x2 ? x1 : x2;
-			this.maxX = x1 < x2 ? x2 : x1;
-			this.minY = y1 < y2 ? y1 : y2;
-			this.maxY = y1 < y2 ? y2 : y1;
+			this.minX = x1;
+			this.maxX = x2;
+			this.minY = y1;
+			this.maxY = y2;
 		}
 
 		@Override
