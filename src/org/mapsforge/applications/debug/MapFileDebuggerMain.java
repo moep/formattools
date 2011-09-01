@@ -40,10 +40,19 @@ public class MapFileDebuggerMain {
 			String expected;
 			String given;
 			int i = 0;
-			for (byte zoomInterval = 1; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
 				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
 					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
 						tiles[i] = ste.getTile(x, y, zoomInterval);
+						if (tiles[i] == null)
+							continue;
+
+						expected = "###TileStart" + x + "," + y + "###";
+						given = new String(tiles[i], 0, 32);
+						if (!given.startsWith(expected)) {
+							System.out.println("ERROR @ (" + x + ", " + y + ") given: " + given
+									+ " expected: " + expected);
+						}
 					}
 				}
 			}
