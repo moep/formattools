@@ -14,7 +14,10 @@
  */
 package org.mapsforge.applications.debug;
 
+import java.io.File;
 import java.io.IOException;
+
+import org.mapsforge.applications.debug.db.TileSizeSQLiteWriter;
 
 /**
  * 
@@ -24,18 +27,61 @@ import java.io.IOException;
  */
 
 public class MapFileDebuggerMain {
-	/**
-	 * @param args
-	 *            not used command line parameters.
-	 */
-	public static void main(String[] args) {
+	private static String getBaseName(String path) {
+		return new File(path).getName().split("\\.(?=[^\\.]+$)")[0];
+	}
+
+	private static void writeTileSizesToDB(String path, byte zoomInterval) {
+		System.out.println("Writing information (x, y, tileSize) to 'db/" + getBaseName(path)
+				+ "-bzs" + zoomInterval + "-tileSizes.sqlite'...");
+
+		System.out.println("Parsing " + path + " ...");
+		SimpleTileExtractor ste = null;
+		TileSizeSQLiteWriter db = new TileSizeSQLiteWriter("db/" + getBaseName(path) + "-bzs"
+				+ zoomInterval + "-tileSizes.sqlite");
+		byte[] tile;
+
+		// Parse tiles
+		int tilesWritten = 0;
+		try {
+			ste = new SimpleTileExtractor(path);
+			int i = 0;
+			for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
+				for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
+					tile = ste.getTile(x, y, zoomInterval);
+
+					// Write non-empty tiles to db
+					if (tile != null) {
+						db.insertData(tile, x, y);
+						++tilesWritten;
+						if (tilesWritten % 1000 == 0) {
+							db.commit();
+						}
+					}
+					++i;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TileIndexOutOfBoundsException e) {
+			System.err.println(e.getMessage());
+		}
+
+		db.commit();
+		db.close();
+
+		System.out.println(tilesWritten + " tiles have been written to db.");
+
+	}
+
+	private static void checkIdexes(String path) {
 		SimpleTileExtractor ste = null;
 		byte[][] tiles;
 		tiles = new byte[200000][];
 
-		// Test if tile coordinates are correct (needs debug file)
+		// Test if tile coordinates are correct (NEEDS DEBUG FILE!)
 		try {
-			ste = new SimpleTileExtractor("/home/moep/berlin.map");
+			ste = new SimpleTileExtractor(path);
 			// Expected and given signature
 			String expected;
 			String given;
@@ -68,5 +114,14 @@ public class MapFileDebuggerMain {
 		} catch (TileIndexOutOfBoundsException e) {
 			System.err.println(e.getMessage());
 		}
+	}
+
+	/**
+	 * @param args
+	 *            not used command line parameters.
+	 */
+	public static void main(String[] args) {
+		writeTileSizesToDB("/home/moep/libya.map", (byte) 0);
+		writeTileSizesToDB("/home/moep/libya.map", (byte) 1);
 	}
 }

@@ -12,11 +12,9 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug;
+package org.mapsforge.applications.debug.db;
 
-import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -28,8 +26,7 @@ import java.sql.Statement;
  * @author Karsten Groll
  * 
  */
-public class SQLiteDBTool {
-	private File dbFile;
+public class TileSizeSQLiteWriter {
 	private Connection conn;
 	private Statement stmt;
 	PreparedStatement pStmt;
@@ -39,32 +36,23 @@ public class SQLiteDBTool {
 	 * @param path
 	 *            Path to the SQLite database file that will be created.
 	 */
-	public SQLiteDBTool(String path) {
-		this.dbFile = new File(path);
-
-		if (this.dbFile.exists()) {
-			System.out.println(this.dbFile.getAbsolutePath() + "will be overwritten.");
-			this.dbFile.delete();
-		}
+	public TileSizeSQLiteWriter(String path) {
+		this.conn = DBConnectionProvider.getSQLiteConnection(path);
+		createDB();
 	}
 
 	/**
 	 * Creates a SQLite database with a simple schema (x, y, binary data) and opens the connection.
 	 */
-	public void createDB() {
+	private void createDB() {
 		try {
-			Class.forName("org.sqlite.JDBC");
-			this.conn = DriverManager.getConnection("jdbc:sqlite:" + this.dbFile.getAbsolutePath());
-
 			this.stmt = this.conn.createStatement();
 			this.stmt.executeUpdate("DROP TABLE IF EXISTS idx;");
 			this.stmt
-					.executeUpdate("CREATE TABLE IF NOT EXISTS idx (x INTEGER, y INTEGER, data BLOB, PRIMARY KEY (x,y))");
+					.executeUpdate("CREATE TABLE IF NOT EXISTS idx (x INTEGER, y INTEGER, size BLOB, PRIMARY KEY (x,y))");
 
 			this.pStmt = this.conn.prepareStatement("INSERT INTO idx VALUES (?, ?, ?)");
 
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -82,11 +70,11 @@ public class SQLiteDBTool {
 	 * 
 	 */
 	public void insertData(byte[] data, int xTilePos, int yTilePos) {
-		System.out.println("insertData (" + xTilePos + ", " + yTilePos + "); size:" + data.length);
+		// System.out.println("insertData (" + xTilePos + ", " + yTilePos + "); size:" + data.length);
 		try {
 			this.pStmt.setInt(1, xTilePos);
 			this.pStmt.setInt(2, yTilePos);
-			this.pStmt.setBytes(3, data);
+			this.pStmt.setInt(3, data.length);
 			this.pStmt.addBatch();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -94,7 +82,7 @@ public class SQLiteDBTool {
 	}
 
 	/**
-	 * Commits all rows and closes the connection.
+	 * Commits all rows.
 	 */
 	public void commit() {
 		System.out.println("***************** COMMIT");
@@ -102,11 +90,20 @@ public class SQLiteDBTool {
 			this.conn.setAutoCommit(false);
 			this.pStmt.executeBatch();
 			this.conn.setAutoCommit(true);
-			this.conn.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Closes the connection.
+	 */
+	public void close() {
+		try {
 			this.conn.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 	}
 }
