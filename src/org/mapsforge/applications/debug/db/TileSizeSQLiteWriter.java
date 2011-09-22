@@ -37,7 +37,7 @@ public class TileSizeSQLiteWriter {
 	 *            Path to the SQLite database file that will be created.
 	 */
 	public TileSizeSQLiteWriter(String path) {
-		this.conn = DBConnectionProvider.getSQLiteConnection(path);
+		// this.conn = DBConnectionProvider.getSQLiteConnection(path);
 		createDB();
 	}
 
