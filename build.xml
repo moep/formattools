@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Use this Ant script for convenience with creating a distribution of mapsforge.
+The script in not intended for building the project. Use Eclipse for this
+purpose.
+-->
+<project name="mapsforge-debug">
+	<target name="mapfile-writer-jar">
+		<mkdir dir="dist" />
+		<jar destfile="dist/mapsforge-mapfile-writer-0.3-experimental.jar" duplicate="preserve">
+			<fileset dir="src" includes="org/mapsforge/applications/debug/osmosis/" excludes="org/mapsforge/applications/debug/osmosis/plugin.xml" />
+			<fileset dir="bin" includes="org/mapsforge/applications/debug/osmosis/" />
+			<fileset dir="src/org/mapsforge/applications/debug/osmosis" includes="plugin.xml" />
+		</jar>
+
+	</target>
+	
+	<target name="mapfile-writer-copy" depends="mapfile-writer-jar">
+		<copy file="dist/mapsforge-mapfile-writer-0.3-experimental.jar" todir="${user.home}/.openstreetmap/osmosis/plugins/" />
+	</target>
+</project>
