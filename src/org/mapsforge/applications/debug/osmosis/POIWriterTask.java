@@ -45,7 +45,7 @@ public class POIWriterTask implements Sink {
 	public void complete() {
 		int numPOIsWritten = poiStore.getNumberOfPOIs();
 		LOGGER.info("Writing POIs to file...");
-
+		poiStore.writeToSQLiteDB();
 		LOGGER.info("Finished writing " + numPOIsWritten + " POIs to file.");
 
 	}
@@ -81,7 +81,7 @@ public class POIWriterTask implements Sink {
 		// Only add nodes that have data
 		if (n.getTags().size() != 0) {
 			// TODO read key / value pairs
-			poiStore.addPOI(n.getLatitude(), n.getLongitude(), new String[] { "bla=blubb" });
+			poiStore.addPOI(n.getId(), n.getLatitude(), n.getLongitude(), new String[] { "bla=blubb" });
 		}
 	}
 }
