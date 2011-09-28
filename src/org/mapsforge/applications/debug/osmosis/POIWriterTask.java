@@ -46,7 +46,7 @@ public class POIWriterTask implements Sink {
 		int numPOIsWritten = poiStore.getNumberOfPOIs();
 		LOGGER.info("Writing POIs to file...");
 		// TODO use parameter as path
-		poiStore.writeToSQLiteDB("/home/moep/berlin.poi");
+		poiStore.writeToSQLiteDB("/home/moep/germany.poi");
 		LOGGER.info("Finished writing " + numPOIsWritten + " POIs to file.");
 
 	}

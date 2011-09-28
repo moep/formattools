@@ -62,6 +62,24 @@ public class RAMPoiStore {
 	 */
 	public void writeToSQLiteDB(String path) {
 
+		// Determine OS
+		if (!System.getProperty("os.name").equals("Linux")) {
+			LOGGER.severe("UNSUPPORTED OS / ARCHITECTURE");
+			LOGGER.info("At the moment we do only support Linux x86 and amd64.");
+		} else {
+			// Set library path for os
+			String arch = System.getProperty("sun.arch.data.model");
+			// TODO Don't attach entry instead of overwriting
+			System.setProperty("java.library.path",
+					System.getProperty("user.dir") +
+							"/lib/jni/linux_" +
+							(arch.equals("32") ? "x86" : "amd64"));
+
+			LOGGER.fine("java.library.path was set to '" + System.getProperty("java.library.path")
+					+ "'");
+		}
+
+		// Write data using native SQLite
 		Connection conn = null;
 		PreparedStatement pStmt = null;
 		PreparedStatement pStmt2 = null;
@@ -73,22 +91,20 @@ public class RAMPoiStore {
 
 			stmt = conn.createStatement();
 			pStmt = conn.prepareStatement("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
-			pStmt2 = conn.prepareStatement("INSERT INTO poi_data VALUES (?, ?, ?);");
+			pStmt2 = conn.prepareStatement("INSERT INTO poi_data VALUES (?, ?);");
 
 			// CREATE TABLES
-			System.out.println("CREATE TABLES");
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_index;");
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_data;");
 			stmt.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
-			stmt.executeUpdate("CREATE TABLE poi_data (id LONG, key TEXT, value TEXT);");
+			stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, PRIMARY KEY (id));");
 			conn.commit();
 
 			// INSERT
-			LOGGER.fine("Batches: " + ((int) (this.pois.size() / BATCH_SIZE)));
-			// TODO batch size;
-			int numAttributes = 0;
+			int numBatches = (int) Math.ceil(this.pois.size() / BATCH_SIZE);
+			LOGGER.fine("Batches: " + numBatches);
 			int processed = 0;
-			long id = 0;
+			int numCommits = 0;
 			for (POI p : pois) {
 				// index
 				pStmt.setLong(1, p.getID());
@@ -106,17 +122,14 @@ public class RAMPoiStore {
 				pStmt.addBatch();
 
 				// data
-				numAttributes = p.getKeys().length;
-				for (int i = 0; i < numAttributes; i++) {
-					pStmt2.setLong(1, p.getID());
-					pStmt2.setString(2, p.getKeys()[i]);
-					pStmt2.setString(3, p.getValues()[i]);
-					pStmt2.addBatch();
-				}
+				pStmt2.setLong(1, p.getID());
+				pStmt2.setBytes(2, "PLACEHOLDER_FOR_REAL_POI_DATA".getBytes());
+				pStmt2.addBatch();
 
 				++processed;
 				if (processed == BATCH_SIZE) {
-					System.out.println("COMMIT");
+					++numCommits;
+					LOGGER.fine("COMMIT " + numCommits + " of " + numBatches);
 					pStmt.executeBatch();
 					pStmt2.executeBatch();
 					pStmt.clearBatch();
@@ -127,7 +140,7 @@ public class RAMPoiStore {
 
 			}
 
-			System.out.println("COMMIT");
+			LOGGER.fine("COMMIT " + numCommits + " of " + numBatches);
 			pStmt.executeBatch();
 			pStmt2.executeBatch();
 			conn.commit();

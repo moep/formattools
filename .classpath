@@ -3,6 +3,21 @@
 	<classpathentry excluding="org/mapsforge/applications/debug/OsmosisStarter.java" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/sqlite.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Osmosis-Core"/>
+	<classpathentry kind="lib" path="lib/osmosis/antlr-2.7.7.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/checkstyle-5.3.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/commons-beanutils-core-1.8.3.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/commons-compress-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/google-collections-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/jpf-1.5.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/junit-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/osmosis-core-SNAPSHOT-0.39-39-g18dc07f.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/osmosis-pbf-SNAPSHOT-0.39-39-g18dc07f.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/osmpbf-1.1.1-754a33af.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/protobuf-java-2.3.0.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/stax2-api-3.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/woodstox-core-lgpl-4.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/xercesImpl-2.9.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

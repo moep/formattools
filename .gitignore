@@ -2,3 +2,4 @@ bin/
 files/
 db/
 dist/
+lib/osmosis/
