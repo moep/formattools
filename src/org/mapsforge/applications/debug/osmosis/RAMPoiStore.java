@@ -56,8 +56,11 @@ public class RAMPoiStore {
 
 	/**
 	 * Writes the POI data into an SQLite DB.
+	 * 
+	 * @param path
+	 *            Path to the SQLite file that should be written.
 	 */
-	public void writeToSQLiteDB() {
+	public void writeToSQLiteDB(String path) {
 
 		Connection conn = null;
 		PreparedStatement pStmt = null;
@@ -65,7 +68,7 @@ public class RAMPoiStore {
 		Statement stmt = null;
 		try {
 			Class.forName("SQLite.JDBC");
-			conn = DriverManager.getConnection("jdbc:sqlite://home/moep/poi.db");
+			conn = DriverManager.getConnection("jdbc:sqlite:/" + path);
 			conn.setAutoCommit(false);
 
 			stmt = conn.createStatement();
@@ -88,11 +91,6 @@ public class RAMPoiStore {
 			long id = 0;
 			for (POI p : pois) {
 				// index
-				// pStmt.setLong(1, id++);
-				// pStmt.setDouble(2, 1.0);
-				// pStmt.setDouble(3, 1.0);
-				// pStmt.setDouble(4, 1.0);
-				// pStmt.setDouble(5, 1.0);
 				pStmt.setLong(1, p.getID());
 				pStmt.setDouble(2, p.getLat());
 				pStmt.setDouble(3, p.getLat());
@@ -116,14 +114,16 @@ public class RAMPoiStore {
 					pStmt2.addBatch();
 				}
 
-				// ++processed;
-				// if (processed == BATCH_SIZE) {
-				// System.out.println("COMMIT");
-				// pStmt.executeBatch();
-				// pStmt2.executeBatch();
-				// conn.commit();
-				// processed = 0;
-				// }
+				++processed;
+				if (processed == BATCH_SIZE) {
+					System.out.println("COMMIT");
+					pStmt.executeBatch();
+					pStmt2.executeBatch();
+					pStmt.clearBatch();
+					pStmt2.clearBatch();
+					conn.commit();
+					processed = 0;
+				}
 
 			}
 
