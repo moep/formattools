@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * A container class for storing POI data in a set.
+ * A container class for storing POI data in a set an serializing it.
  * 
  * @author Karsten Groll
  * 
@@ -47,11 +47,14 @@ public class RAMPoiStore {
 	 *            The node's latitude.
 	 * @param lon
 	 *            The node's longitude.
-	 * @param data
-	 *            The nodes tags stored as an array of <code>key=value</code> strings.
+	 * @param tag
+	 *            The nodes type as a key / value pair. (E.g. 'amenity=fuel');
+	 * @param name
+	 *            The POIs name
 	 */
-	public void addPOI(long id, double lat, double lon, String[] data) {
-		pois.add(new POI(id, lat, lon, data));
+	public void addPOI(long id, double lat, double lon, String tag, String name) {
+		// TODO use mapping instead of hash
+		pois.add(new POI(id, lat, lon, tag.hashCode(), name));
 	}
 
 	/**
@@ -61,7 +64,6 @@ public class RAMPoiStore {
 	 *            Path to the SQLite file that should be written.
 	 */
 	public void writeToSQLiteDB(String path) {
-
 		// Determine OS
 		if (!System.getProperty("os.name").equals("Linux")) {
 			LOGGER.severe("UNSUPPORTED OS / ARCHITECTURE");
@@ -78,6 +80,8 @@ public class RAMPoiStore {
 			LOGGER.fine("java.library.path was set to '" + System.getProperty("java.library.path")
 					+ "'");
 		}
+
+		LOGGER.info("Writing SQLite POI data to " + path);
 
 		// Write data using native SQLite
 		Connection conn = null;
@@ -123,7 +127,7 @@ public class RAMPoiStore {
 
 				// data
 				pStmt2.setLong(1, p.getID());
-				pStmt2.setBytes(2, "PLACEHOLDER_FOR_REAL_POI_DATA".getBytes());
+				pStmt2.setBytes(2, p.getName().getBytes());
 				pStmt2.addBatch();
 
 				++processed;
@@ -168,30 +172,29 @@ public class RAMPoiStore {
 		private long id;
 		private double lat;
 		private double lon;
-		private String[] keys;
-		private String[] values;
+		private int type;
+		private String name;
 
 		/**
+		 * Adds a POI to the temporary data storage.
+		 * 
 		 * @param id
-		 *            The node's ID.
+		 *            The node's id.
 		 * @param lat
 		 *            The node's latitude.
 		 * @param lon
 		 *            The node's longitude.
-		 * @param data
-		 *            The nodes tags stored as an array of <code>key=value</code> strings.
+		 * @param tag
+		 *            The nodes type as an integer value
+		 * @param name
+		 *            The POIs name
 		 */
-		POI(long id, double lat, double lon, String[] data) {
+		POI(long id, double lat, double lon, int tag, String name) {
 			this.id = id;
 			this.lat = lat;
 			this.lon = lon;
-
-			this.keys = new String[data.length];
-			this.values = new String[data.length];
-			for (int i = 0; i < data.length; i++) {
-				keys[i] = data[i].split("=")[0];
-				values[i] = data[i].split("=")[1];
-			}
+			this.type = tag;
+			this.name = name;
 		}
 
 		public long getID() {
@@ -206,12 +209,12 @@ public class RAMPoiStore {
 			return lon;
 		}
 
-		public String[] getKeys() {
-			return keys;
+		public int getType() {
+			return type;
 		}
 
-		public String[] getValues() {
-			return values;
+		public String getName() {
+			return name;
 		}
 
 	}

@@ -14,8 +14,6 @@
  */
 package org.mapsforge.applications.debug.osmosis;
 
-import java.io.File;
-
 import org.openstreetmap.osmosis.core.pipeline.common.TaskConfiguration;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskManager;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskManagerFactory;
@@ -29,12 +27,12 @@ public class POIWriterFactory extends TaskManagerFactory {
 
 	@Override
 	protected TaskManager createTaskManagerImpl(TaskConfiguration taskConfig) {
-		// Output file's name
-		String fileName;
-		// Output directory
-		File dir;
+		// Output file
+		String outputFilePath = getStringArgument(taskConfig, "file", System.getProperty("user.home")
+				+ "/mapsforge.map");
+
 		// The creation task
-		Sink task = new POIWriterTask();
+		Sink task = new POIWriterTask(outputFilePath);
 
 		return new SinkManager(taskConfig.getId(), task, taskConfig.getPipeArgs());
 	}

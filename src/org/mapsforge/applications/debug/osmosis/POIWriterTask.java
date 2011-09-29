@@ -14,28 +14,45 @@
  */
 package org.mapsforge.applications.debug.osmosis;
 
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
+import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 
 public class POIWriterTask implements Sink {
 	private static Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
 	private static final String VERSION = "0.3-experimental";
 
-	private RAMPoiStore poiStore;
+	// Parameters
+	private final String outputFilePath;
+	private final RAMPoiStore poiStore;
 
 	// Temporary variables
 	String[] data;
 
-	public POIWriterTask() {
+	// Accepted categories
+	private final CategoryFilter categoryFilter;
+
+	// Statistics
+	private int nodesAdded = 0;
+	private int nodesSkipped = 0;
+
+	public POIWriterTask(String outputFilePath) {
 		LOGGER.info("Mapsforge mapfile writer version " + VERSION);
 		LOGGER.setLevel(Level.FINE);
 
+		this.outputFilePath = outputFilePath;
+
 		this.poiStore = new RAMPoiStore();
+
+		// Set accepted categories
+		this.categoryFilter = new SimpleCategoryFilter();
+		this.categoryFilter.addCategory(CategoryResolver.Categories.AMENITY_ROOT);
 	}
 
 	/**
@@ -45,10 +62,10 @@ public class POIWriterTask implements Sink {
 	public void complete() {
 		int numPOIsWritten = poiStore.getNumberOfPOIs();
 		LOGGER.info("Writing POIs to file...");
-		// TODO use parameter as path
-		poiStore.writeToSQLiteDB("/home/moep/germany.poi");
+		poiStore.writeToSQLiteDB(outputFilePath);
 		LOGGER.info("Finished writing " + numPOIsWritten + " POIs to file.");
-
+		LOGGER.info("Skipped " + this.nodesSkipped + " nodes.");
+		LOGGER.info("Added " + this.nodesAdded + " nodes.");
 	}
 
 	/**
@@ -56,14 +73,8 @@ public class POIWriterTask implements Sink {
 	 */
 	@Override
 	public void release() {
-
+		// do nothing here
 	}
-
-	// @Override
-	// public void process(EntityContainer entityContainer) {
-	// // TODO Auto-generated method stub
-	//
-	// }
 
 	/**
 	 * {@inheritDoc}
@@ -79,10 +90,50 @@ public class POIWriterTask implements Sink {
 	}
 
 	private void processNode(Node n) {
+		// TODO filter tags
 		// Only add nodes that have data
 		if (n.getTags().size() != 0) {
-			// TODO read key / value pairs
-			poiStore.addPOI(n.getId(), n.getLatitude(), n.getLongitude(), new String[] { "bla=blubb" });
+
+			// for (String key : n.getMetaTags().keySet()) {
+			// System.out.println("Meta tag: " + key + " -> " + n.getMetaTags().get(key));
+			// }
+
+			Tag t = null;
+			String tag = "TYPE";
+			String name = "NAME";
+
+			// Set to true when valid key value pair has been found
+			boolean accepted = false;
+			for (Iterator<Tag> it = n.getTags().iterator(); it.hasNext();) {
+				t = it.next();
+
+				// Determine the POI's type
+				if (t.getKey().equals("amenity")) {
+					tag = t.getKey() + "=" + t.getValue();
+				}
+
+				// Determine the POI's name
+				if (t.getKey().equals("name")) {
+					name = t.getValue();
+				}
+
+				// Apply white list filter
+				try {
+					accepted = categoryFilter.isAcceptedCategory(CategoryResolver.getPoiCategoryByTag(t.getKey(), t.getValue()));
+				} catch (UnknownCategoryException e) {
+					// ignore it
+				}
+
+			}
+
+			// Add POI if its category is whitelisted
+			if (accepted) {
+				poiStore.addPOI(n.getId(), n.getLatitude(), n.getLongitude(), tag, name);
+				System.out.println("Node added: " + tag);
+				++this.nodesAdded;
+			} else {
+				++this.nodesSkipped;
+			}
 		}
 	}
 }
