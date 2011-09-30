@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 public class RAMPoiStore {
 	// Number of data sets written to the db at once
 	private static final int BATCH_SIZE = 25000;
-	private static Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
 	private List<POI> pois;
 
 	public RAMPoiStore() {
@@ -64,22 +64,8 @@ public class RAMPoiStore {
 	 *            Path to the SQLite file that should be written.
 	 */
 	public void writeToSQLiteDB(String path) {
-		// Determine OS
-		if (!System.getProperty("os.name").equals("Linux")) {
-			LOGGER.severe("UNSUPPORTED OS / ARCHITECTURE");
-			LOGGER.info("At the moment we do only support Linux x86 and amd64.");
-		} else {
-			// Set library path for os
-			String arch = System.getProperty("sun.arch.data.model");
-			// TODO Don't attach entry instead of overwriting
-			System.setProperty("java.library.path",
-					System.getProperty("user.dir") +
-							"/lib/jni/linux_" +
-							(arch.equals("32") ? "x86" : "amd64"));
 
-			LOGGER.fine("java.library.path was set to '" + System.getProperty("java.library.path")
-					+ "'");
-		}
+		// System.load("/home/moep/tmp/formattools/lib/jni/linux_x86/libsqlite_jni.so");
 
 		LOGGER.info("Writing SQLite POI data to " + path);
 
@@ -89,7 +75,7 @@ public class RAMPoiStore {
 		PreparedStatement pStmt2 = null;
 		Statement stmt = null;
 		try {
-			Class.forName("SQLite.JDBC");
+			// Class.forName("SQLite.JDBC");
 			conn = DriverManager.getConnection("jdbc:sqlite:/" + path);
 			conn.setAutoCommit(false);
 

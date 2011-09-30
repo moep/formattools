@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry excluding="org/mapsforge/applications/debug/OsmosisStarter.java" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/sqlite.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/commons-compress-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/jpf-1.5.jar"/>
@@ -13,5 +12,6 @@
 	<classpathentry kind="lib" path="lib/osmosis/stax2-api-3.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/woodstox-core-lgpl-4.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/xercesImpl-2.9.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sqlite_jdbc"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

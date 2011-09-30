@@ -25,7 +25,7 @@ import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 
 public class POIWriterTask implements Sink {
-	private static Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
 	private static final String VERSION = "0.3-experimental";
 
 	// Parameters
@@ -129,7 +129,7 @@ public class POIWriterTask implements Sink {
 			// Add POI if its category is whitelisted
 			if (accepted) {
 				poiStore.addPOI(n.getId(), n.getLatitude(), n.getLongitude(), tag, name);
-				System.out.println("Node added: " + tag);
+				// System.out.println("Node added: " + tag);
 				++this.nodesAdded;
 			} else {
 				++this.nodesSkipped;
