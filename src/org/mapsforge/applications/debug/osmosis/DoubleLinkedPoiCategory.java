@@ -128,7 +128,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 			newMax = calculateCategoryIDs(c, newMax);
 		}
 
-		rootNode.id = maxValue;
+		rootNode.id = newMax;
 
 		return newMax + 1;
 	}

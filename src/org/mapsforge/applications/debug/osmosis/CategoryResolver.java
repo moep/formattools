@@ -113,7 +113,7 @@ public class CategoryResolver {
 		static final PoiCategory AMENITY_HEALTHCARE_HOSPITAL = new DoubleLinkedPoiCategory("Hospitals", AMENITY_HEALTHCARE);
 		static final PoiCategory AMENITY_HEALTHCARE_BABY_HATCH = new DoubleLinkedPoiCategory("Places to drop babies for remorse",
 				AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_DENTIST = new DoubleLinkedPoiCategory("dentists", AMENITY_HEALTHCARE);
+		static final PoiCategory AMENITY_HEALTHCARE_DENTIST = new DoubleLinkedPoiCategory("Dentists", AMENITY_HEALTHCARE);
 		static final PoiCategory AMENITY_HEALTHCARE_DOCTORS = new DoubleLinkedPoiCategory("Doctors's practises",
 				AMENITY_HEALTHCARE);
 		static final PoiCategory AMENITY_HEALTHCARE_NURSING_HOME = new DoubleLinkedPoiCategory("Nursing homes",
