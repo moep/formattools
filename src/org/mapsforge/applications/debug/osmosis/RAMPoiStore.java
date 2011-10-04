@@ -53,8 +53,7 @@ public class RAMPoiStore {
 	 *            The POIs name
 	 */
 	public void addPOI(long id, double lat, double lon, String tag, String name) {
-		// TODO use mapping instead of hash
-		pois.add(new POI(id, lat, lon, tag.hashCode(), name));
+		pois.add(new POI(id, lat, lon, tag, name));
 	}
 
 	/**
@@ -81,13 +80,18 @@ public class RAMPoiStore {
 
 			stmt = conn.createStatement();
 			pStmt = conn.prepareStatement("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
-			pStmt2 = conn.prepareStatement("INSERT INTO poi_data VALUES (?, ?);");
+			pStmt2 = conn.prepareStatement("INSERT INTO poi_data VALUES (?, ?, ?);");
 
 			// CREATE TABLES
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_index;");
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_data;");
+			stmt.executeUpdate("DROP TABLE IF EXISTS poi_categories;");
+			stmt.executeUpdate("DROP INDEX IF EXISTS poi_categories_index;");
 			stmt.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
-			stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, PRIMARY KEY (id));");
+			stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));");
+			// TODO model child / parent relationships for categories
+			stmt.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, PRIMARY KEY (id));");
+			stmt.executeUpdate("CREATE INDEX poi_categories_index ON poi_categories (id);");
 			conn.commit();
 
 			// INSERT
@@ -114,6 +118,7 @@ public class RAMPoiStore {
 				// data
 				pStmt2.setLong(1, p.getID());
 				pStmt2.setBytes(2, p.getName().getBytes());
+				pStmt2.setInt(3, p.getCategoryID());
 				pStmt2.addBatch();
 
 				++processed;
@@ -158,7 +163,7 @@ public class RAMPoiStore {
 		private long id;
 		private double lat;
 		private double lon;
-		private int type;
+		private String tag;
 		private String name;
 
 		/**
@@ -171,15 +176,15 @@ public class RAMPoiStore {
 		 * @param lon
 		 *            The node's longitude.
 		 * @param tag
-		 *            The nodes type as an integer value
+		 *            The nodes type tag (e.g. amenity=fuel)
 		 * @param name
 		 *            The POIs name
 		 */
-		POI(long id, double lat, double lon, int tag, String name) {
+		POI(long id, double lat, double lon, String tag, String name) {
 			this.id = id;
 			this.lat = lat;
 			this.lon = lon;
-			this.type = tag;
+			this.tag = tag;
 			this.name = name;
 		}
 
@@ -188,19 +193,30 @@ public class RAMPoiStore {
 		}
 
 		public double getLat() {
-			return lat;
+			return this.lat;
 		}
 
 		public double getLon() {
-			return lon;
+			return this.lon;
 		}
 
-		public int getType() {
-			return type;
+		public String getTag() {
+			return this.tag;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
+		}
+
+		public int getCategoryID() {
+			int id = -1;
+			try {
+				id = ((DoubleLinkedPoiCategory) CategoryResolver.getPoiCategoryByTag(this.tag)).getID();
+			} catch (UnknownCategoryException e) {
+				// do nothing
+			}
+
+			return id;
 		}
 
 	}

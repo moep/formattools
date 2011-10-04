@@ -99,8 +99,8 @@ public class POIWriterTask implements Sink {
 			// }
 
 			Tag t = null;
-			String tag = "TYPE";
-			String name = "NAME";
+			String tag = "key=value";
+			String name = "<empty>";
 
 			// Set to true when valid key value pair has been found
 			boolean accepted = false;
