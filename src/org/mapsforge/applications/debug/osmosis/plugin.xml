@@ -13,7 +13,7 @@
 		point-id="Task" id="mapsforge/mapfilewriter">
 		<parameter id="name" value="poi-writer" />
 		<parameter id="class"
-			value="org.mapsforge.applications.debug.osmosis.POIWriterPluginLoader" />
+			value="org.mapsforge.applications.debug.osmosis.MapsforgePluginLoader" />
 	</extension>
 <!--	<extension plugin-id="org.openstreetmap.osmosis.core.plugin.Core"
 	           point-id="Task" id="LibOSM/OsmBin-Tasks/writeOsmBin-0.6">

@@ -75,7 +75,7 @@ public class RAMPoiStore {
 		PreparedStatement pStmt2 = null;
 		Statement stmt = null;
 		try {
-			// Class.forName("SQLite.JDBC");
+			Class.forName("SQLite.JDBC");
 			conn = DriverManager.getConnection("jdbc:sqlite:/" + path);
 			conn.setAutoCommit(false);
 

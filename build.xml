@@ -10,7 +10,10 @@ purpose.
 		<jar destfile="dist/mapsforge-mapfile-writer-0.3-experimental.jar" duplicate="preserve">
 			<fileset dir="src" includes="org/mapsforge/applications/debug/osmosis/" excludes="org/mapsforge/applications/debug/osmosis/plugin.xml" />
 			<fileset dir="bin" includes="org/mapsforge/applications/debug/osmosis/" />
+			<fileset dir="bin" includes="org/mapsforge/poi/" />
+			<fileset dir="src" includes="org/mapsforge/poi/" />
 			<fileset dir="src/org/mapsforge/applications/debug/osmosis" includes="plugin.xml" />
+			<fileset dir="src/" includes="omsosis-plugins.conf" />
 		</jar>
 
 	</target>

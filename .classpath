@@ -12,6 +12,6 @@
 	<classpathentry kind="lib" path="lib/osmosis/stax2-api-3.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/woodstox-core-lgpl-4.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/xercesImpl-2.9.1.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/sqlite_jdbc"/>
+	<classpathentry kind="lib" path="lib/sqlite-jdbc-custom.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
