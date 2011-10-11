@@ -18,6 +18,10 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.mapsforge.storage.debug.CategoryFilter;
+import org.mapsforge.storage.debug.CategoryResolver;
+import org.mapsforge.storage.debug.SimpleCategoryFilter;
+import org.mapsforge.storage.debug.UnknownCategoryException;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;

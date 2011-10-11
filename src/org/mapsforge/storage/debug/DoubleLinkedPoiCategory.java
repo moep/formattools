@@ -12,12 +12,11 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.storage.debug;
 
+import java.util.Collection;
 import java.util.Stack;
 import java.util.Vector;
-
-import org.mapsforge.poi.PoiCategory;
 
 /**
  * A POI category representation that stores a node, its parent node and its child nodes.
@@ -29,7 +28,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	private String title;
 	private PoiCategory parent;
 
-	private Vector<DoubleLinkedPoiCategory> childCategories;
+	private Vector<PoiCategory> childCategories;
 
 	// The categories id
 	private int id = -1;
@@ -38,7 +37,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 		this.title = title;
 		this.parent = parent;
 
-		this.childCategories = new Vector<DoubleLinkedPoiCategory>();
+		this.childCategories = new Vector<PoiCategory>();
 
 		if (parent != null) {
 			((DoubleLinkedPoiCategory) parent).addChildNode(this);
@@ -76,7 +75,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	 * 
 	 * @return The node's ID.
 	 */
-	int getID() {
+	public int getID() {
 		return this.id;
 	}
 
@@ -89,16 +88,17 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	 */
 	public static String getGraphVizString(DoubleLinkedPoiCategory rootNode) {
 		StringBuilder sb = new StringBuilder();
-		Stack<DoubleLinkedPoiCategory> stack = new Stack<DoubleLinkedPoiCategory>();
+		Stack<PoiCategory> stack = new Stack<PoiCategory>();
 		stack.push(rootNode);
 
 		DoubleLinkedPoiCategory currentNode = null;
 		sb.append("digraph Categories {\r\n");
 		while (!stack.isEmpty()) {
-			currentNode = stack.pop();
-			for (DoubleLinkedPoiCategory childNode : currentNode.childCategories) {
+			currentNode = (DoubleLinkedPoiCategory) stack.pop();
+			for (PoiCategory childNode : currentNode.childCategories) {
 				stack.push(childNode);
-				sb.append("\t\"" + currentNode.getTitle() + " (" + currentNode.getID() + ")" + "\" -> \"" + childNode.getTitle()
+				sb.append("\t\"" + currentNode.getTitle() + " (" + currentNode.getID() + ")" + "\" -> \"" +
+						childNode.getTitle()
 						+ " (" + childNode.getID() + ")" + "\"\r\n");
 			}
 		}
@@ -124,13 +124,18 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	 */
 	public static int calculateCategoryIDs(DoubleLinkedPoiCategory rootNode, int maxValue) {
 		int newMax = maxValue;
-		for (DoubleLinkedPoiCategory c : rootNode.childCategories) {
-			newMax = calculateCategoryIDs(c, newMax);
+		for (PoiCategory c : rootNode.childCategories) {
+			newMax = calculateCategoryIDs((DoubleLinkedPoiCategory) c, newMax);
 		}
 
-		rootNode.id = maxValue;
+		rootNode.id = newMax;
 
 		return newMax + 1;
+	}
+
+	@Override
+	public Collection<PoiCategory> getChildren() {
+		return this.childCategories;
 	}
 
 }

@@ -12,11 +12,9 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.storage.debug;
 
 import java.util.HashMap;
-
-import org.mapsforge.poi.PoiCategory;
 
 /**
  * The category resolver delivers a {@link PoiCategory} object for a given osm tag.
@@ -30,148 +28,170 @@ public class CategoryResolver {
 
 	// See: http://wiki.openstreetmap.org/w/index.php?title=Key:amenity&oldid=608028
 
-	static class Categories {
+	public static class Categories {
+
 		// Root category
-		static final PoiCategory ROOT = new DoubleLinkedPoiCategory("All categories", null);
+		public static final PoiCategory ROOT = new DoubleLinkedPoiCategory("All categories", null);
 		// Amenity
-		static final PoiCategory AMENITY_ROOT = new DoubleLinkedPoiCategory("Amenity root category", ROOT);
+		public static final PoiCategory AMENITY_ROOT = new DoubleLinkedPoiCategory("Amenity root category", ROOT);
 		// Amenity : food
-		static final PoiCategory AMENITY_SUSTENANCE = new DoubleLinkedPoiCategory("Food amenities", AMENITY_ROOT);
-		static final PoiCategory AMENITY_SUSTENANCE_RESTAURANT = new DoubleLinkedPoiCategory("Restaurant", AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_FOOD_COURT = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_SUSTENANCE = new DoubleLinkedPoiCategory("Food amenities", AMENITY_ROOT);
+		public static final PoiCategory AMENITY_SUSTENANCE_RESTAURANT = new DoubleLinkedPoiCategory("Restaurants",
+				AMENITY_SUSTENANCE);
+		public static final PoiCategory AMENITY_SUSTENANCE_FOOD_COURT = new DoubleLinkedPoiCategory(
 				"Area with several different food counters",
 				AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_FAST_FOOD = new DoubleLinkedPoiCategory("Fast food restaurant",
+		public static final PoiCategory AMENITY_SUSTENANCE_FAST_FOOD = new DoubleLinkedPoiCategory("Fast food restaurants",
 				AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_DRINKING_WATER = new DoubleLinkedPoiCategory("A source of drinking water",
+		public static final PoiCategory AMENITY_SUSTENANCE_DRINKING_WATER = new DoubleLinkedPoiCategory("Drinking water sources",
 				AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_BBQ = new DoubleLinkedPoiCategory(
-				"A public grill for cooking meat or vegetables",
+		public static final PoiCategory AMENITY_SUSTENANCE_BBQ = new DoubleLinkedPoiCategory(
+				"Public grills",
 				AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_PUB = new DoubleLinkedPoiCategory(
-				"A place selling alcoholic beverages and sometimes even food",
+		public static final PoiCategory AMENITY_SUSTENANCE_PUB = new DoubleLinkedPoiCategory(
+				"Pubs",
 				AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_BAR = new DoubleLinkedPoiCategory("A place for getting drunk at",
+		public static final PoiCategory AMENITY_SUSTENANCE_BAR = new DoubleLinkedPoiCategory("Bars",
 				AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_CAFE = new DoubleLinkedPoiCategory("A cafe", AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_BEERGARDEN = new DoubleLinkedPoiCategory("A beer garden.", AMENITY_SUSTENANCE);
-		static final PoiCategory AMENITY_SUSTENANCE_ICE_CREAM = new DoubleLinkedPoiCategory("A shop that sells ice cream.",
+		public static final PoiCategory AMENITY_SUSTENANCE_CAFE = new DoubleLinkedPoiCategory("Cafes", AMENITY_SUSTENANCE);
+		public static final PoiCategory AMENITY_SUSTENANCE_BEERGARDEN = new DoubleLinkedPoiCategory("Beer gardens",
+				AMENITY_SUSTENANCE);
+		public static final PoiCategory AMENITY_SUSTENANCE_ICE_CREAM = new DoubleLinkedPoiCategory("Ice cream shops",
 				AMENITY_SUSTENANCE);
 
 		// Amenity : education
-		static final PoiCategory AMENITY_EDUCATION = new DoubleLinkedPoiCategory("Education institutes", AMENITY_ROOT);
-		static final PoiCategory AMENITY_EDUCATION_KINDERGARTEN = new DoubleLinkedPoiCategory("Kindergarten", AMENITY_EDUCATION);
-		static final PoiCategory AMENITY_EDUCATION_SCHOOL = new DoubleLinkedPoiCategory("School grounds", AMENITY_EDUCATION);
-		static final PoiCategory AMENITY_EDUCATION_COLLEGE = new DoubleLinkedPoiCategory("College campus or buildings",
+		public static final PoiCategory AMENITY_EDUCATION = new DoubleLinkedPoiCategory("Education institutes", AMENITY_ROOT);
+		public static final PoiCategory AMENITY_EDUCATION_KINDERGARTEN = new DoubleLinkedPoiCategory("Kindergartens",
 				AMENITY_EDUCATION);
-		static final PoiCategory AMENITY_EDUCATION_LIBRARY = new DoubleLinkedPoiCategory("Public libraries", AMENITY_EDUCATION);
-		static final PoiCategory AMENITY_EDUCATION_UNIVERSITY = new DoubleLinkedPoiCategory("University campus or buildings",
+		public static final PoiCategory AMENITY_EDUCATION_SCHOOL = new DoubleLinkedPoiCategory("School grounds",
+				AMENITY_EDUCATION);
+		public static final PoiCategory AMENITY_EDUCATION_COLLEGE = new DoubleLinkedPoiCategory("College campus or buildings",
+				AMENITY_EDUCATION);
+		public static final PoiCategory AMENITY_EDUCATION_LIBRARY = new DoubleLinkedPoiCategory("Public libraries",
+				AMENITY_EDUCATION);
+		public static final PoiCategory AMENITY_EDUCATION_UNIVERSITY = new DoubleLinkedPoiCategory(
+				"University campus or buildings",
 				AMENITY_EDUCATION);
 
 		// Amenity : transportation
-		static final PoiCategory AMENITY_TRANSPORTATION = new DoubleLinkedPoiCategory("Transportation", AMENITY_ROOT);
-		static final PoiCategory AMENITY_TRANSPORTATION_FERRY_TERMINAL = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_TRANSPORTATION = new DoubleLinkedPoiCategory("Transportation", AMENITY_ROOT);
+		public static final PoiCategory AMENITY_TRANSPORTATION_FERRY_TERMINAL = new DoubleLinkedPoiCategory(
 				"Places where you can enter leave a ferry", AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_BICYCLE_PARKING = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_TRANSPORTATION_BICYCLE_PARKING = new DoubleLinkedPoiCategory(
 				"Places to park bicycles on", AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_BICYCLE_RENTAL = new DoubleLinkedPoiCategory("Bicycle rental stations",
+		public static final PoiCategory AMENITY_TRANSPORTATION_BICYCLE_RENTAL = new DoubleLinkedPoiCategory(
+				"Bicycle rental stations",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_BUS_STATION = new DoubleLinkedPoiCategory("Bus stations",
+		public static final PoiCategory AMENITY_TRANSPORTATION_BUS_STATION = new DoubleLinkedPoiCategory("Bus stations",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_CAR_RENTAL = new DoubleLinkedPoiCategory("Car rental stations",
+		public static final PoiCategory AMENITY_TRANSPORTATION_CAR_RENTAL = new DoubleLinkedPoiCategory("Car rental stations",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_CAR_SHARING = new DoubleLinkedPoiCategory("Car sharing stations",
+		public static final PoiCategory AMENITY_TRANSPORTATION_CAR_SHARING = new DoubleLinkedPoiCategory("Car sharing stations",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_CAR_WASH = new DoubleLinkedPoiCategory("Car washing stations",
+		public static final PoiCategory AMENITY_TRANSPORTATION_CAR_WASH = new DoubleLinkedPoiCategory("Car washing stations",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_FUEL = new DoubleLinkedPoiCategory("Fuel stations",
+		public static final PoiCategory AMENITY_TRANSPORTATION_FUEL = new DoubleLinkedPoiCategory("Fuel stations",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_GRIT_BIN = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_TRANSPORTATION_GRIT_BIN = new DoubleLinkedPoiCategory(
 				"Containers holding a mixture of salt and grit", AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_PARKING = new DoubleLinkedPoiCategory("Car parks", AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_PARKING_SPACE = new DoubleLinkedPoiCategory("A single parking space",
+		public static final PoiCategory AMENITY_TRANSPORTATION_PARKING = new DoubleLinkedPoiCategory("Car parks",
 				AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_PARKING_ENTRANCE = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_TRANSPORTATION_PARKING_SPACE = new DoubleLinkedPoiCategory(
+				"A single parking space",
+				AMENITY_TRANSPORTATION);
+		public static final PoiCategory AMENITY_TRANSPORTATION_PARKING_ENTRANCE = new DoubleLinkedPoiCategory(
 				"Entrances / Exits to underground parking facilities", AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_TAXI = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_TRANSPORTATION_TAXI = new DoubleLinkedPoiCategory(
 				"Places where taxis wait for passengers", AMENITY_TRANSPORTATION);
-		static final PoiCategory AMENITY_TRANSPORTATION_EV_CHARGING = new DoubleLinkedPoiCategory(
+		public static final PoiCategory AMENITY_TRANSPORTATION_EV_CHARGING = new DoubleLinkedPoiCategory(
 				"Electric vehicle charging facilities", AMENITY_TRANSPORTATION);
 
 		// Amenity : financial
-		static final PoiCategory AMENITY_FINANCIAL = new DoubleLinkedPoiCategory("Financial institutes", AMENITY_ROOT);
-		static final PoiCategory AMENITY_FINANCIAL_ATM = new DoubleLinkedPoiCategory("ATMs and cash points", AMENITY_FINANCIAL);
-		static final PoiCategory AMENITY_FINANCIAL_BANK = new DoubleLinkedPoiCategory("Banks", AMENITY_FINANCIAL);
-		static final PoiCategory AMENITY_FINANCIAL_BUREAU_DE_CHANGE = new DoubleLinkedPoiCategory("Currency exchange places",
+		public static final PoiCategory AMENITY_FINANCIAL = new DoubleLinkedPoiCategory("Financial institutes", AMENITY_ROOT);
+		public static final PoiCategory AMENITY_FINANCIAL_ATM = new DoubleLinkedPoiCategory("ATMs and cash points",
+				AMENITY_FINANCIAL);
+		public static final PoiCategory AMENITY_FINANCIAL_BANK = new DoubleLinkedPoiCategory("Banks", AMENITY_FINANCIAL);
+		public static final PoiCategory AMENITY_FINANCIAL_BUREAU_DE_CHANGE = new DoubleLinkedPoiCategory(
+				"Currency exchange places",
 				AMENITY_FINANCIAL);
 
 		// Amenity : healthcare
-		static final PoiCategory AMENITY_HEALTHCARE = new DoubleLinkedPoiCategory("Healthcare", AMENITY_ROOT);
+		public static final PoiCategory AMENITY_HEALTHCARE = new DoubleLinkedPoiCategory("Healthcare", AMENITY_ROOT);
 		// TODO dispensing = yes / no
-		static final PoiCategory AMENITY_HEALTHCARE_PHARMACY = new DoubleLinkedPoiCategory("Pharmacies", AMENITY_HEALTHCARE);
+		public static final PoiCategory AMENITY_HEALTHCARE_PHARMACY = new DoubleLinkedPoiCategory("Pharmacies",
+				AMENITY_HEALTHCARE);
 		// TODO emergency = yes / no
-		static final PoiCategory AMENITY_HEALTHCARE_HOSPITAL = new DoubleLinkedPoiCategory("Hospitals", AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_BABY_HATCH = new DoubleLinkedPoiCategory("Places to drop babies for remorse",
+		public static final PoiCategory AMENITY_HEALTHCARE_HOSPITAL = new DoubleLinkedPoiCategory("Hospitals", AMENITY_HEALTHCARE);
+		public static final PoiCategory AMENITY_HEALTHCARE_BABY_HATCH = new DoubleLinkedPoiCategory(
+				"Places to drop babies for remorse",
 				AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_DENTIST = new DoubleLinkedPoiCategory("dentists", AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_DOCTORS = new DoubleLinkedPoiCategory("Doctors's practises",
+		public static final PoiCategory AMENITY_HEALTHCARE_DENTIST = new DoubleLinkedPoiCategory("dentists", AMENITY_HEALTHCARE);
+		public static final PoiCategory AMENITY_HEALTHCARE_DOCTORS = new DoubleLinkedPoiCategory("Doctors's practises",
 				AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_NURSING_HOME = new DoubleLinkedPoiCategory("Nursing homes",
+		public static final PoiCategory AMENITY_HEALTHCARE_NURSING_HOME = new DoubleLinkedPoiCategory("Nursing homes",
 				AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_SOCIAL_FACILITY = new DoubleLinkedPoiCategory("Social Facilities",
+		public static final PoiCategory AMENITY_HEALTHCARE_SOCIAL_FACILITY = new DoubleLinkedPoiCategory("Social Facilities",
 				AMENITY_HEALTHCARE);
-		static final PoiCategory AMENITY_HEALTHCARE_VETERINARY = new DoubleLinkedPoiCategory("Veterinary clinics",
+		public static final PoiCategory AMENITY_HEALTHCARE_VETERINARY = new DoubleLinkedPoiCategory("Veterinary clinics",
 				AMENITY_HEALTHCARE);
 
 		// Amenity: entertainment (arts & culture)
-		static final PoiCategory AMENITY_ENTERTAINMENT = new DoubleLinkedPoiCategory("Entertainment, arts and culture",
+		public static final PoiCategory AMENITY_ENTERTAINMENT = new DoubleLinkedPoiCategory("Entertainment, arts and culture",
 				AMENITY_ROOT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_ARTS_CENTRE = new DoubleLinkedPoiCategory("Arts centers",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_ARTS_CENTRE = new DoubleLinkedPoiCategory("Arts centers",
 				AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_CINEMA = new DoubleLinkedPoiCategory("Cinemas", AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_COMMUNITY_CENTRE = new DoubleLinkedPoiCategory("Community centers",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_CINEMA = new DoubleLinkedPoiCategory("Cinemas",
 				AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_SOCIAL_CENTER = new DoubleLinkedPoiCategory("Social centers",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_COMMUNITY_CENTRE = new DoubleLinkedPoiCategory("Community centers",
 				AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_FOUNTAIN = new DoubleLinkedPoiCategory("Fountains", AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_NIGHTCLUB = new DoubleLinkedPoiCategory("Nightclubs (Dancing)",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_SOCIAL_CENTER = new DoubleLinkedPoiCategory("Social centers",
 				AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_STRIPCLUB = new DoubleLinkedPoiCategory("Strip clubs",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_FOUNTAIN = new DoubleLinkedPoiCategory("Fountains",
 				AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_STUDIO = new DoubleLinkedPoiCategory("TV, radio or recording studios",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_NIGHTCLUB = new DoubleLinkedPoiCategory("Nightclubs (Dancing)",
 				AMENITY_ENTERTAINMENT);
-		static final PoiCategory AMENITY_ENTERTAINMENT_THEATRE = new DoubleLinkedPoiCategory("Theatres and operas",
+		public static final PoiCategory AMENITY_ENTERTAINMENT_STRIPCLUB = new DoubleLinkedPoiCategory("Strip clubs",
+				AMENITY_ENTERTAINMENT);
+		public static final PoiCategory AMENITY_ENTERTAINMENT_STUDIO = new DoubleLinkedPoiCategory(
+				"TV, radio or recording studios",
+				AMENITY_ENTERTAINMENT);
+		public static final PoiCategory AMENITY_ENTERTAINMENT_THEATRE = new DoubleLinkedPoiCategory("Theatres and operas",
 				AMENITY_ENTERTAINMENT);
 
 		// Amenity: others
-		static final PoiCategory AMENITY_OTHER = new DoubleLinkedPoiCategory("Other amenities", AMENITY_ROOT);
-		static final PoiCategory AMENITY_OTHER_BENCH = new DoubleLinkedPoiCategory("Public benches", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_BROTHEL = new DoubleLinkedPoiCategory("Brothels", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_CLOCK = new DoubleLinkedPoiCategory("Public visible clocks", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_COURTHOUSE = new DoubleLinkedPoiCategory("Court houses", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_CREMATORIUM = new DoubleLinkedPoiCategory("Crematoriums", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_EMBASSY = new DoubleLinkedPoiCategory("Embassies", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_FIRE_STATIONS = new DoubleLinkedPoiCategory("Fire stations", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_GRAVE_YARD = new DoubleLinkedPoiCategory("Grave yards", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_HUNTING_STAND = new DoubleLinkedPoiCategory("Hunting stands", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_MARKETPLACE = new DoubleLinkedPoiCategory("Marketplaces", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_PLACE_OF_WORSHIP = new DoubleLinkedPoiCategory("Churches, mosques, temples",
+		public static final PoiCategory AMENITY_OTHER = new DoubleLinkedPoiCategory("Other amenities", AMENITY_ROOT);
+		public static final PoiCategory AMENITY_OTHER_BENCH = new DoubleLinkedPoiCategory("Public benches", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_BROTHEL = new DoubleLinkedPoiCategory("Brothels", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_CLOCK = new DoubleLinkedPoiCategory("Public visible clocks", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_COURTHOUSE = new DoubleLinkedPoiCategory("Court houses", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_CREMATORIUM = new DoubleLinkedPoiCategory("Crematoriums", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_EMBASSY = new DoubleLinkedPoiCategory("Embassies", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_FIRE_STATIONS = new DoubleLinkedPoiCategory("Fire stations", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_GRAVE_YARD = new DoubleLinkedPoiCategory("Grave yards", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_HUNTING_STAND = new DoubleLinkedPoiCategory("Hunting stands", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_MARKETPLACE = new DoubleLinkedPoiCategory("Marketplaces", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_PLACE_OF_WORSHIP = new DoubleLinkedPoiCategory(
+				"Churches, mosques, temples",
 				AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_POLICE = new DoubleLinkedPoiCategory("Police stations", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_POST_BOX = new DoubleLinkedPoiCategory("Post boxes", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_POST_OFFICE = new DoubleLinkedPoiCategory("Post offices", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_PRISON = new DoubleLinkedPoiCategory("Prisons (no schools)", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_PUBLIC_BUILDING = new DoubleLinkedPoiCategory("Public buildings", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_RECYCLING = new DoubleLinkedPoiCategory("Recycling facilities", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_SAUNA = new DoubleLinkedPoiCategory("Saunas", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_SHELTER = new DoubleLinkedPoiCategory("Bad weather shelters", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_TELEPHONE = new DoubleLinkedPoiCategory("Public telephones", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_TOILETS = new DoubleLinkedPoiCategory("Public toilets", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_TOWNHALL = new DoubleLinkedPoiCategory("Town hall buildings", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_VENDING_MACHINE = new DoubleLinkedPoiCategory("Vending machines", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_WASTE_BASKET = new DoubleLinkedPoiCategory("Garbage cans", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_WASTE_DISPOSAL = new DoubleLinkedPoiCategory("Garbage containers", AMENITY_OTHER);
-		static final PoiCategory AMENITY_OTHER_WATERING_PLACE = new DoubleLinkedPoiCategory("Water places for animals",
+		public static final PoiCategory AMENITY_OTHER_POLICE = new DoubleLinkedPoiCategory("Police stations", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_POST_BOX = new DoubleLinkedPoiCategory("Post boxes", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_POST_OFFICE = new DoubleLinkedPoiCategory("Post offices", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_PRISON = new DoubleLinkedPoiCategory("Prisons (no schools)", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_PUBLIC_BUILDING = new DoubleLinkedPoiCategory("Public buildings",
+				AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_RECYCLING = new DoubleLinkedPoiCategory("Recycling facilities",
+				AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_SAUNA = new DoubleLinkedPoiCategory("Saunas", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_SHELTER = new DoubleLinkedPoiCategory("Bad weather shelters", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_TELEPHONE = new DoubleLinkedPoiCategory("Public telephones", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_TOILETS = new DoubleLinkedPoiCategory("Public toilets", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_TOWNHALL = new DoubleLinkedPoiCategory("Town hall buildings", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_VENDING_MACHINE = new DoubleLinkedPoiCategory("Vending machines",
+				AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_WASTE_BASKET = new DoubleLinkedPoiCategory("Garbage cans", AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_WASTE_DISPOSAL = new DoubleLinkedPoiCategory("Garbage containers",
+				AMENITY_OTHER);
+		public static final PoiCategory AMENITY_OTHER_WATERING_PLACE = new DoubleLinkedPoiCategory("Water places for animals",
 				AMENITY_OTHER);
 
 		// TODO non-amenity categories
@@ -300,7 +320,8 @@ public class CategoryResolver {
 		DoubleLinkedPoiCategory.calculateCategoryIDs((DoubleLinkedPoiCategory) Categories.ROOT, 0);
 
 		// Create image for category graph for debugging purposes
-		System.out.println(DoubleLinkedPoiCategory.getGraphVizString((DoubleLinkedPoiCategory) Categories.ROOT));
+		// System.out.println(DoubleLinkedPoiCategory.getGraphVizString((DoubleLinkedPoiCategory)
+		// Categories.ROOT));
 	}
 
 	/**
@@ -313,7 +334,7 @@ public class CategoryResolver {
 	 * @throws UnknownCategoryException
 	 *             when there is no matching category.
 	 */
-	static PoiCategory getPoiCategoryByTag(String key, String value) throws UnknownCategoryException {
+	public static PoiCategory getPoiCategoryByTag(String key, String value) throws UnknownCategoryException {
 		if (!categoryMap.containsKey(key + "=" + value)) {
 			throw new UnknownCategoryException();
 		}
@@ -321,9 +342,27 @@ public class CategoryResolver {
 		return categoryMap.get(key + "=" + value);
 	}
 
-	static PoiCategory getPoiCategoryByTag(String tag) throws UnknownCategoryException {
+	public static PoiCategory getPoiCategoryByTag(String tag) throws UnknownCategoryException {
 		String key = tag.split("=")[0];
 		String value = tag.split("=")[1];
 		return getPoiCategoryByTag(key, value);
+	}
+
+	public static PoiCategory getPoiCategoryByID(int id) {
+		for (String key : categoryMap.keySet()) {
+			if (categoryMap.get(key).getID() == id) {
+				return categoryMap.get(key);
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * 
+	 * @return The root category.
+	 */
+	public static PoiCategory getRootCategory() {
+		return Categories.ROOT;
 	}
 }

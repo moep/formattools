@@ -12,9 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
-
-import org.mapsforge.poi.PoiCategory;
+package org.mapsforge.storage.debug;
 
 /**
  * Interface for filtering accepted POIs based on their tag.
