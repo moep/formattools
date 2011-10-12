@@ -22,7 +22,7 @@ import org.mapsforge.core.GeoCoordinate;
 
 /**
  * Abstracts from an underlying Storage/DB by providing methods for inserting/deleting/searching
- * {@link PointOfInterest} and {@link PoiCategory} objects in named Storage/DB.
+ * {@link PointOfInterest} objects in named Storage/DB.
  * 
  * Remember to call the {@link #close()} method as soon as your done manipulating the Storage/DB via
  * this {@link PoiPersistenceManager}.
@@ -32,15 +32,6 @@ import org.mapsforge.core.GeoCoordinate;
  * 
  */
 public interface PoiPersistenceManager {
-
-	/**
-	 * Inserts a {@link PoiCategory} into storage.
-	 * 
-	 * @param category
-	 *            {@link PoiCategory} to insert into storage.
-	 * @return true if category was successfully inserted else false.
-	 */
-	public boolean insertCategory(PoiCategory category);
 
 	/**
 	 * Inserts a single {@link PointOfInterest} into storage.
@@ -59,14 +50,6 @@ public interface PoiPersistenceManager {
 	public void insertPointsOfInterest(Collection<PointOfInterest> pois);
 
 	/**
-	 * Removes a {@link PoiCategory} from this {@link PoiPersistenceManager}.
-	 * 
-	 * @param category
-	 *            the {@link PoiCategory} to be removed given by its unique title.
-	 */
-	public void removeCategory(PoiCategory category);
-
-	/**
 	 * Removes a point of interest from this {@link PoiPersistenceManager}.
 	 * 
 	 * @param poi
@@ -75,27 +58,11 @@ public interface PoiPersistenceManager {
 	public void removePointOfInterest(PointOfInterest poi);
 
 	/**
-	 * Use this to get a {@link Collection} of all {@link PoiCategory} managed by this
-	 * {@link PoiPersistenceManager}.
-	 * 
-	 * @return a Collection of {@link PoiCategory} objects.
-	 */
-	public Collection<PoiCategory> getAllCategories();
-
-	/**
-	 * @param category
-	 *            {@link PoiCategory} given by its unique title.
-	 * @return A collection of {@link PoiCategory} objects containing the given category itself and all
-	 *         of its descendants.
-	 */
-	public Collection<PoiCategory> getChildNodes(String category);
-
-	/**
 	 * @param poiID
 	 *            the id of the point of interest that shall be returned.
 	 * @return a single {@link PointOfInterest} p where p.id == poiID.
 	 */
-	public PointOfInterest getPointByID(long poiID);
+	public PointOfInterest findPointByID(long poiID);
 
 	/**
 	 * Fetch {@link PointOfInterest} from underlying storage near a given position.
@@ -133,6 +100,43 @@ public interface PoiPersistenceManager {
 	 */
 	public Collection<PointOfInterest> findInRect(GeoCoordinate p1,
 			GeoCoordinate p2, String categoryName, int limit);
+
+	/**
+	 * Find all {@link PointOfInterest} of the given {@link PoiCategory} in a rectangle specified by the
+	 * two given {@link GeoCoordinate}s. The only POIs that are allowed by the {@link CategoryFilter}
+	 * object will be returned.
+	 * 
+	 * @param p1
+	 *            {@link GeoCoordinate} specifying one corner of the rectangle. (minLat, minLon)
+	 * @param p2
+	 *            {@link GeoCoordinate} specifying one corner of the rectangle. (maxLat, maxLon)
+	 * @param categoryName
+	 *            unique title of {@link PoiCategory} the returned {@link PointOfInterest} should belong
+	 *            to.
+	 * @param limit
+	 *            max number of {@link PointOfInterest} to be returned.
+	 * @param filter
+	 *            POI category filter object that helps determining whether a POI should be added to the
+	 *            set or not.
+	 * @return {@link Collection} of {@link PointOfInterest} of the given {@link PoiCategory} contained
+	 *         in the rectangle specified by the two given {@link GeoCoordinate}s.
+	 */
+	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1,
+			GeoCoordinate p2, String categoryName, int limit, CategoryFilter filter);
+
+	/**
+	 * Sets this manager's {@link PoiCategoryManager} for retrieving and editing POI categories.
+	 * 
+	 * @param categoryManager
+	 *            The category manager to be set.
+	 */
+	public void setCategoryManager(PoiCategoryManager categoryManager);
+
+	/**
+	 * 
+	 * @return The persistence managers category manager for retrieving and editing POI categories.
+	 */
+	public PoiCategoryManager getCategoryManager();
 
 	/**
 	 * Use this to free claimed resources. After that you might no longer be able to query for points of

@@ -14,8 +14,7 @@
  */
 package org.mapsforge.storage.debug;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * White list category filter that allows all categories and their sub-categories in the white list.
@@ -25,13 +24,13 @@ import java.util.List;
  */
 public class SimpleCategoryFilter implements CategoryFilter {
 
-	private final List whiteList;
+	protected final ArrayList<PoiCategory> whiteList;
 
 	/**
 	 * Default constructor.
 	 */
 	public SimpleCategoryFilter() {
-		whiteList = new LinkedList<PoiCategory>();
+		whiteList = new ArrayList<PoiCategory>();
 	}
 
 	/**

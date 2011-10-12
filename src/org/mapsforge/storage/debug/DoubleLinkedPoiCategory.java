@@ -138,4 +138,9 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 		return this.childCategories;
 	}
 
+	@Override
+	public void setParent(PoiCategory parent) {
+		this.parent = parent;
+	}
+
 }

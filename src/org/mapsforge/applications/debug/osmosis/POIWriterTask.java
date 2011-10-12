@@ -56,7 +56,7 @@ public class POIWriterTask implements Sink {
 
 		// Set accepted categories
 		this.categoryFilter = new SimpleCategoryFilter();
-		this.categoryFilter.addCategory(CategoryResolver.Categories.AMENITY_ROOT);
+		this.categoryFilter.addCategory(CategoryResolver.getRootCategory());
 	}
 
 	/**

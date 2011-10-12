@@ -22,6 +22,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 	private String dbFilePath = null;
 	private Database db = null;
+	private PoiCategoryManager cm = null;
 
 	private Stmt findInBoxStatement = null;
 	private Stmt findByIDStatement = null;
@@ -40,9 +41,12 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	 *            tables will be created.
 	 */
 	SQLitePoiPersistenceManager(String dbFilePath) {
+		// Open / create POI database
 		this.dbFilePath = dbFilePath;
-
 		createOrOpenDBFile();
+
+		// Load categories from database
+		this.cm = new SQLitePoiCategoryManager(db);
 
 		// Queries
 		try {
@@ -142,9 +146,10 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	}
 
 	@Override
-	public boolean insertCategory(PoiCategory category) {
+	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2, String categoryName, int limit,
+			CategoryFilter filter) {
 		// TODO Auto-generated method stub
-		return false;
+		return null;
 	}
 
 	@Override
@@ -160,27 +165,9 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	}
 
 	@Override
-	public void removeCategory(PoiCategory category) {
-		// TODO implement
-
-	}
-
-	@Override
 	public void removePointOfInterest(PointOfInterest poi) {
 		// TODO implement
 
-	}
-
-	@Override
-	public Collection<PoiCategory> getAllCategories() {
-		// TODO implement
-		return null;
-	}
-
-	@Override
-	public Collection<PoiCategory> getChildNodes(String category) {
-		// TODO implement
-		return null;
 	}
 
 	@Override
@@ -240,7 +227,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	}
 
 	@Override
-	public PointOfInterest getPointByID(long poiID) {
+	public PointOfInterest findPointByID(long poiID) {
 
 		// Log.d(LOG_TAG,
 		// "SELECT poi_index.id, poi_index.minLat, poi_index.minLon, poi_data.data, poi_data.category "
@@ -349,6 +336,17 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		}
 
 		return numTables == SQLitePoiPersistenceManager.NUMBER_OF_TABLES;
+	}
+
+	@Override
+	public PoiCategoryManager getCategoryManager() {
+		return this.cm;
+	}
+
+	@Override
+	public void setCategoryManager(PoiCategoryManager categoryManager) {
+		this.cm = categoryManager;
+
 	}
 
 }

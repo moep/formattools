@@ -38,16 +38,24 @@ public interface PoiCategory {
 	 * @return parent category of this category or null if this category has no parent.
 	 */
 	public PoiCategory getParent();
-	
+
 	/**
-	 * @return All child categories of the category or null if this category has no children. 
+	 * Sets the node's parent node.
+	 * 
+	 * @param parent
+	 *            The category node to be set as parent.
+	 */
+	public void setParent(PoiCategory parent);
+
+	/**
+	 * @return All child categories of the category or null if this category has no children.
 	 */
 	public Collection<PoiCategory> getChildren();
-	
+
 	/**
 	 * 
 	 * @return The category's id.
 	 */
 	public int getID();
-		
+
 }
