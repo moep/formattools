@@ -25,7 +25,7 @@ import java.util.HashMap;
 @Deprecated
 public class CategoryResolver {
 
-	private static final HashMap<String, PoiCategory> categoryMap = new HashMap<String, PoiCategory>();
+	static final HashMap<String, PoiCategory> categoryMap = new HashMap<String, PoiCategory>();
 
 	// See: http://wiki.openstreetmap.org/w/index.php?title=Key:amenity&oldid=608028
 

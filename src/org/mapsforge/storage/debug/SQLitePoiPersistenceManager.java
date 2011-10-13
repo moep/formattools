@@ -25,6 +25,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	private PoiCategoryManager cm = null;
 
 	private Stmt findInBoxStatement = null;
+	private Stmt findInBoxFilteredStatement = null;
 	private Stmt findByIDStatement = null;
 	private Stmt insertPoiStatement1 = null;
 	private Stmt insertPoiStatement2 = null;
@@ -51,7 +52,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		// Queries
 		try {
 			// Finds POIs by a given bounding box
-			this.findInBoxStatement = db
+			this.findInBoxStatement = this.db
 					.prepare("SELECT poi_index.id, poi_index.minLat, poi_index.minLon, poi_data.data, poi_data.category "
 							+ "FROM poi_index "
 							+ "JOIN poi_data ON poi_index.id = poi_data.id "
@@ -62,17 +63,17 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 							+ "minLon >= ? LIMIT ?");
 
 			// Finds a POI by its unique ID
-			this.findByIDStatement = db
+			this.findByIDStatement = this.db
 					.prepare("SELECT poi_index.id, poi_index.minLat, poi_index.minLon, poi_data.data, poi_data.category "
 							+ "FROM poi_index "
 							+ "JOIN poi_data ON poi_index.id = poi_data.id "
 							+ "WHERE " + "poi_index.id = ?;");
 
 			// Inserts a POI into index
-			this.insertPoiStatement1 = db
+			this.insertPoiStatement1 = this.db
 					.prepare("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
 			// Inserts a POI's data
-			this.insertPoiStatement2 = db
+			this.insertPoiStatement2 = this.db
 					.prepare("INSERT INTO poi_data VALUES (?, ?, ?);");
 
 		} catch (Exception e) {
@@ -133,9 +134,13 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				data = this.findInBoxStatement.column_string(3);
 				categoryID = this.findInBoxStatement.column_int(4);
 
-				this.poi = new PoiImpl(id, lat, lon, data,
-						CategoryResolver.getPoiCategoryByID(categoryID));
-				this.ret.add(poi);
+				try {
+					this.poi = new PoiImpl(id, lat, lon, data,
+							this.cm.getPoiCategoryByID(categoryID));
+					this.ret.add(poi);
+				} catch (UnknownCategoryException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (Exception e) {
 			// Log.e(LOG_TAG, e.getMessage());
@@ -148,8 +153,44 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	@Override
 	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2, String categoryName, int limit,
 			CategoryFilter filter) {
-		// TODO Auto-generated method stub
-		return null;
+
+		CategoryRangeQueryGenerator queryGen = new CategoryRangeQueryGenerator(filter);
+		try {
+			this.findInBoxFilteredStatement = db.prepare(queryGen.getSQLSelectString());
+
+			this.findInBoxFilteredStatement.bind(1, p2.getLatitude());
+			this.findInBoxFilteredStatement.bind(2, p2.getLongitude());
+			this.findInBoxFilteredStatement.bind(3, p1.getLatitude());
+			this.findInBoxFilteredStatement.bind(4, p1.getLongitude());
+			this.findInBoxFilteredStatement.bind(5, limit);
+
+			long id = -1;
+			double lat = 0;
+			double lon = 0;
+			String data = "";
+			int categoryID = -1;
+
+			while (this.findInBoxFilteredStatement.step()) {
+				id = this.findInBoxFilteredStatement.column_long(0);
+				lat = this.findInBoxFilteredStatement.column_double(1);
+				lon = this.findInBoxFilteredStatement.column_double(2);
+				data = this.findInBoxFilteredStatement.column_string(3);
+				categoryID = this.findInBoxFilteredStatement.column_int(4);
+
+				try {
+					this.poi = new PoiImpl(id, lat, lon, data,
+							this.cm.getPoiCategoryByID(categoryID));
+					this.ret.add(poi);
+				} catch (UnknownCategoryException e) {
+					e.printStackTrace();
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return this.ret;
 	}
 
 	@Override
@@ -256,8 +297,12 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				data = this.findByIDStatement.column_string(3);
 				categoryID = this.findByIDStatement.column_int(4);
 
-				this.poi = new PoiImpl(id, lat, lon, data,
-						CategoryResolver.getPoiCategoryByID(categoryID));
+				try {
+					this.poi = new PoiImpl(id, lat, lon, data,
+							this.cm.getPoiCategoryByID(categoryID));
+				} catch (UnknownCategoryException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (Exception e) {
 			// Log.e(LOG_TAG, "getPointById: " + e.getMessage());

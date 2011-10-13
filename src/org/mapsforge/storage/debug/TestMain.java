@@ -14,16 +14,31 @@
  */
 package org.mapsforge.storage.debug;
 
+import SQLite3.Exception;
+
 public class TestMain {
-	public static void main(String[] args) {
-		RangeQueryCategoryFilter cf = new RangeQueryCategoryFilter();
-		PoiCategory pc1 = new DoubleLinkedPoiCategory("root", null);
-		PoiCategory pc2 = new DoubleLinkedPoiCategory("c1", pc1);
-		PoiCategory pc3 = new DoubleLinkedPoiCategory("c2", pc1);
 
-		cf.addCategory(pc2);
-		cf.addCategory(pc3);
+	public static void traverseTree(PoiCategory cat) {
+		System.out.println("<category title=\"" + cat.getTitle() + "\">");
 
-		System.out.println("String: " + cf.getSQLWhereClauseString());
+		for (PoiCategory child : cat.getChildren()) {
+			traverseTree(child);
+		}
+
+		System.out.println("</category>");
+	}
+
+	public static void main(String[] args) throws Exception {
+		PoiCategory root = CategoryResolver.getRootCategory();
+
+		// traverseTree(root);
+		for (String key : CategoryResolver.categoryMap.keySet()) {
+			System.out
+					.println("<tns:Mapping categoryName=\""
+							+ CategoryResolver.categoryMap.get(key).getTitle() + "\" tag=\""
+							+ key
+							+ "\" />");
+		}
+
 	}
 }

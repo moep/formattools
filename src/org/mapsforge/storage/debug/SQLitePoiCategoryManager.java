@@ -37,9 +37,6 @@ public class SQLitePoiCategoryManager implements PoiCategoryManager {
 
 	private PoiCategory rootCategory = null;
 
-	/**
-	 * 
-	 */
 	private TreeMap<Integer, PoiCategory> categoryMap = null;
 
 	/**
@@ -111,12 +108,6 @@ public class SQLitePoiCategoryManager implements PoiCategoryManager {
 			c.setParent(this.categoryMap.get(new Integer(c.getID())));
 		}
 
-	}
-
-	@Override
-	public void storeCategories() {
-		// TODO implement
-		Log.w(LOG_TAG, "storeCategories() is not yet implemented.");
 	}
 
 	@Override

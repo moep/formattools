@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.mapsforge.org/POITagMapping"
+	xmlns:tns="http://www.mapsforge.org/POITagMapping" elementFormDefault="qualified">
+
+	<element name="TagMappings">
+		<complexType>
+			<sequence minOccurs="1" maxOccurs="unbounded">
+				<element name="Mapping">
+					<complexType>
+						<attribute name="tag" type="string"></attribute>
+						<attribute name="categoryName" type="string"></attribute>
+					</complexType>
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+</schema>

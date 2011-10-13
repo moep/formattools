@@ -14,12 +14,20 @@
  */
 package org.mapsforge.applications.debug.osmosis;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.mapsforge.storage.debug.CategoryFilter;
-import org.mapsforge.storage.debug.CategoryResolver;
+import org.mapsforge.storage.debug.PoiCategory;
+import org.mapsforge.storage.debug.PoiCategoryManager;
 import org.mapsforge.storage.debug.SimpleCategoryFilter;
 import org.mapsforge.storage.debug.UnknownCategoryException;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
@@ -32,19 +40,33 @@ public class POIWriterTask implements Sink {
 	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
 	private static final String VERSION = "0.3-experimental";
 
+	// For debug purposes only (at least for now)
+	private static final boolean INCLUDE_META_DATA = false;
+
 	// Parameters
 	private final String outputFilePath;
-	private final RAMPoiStore poiStore;
 
 	// Temporary variables
 	String[] data;
+
+	// Available categories
+	private final PoiCategoryManager cm;
+
+	// Mappings
+	private final TagMappingResolver tagMappingResolver;
 
 	// Accepted categories
 	private final CategoryFilter categoryFilter;
 
 	// Statistics
 	private int nodesAdded = 0;
-	private int nodesSkipped = 0;
+
+	// Database
+	private Connection conn = null;
+	private PreparedStatement pStmt = null;
+	private PreparedStatement pStmt2 = null;
+	private PreparedStatement pStmt3 = null;
+	private Statement stmt = null;
 
 	public POIWriterTask(String outputFilePath) {
 		LOGGER.info("Mapsforge mapfile writer version " + VERSION);
@@ -52,11 +74,120 @@ public class POIWriterTask implements Sink {
 
 		this.outputFilePath = outputFilePath;
 
-		this.poiStore = new RAMPoiStore();
+		// Get categories defined in XML
+		this.cm = new XMLPoiCategoryManager("POIDefaultCategories.xml");
+
+		// Get tag -> POI mapper
+		this.tagMappingResolver = new TagMappingResolver("POIDefaultMappings.xml", this.cm);
 
 		// Set accepted categories
 		this.categoryFilter = new SimpleCategoryFilter();
-		this.categoryFilter.addCategory(CategoryResolver.getRootCategory());
+		try {
+			this.categoryFilter.addCategory(this.cm.getRootCategory());
+		} catch (UnknownCategoryException e) {
+			LOGGER.warning("Could not add category to filter: " + e.getMessage());
+		}
+
+		// Create database and add categories
+		try {
+			prepareDatabase(outputFilePath);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (UnknownCategoryException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void prepareDatabase(String path) throws ClassNotFoundException, SQLException, UnknownCategoryException {
+		Class.forName("SQLite.JDBC");
+		this.conn = DriverManager.getConnection("jdbc:sqlite:/" + path);
+		this.conn.setAutoCommit(false);
+
+		this.stmt = conn.createStatement();
+		this.pStmt = conn.prepareStatement("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
+		this.pStmt2 = conn.prepareStatement("INSERT INTO poi_data VALUES (?, ?, ?);");
+		this.pStmt3 = conn.prepareStatement("INSERT INTO poi_categories VALUES (?, ?, ?);");
+
+		// CREATE TABLES
+		this.stmt.executeUpdate("DROP TABLE IF EXISTS poi_index;");
+		this.stmt.executeUpdate("DROP TABLE IF EXISTS poi_data;");
+		this.stmt.executeUpdate("DROP TABLE IF EXISTS poi_categories;");
+		// stmt.executeUpdate("DROP INDEX IF EXISTS poi_categories_index;");
+		this.stmt.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
+		this.stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));");
+		// TODO model child / parent relationships for categories (foreign keys)
+		this.stmt.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));");
+		// stmt.executeUpdate("CREATE INDEX poi_categories_index ON poi_categories (id);");
+		this.conn.commit();
+
+		// INSERT CATEGORIES
+		PoiCategory root = this.cm.getRootCategory();
+		this.pStmt3.setLong(1, root.getID());
+		this.pStmt3.setBytes(2, root.getTitle().getBytes());
+		this.pStmt3.setNull(3, 0);
+		this.pStmt3.addBatch();
+
+		Stack<PoiCategory> children = new Stack<PoiCategory>();
+		children.push(root);
+		while (!children.isEmpty()) {
+			for (PoiCategory c : children.pop().getChildren()) {
+				this.pStmt3.setLong(1, c.getID());
+				this.pStmt3.setBytes(2, c.getTitle().getBytes());
+				this.pStmt3.setInt(3, c.getParent().getID());
+				this.pStmt3.addBatch();
+				children.push(c);
+			}
+		}
+		this.pStmt3.executeBatch();
+		this.conn.commit();
+
+	}
+
+	private void writePOI(long id, double latitude, double longitude, HashMap<String, String> poiData, PoiCategory category) {
+		try {
+			// Index data
+			pStmt.setLong(1, id);
+			pStmt.setDouble(2, latitude);
+			pStmt.setDouble(3, longitude);
+			pStmt.setDouble(4, latitude);
+			pStmt.setDouble(5, longitude);
+
+			// POI data
+			pStmt2.setLong(1, id);
+
+			// If all important data should be written to db
+			if (INCLUDE_META_DATA) {
+				pStmt2.setBytes(2, tagsToString(poiData).getBytes());
+			} else {
+
+				// If name tag is set
+				if (poiData.get("name") != null) {
+					pStmt2.setBytes(2, poiData.get("name").getBytes());
+				} else {
+					pStmt2.setNull(2, 0);
+				}
+			}
+
+			pStmt2.setInt(3, category.getID());
+			pStmt2.addBatch();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void commit() {
+		try {
+			pStmt.executeBatch();
+			pStmt2.executeBatch();
+			conn.commit();
+			this.conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -64,12 +195,8 @@ public class POIWriterTask implements Sink {
 	 */
 	@Override
 	public void complete() {
-		int numPOIsWritten = poiStore.getNumberOfPOIs();
-		LOGGER.info("Writing POIs to file...");
-		poiStore.writeToSQLiteDB(outputFilePath);
-		LOGGER.info("Finished writing " + numPOIsWritten + " POIs to file.");
-		LOGGER.info("Skipped " + this.nodesSkipped + " nodes.");
-		LOGGER.info("Added " + this.nodesAdded + " nodes.");
+		commit();
+		LOGGER.info("Added " + this.nodesAdded + " POIs");
 	}
 
 	/**
@@ -103,11 +230,13 @@ public class POIWriterTask implements Sink {
 			// }
 
 			Tag t = null;
-			String tag = "key=value";
-			String name = "<empty>";
+			PoiCategory pc = null;
+			HashMap<String, String> tagMap = new HashMap<String, String>(20, 1.0f);
+			// String name = null;
+			// String url = null;
+			String tag = null;
 
-			// Set to true when valid key value pair has been found
-			boolean accepted = false;
+			// Get nodes tag and name / URL
 			for (Iterator<Tag> it = n.getTags().iterator(); it.hasNext();) {
 				t = it.next();
 
@@ -117,27 +246,48 @@ public class POIWriterTask implements Sink {
 				}
 
 				// Determine the POI's name
-				if (t.getKey().equals("name")) {
-					name = t.getValue();
-				}
+				// if (t.getKey().equals("name")) {
+				// name = t.getValue();
+				// }
 
-				// Apply white list filter
-				try {
-					accepted = categoryFilter.isAcceptedCategory(CategoryResolver.getPoiCategoryByTag(t.getKey(), t.getValue()));
-				} catch (UnknownCategoryException e) {
-					// ignore it
-				}
-
+				tagMap.put(t.getKey(), t.getValue());
 			}
 
-			// Add POI if its category is whitelisted
-			if (accepted) {
-				poiStore.addPOI(n.getId(), n.getLatitude(), n.getLongitude(), tag, name);
-				// System.out.println("Node added: " + tag);
-				++this.nodesAdded;
-			} else {
-				++this.nodesSkipped;
+			// Check if there is a POI category for this tag and add POI to DB
+			try {
+				// Get category from tag
+				if (tag != null) {
+					pc = this.tagMappingResolver.getCategoryFromTag(tag);
+				}
+
+				// Add node if its category matches
+				if (pc != null && this.categoryFilter.isAcceptedCategory(pc)) {
+
+					writePOI(n.getId(), n.getLatitude(), n.getLongitude(), tagMap, pc);
+
+					++this.nodesAdded;
+				}
+			} catch (UnknownCategoryException e) {
+				LOGGER.warning("The '" + tag + "' refers to a POI that does not exist: " + e.getMessage());
 			}
 		}
 	}
+
+	private String tagsToString(HashMap<String, String> tagMap) {
+		StringBuilder sb = new StringBuilder();
+
+		for (String key : tagMap.keySet()) {
+
+			// Skip some tags
+			if (key.equalsIgnoreCase("amenity") ||
+					key.equalsIgnoreCase("created_by")) {
+				continue;
+			}
+
+			sb.append(key).append('=').append(tagMap.get(key)).append(';');
+		}
+
+		return sb.toString();
+	}
+
 }

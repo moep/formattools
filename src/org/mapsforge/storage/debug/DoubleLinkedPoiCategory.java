@@ -33,7 +33,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	// The categories id
 	private int id = -1;
 
-	DoubleLinkedPoiCategory(String title, PoiCategory parent) {
+	public DoubleLinkedPoiCategory(String title, PoiCategory parent) {
 		this.title = title;
 		this.parent = parent;
 
@@ -141,6 +141,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	@Override
 	public void setParent(PoiCategory parent) {
 		this.parent = parent;
+		parent.getChildren().add(this);
 	}
 
 }

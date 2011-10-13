@@ -14,24 +14,42 @@
  */
 package org.mapsforge.storage.debug;
 
-public class RangeQueryCategoryFilter extends SimpleCategoryFilter {
+/**
+ * This class generates a prepared SQL query for retrieving POIs filtered by a given
+ * {@link CategoryFilter}.
+ * 
+ * @author Karsten Groll
+ * 
+ */
+public class CategoryRangeQueryGenerator {
 
-	@Override
-	public boolean isAcceptedCategory(PoiCategory category) {
-		return super.isAcceptedCategory(category);
+	private CategoryFilter filter;
+
+	CategoryRangeQueryGenerator(CategoryFilter filter) {
+		this.filter = filter;
 	}
 
-	@Override
-	public void addCategory(PoiCategory category) {
-		super.addCategory(category);
+	String getSQLSelectString() {
+		StringBuilder sb = new StringBuilder(
+				"SELECT poi_index.id, poi_index.minLat, poi_index.minLon, poi_data.data, poi_data.category "
+						+ "FROM poi_index "
+						+ "JOIN poi_data ON poi_index.id = poi_data.id "
+						+ "WHERE "
+						+ "minLat <= ? AND "
+						+ "minLon <= ? AND "
+						+ "minLat >= ? AND "
+						+ "minLon >= ?");
 
+		sb.append(getSQLWhereClauseString());
+
+		return sb.toString();
 	}
 
 	/**
 	 * 
 	 * @return A string like <code>WHERE id BETWEEN 2 AND 5 OR BETWEEN 10 AND 12</code>.
 	 */
-	String getSQLWhereClauseString() {
+	private String getSQLWhereClauseString() {
 		int[] intervals = getCategoryIDIntervals();
 
 		if (intervals.length == 0) {
@@ -39,10 +57,9 @@ public class RangeQueryCategoryFilter extends SimpleCategoryFilter {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(" WHERE ");
+		sb.append(" AND (");
 		// foreach interval
 		for (int i = 0; i < intervals.length; i += 2) {
-			System.out.println("Processing interval: (" + intervals[i] + ", " + intervals[i + 1] + ")");
 			sb.append("id BETWEEN ").append(intervals[i]).append(" AND ").append(intervals[i + 1]);
 
 			// append OR if it is not the last interval
@@ -51,16 +68,18 @@ public class RangeQueryCategoryFilter extends SimpleCategoryFilter {
 			}
 		}
 
+		sb.append(')');
+
 		return sb.toString();
 	}
 
 	private int[] getCategoryIDIntervals() {
-		int[] ret = new int[this.whiteList.size() * 2];
+		int[] ret = new int[this.filter.getAcceptedCategories().size() * 2];
 
 		int i = 0;
 		PoiCategory[] siblings = null;
 
-		for (PoiCategory c : this.whiteList) {
+		for (PoiCategory c : this.filter.getAcceptedCategories()) {
 			siblings = getSiblings(c);
 			ret[i] = siblings[0].getID();
 			ret[i + 1] = siblings[1].getID();
@@ -81,6 +100,10 @@ public class RangeQueryCategoryFilter extends SimpleCategoryFilter {
 		ret[0] = c1;
 		ret[1] = c1;
 
+		if (c1.getParent() == null) {
+			return ret;
+		}
+
 		for (PoiCategory c : c1.getParent().getChildren()) {
 
 			if (c.getID() < c1.getID()) {
@@ -94,21 +117,4 @@ public class RangeQueryCategoryFilter extends SimpleCategoryFilter {
 
 		return ret;
 	}
-
-	/**
-	 * 
-	 * @return Array of POI categories sorted by their IDs in descending order.
-	 */
-	private PoiCategory[] getSortedCategories() {
-		int[] ids = new int[this.whiteList.size()];
-		PoiCategory[] ret = new PoiCategory[ids.length];
-
-		for (int i = 0; i < ids.length; i++) {
-			// ids[i] = whiteList.get(i).getID();
-		}
-
-		return ret;
-
-	}
-
 }

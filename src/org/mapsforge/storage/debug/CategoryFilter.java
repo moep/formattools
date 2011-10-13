@@ -14,6 +14,8 @@
  */
 package org.mapsforge.storage.debug;
 
+import java.util.Collection;
+
 /**
  * Interface for filtering accepted POIs based on their tag.
  * 
@@ -38,4 +40,10 @@ public interface CategoryFilter {
 	 *            The category to be added.
 	 */
 	void addCategory(PoiCategory category);
+
+	/**
+	 * 
+	 * @return Set of all categories that are accepted by this filter.
+	 */
+	Collection<PoiCategory> getAcceptedCategories();
 }

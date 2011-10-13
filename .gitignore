@@ -3,3 +3,4 @@ files/
 db/
 dist/
 lib/osmosis/
+libsqlite3_jni.so

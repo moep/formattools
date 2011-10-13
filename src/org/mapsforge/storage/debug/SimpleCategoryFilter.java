@@ -15,6 +15,7 @@
 package org.mapsforge.storage.debug;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * White list category filter that allows all categories and their sub-categories in the white list.
@@ -40,22 +41,29 @@ public class SimpleCategoryFilter implements CategoryFilter {
 	 * @param category
 	 *            The category to be added to the white list.
 	 */
+	@Override
 	public void addCategory(PoiCategory category) {
 		this.whiteList.add(category);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isAcceptedCategory(PoiCategory category) {
 		// Found category
 		if (this.whiteList.contains(category)) {
 			return true;
-		} else {
-			// Search for parent category
+		}
+
+		if (category.getParent() != null) {
 			return isAcceptedCategory(category.getParent());
 		}
+
+		return false;
+
+	}
+
+	@Override
+	public Collection<PoiCategory> getAcceptedCategories() {
+		return this.whiteList;
 	}
 
 }

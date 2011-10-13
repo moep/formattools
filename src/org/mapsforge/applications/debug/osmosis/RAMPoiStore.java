@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import org.mapsforge.storage.debug.CategoryResolver;
 import org.mapsforge.storage.debug.PoiCategory;
+import org.mapsforge.storage.debug.PoiCategoryManager;
 import org.mapsforge.storage.debug.UnknownCategoryException;
 
 /**
@@ -37,6 +38,7 @@ public class RAMPoiStore {
 	// Number of data sets written to the db at once
 	private static final int BATCH_SIZE = 25000;
 	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
+	private PoiCategoryManager cm = null;
 	private List<POI> pois;
 
 	/**
@@ -44,6 +46,7 @@ public class RAMPoiStore {
 	 */
 	public RAMPoiStore() {
 		this.pois = new LinkedList<POI>();
+		this.cm = new XMLPoiCategoryManager("DefaultPOICategories.xml");
 	}
 
 	/**
@@ -122,7 +125,7 @@ public class RAMPoiStore {
 			}
 
 			// INSERT DATA
-			int numBatches = (int) Math.ceil(this.pois.size() / BATCH_SIZE);
+			int numBatches = (int) Math.ceil(this.pois.size() / BATCH_SIZE) + 1;
 			LOGGER.fine("Batches: " + numBatches);
 			int processed = 0;
 			int numCommits = 0;

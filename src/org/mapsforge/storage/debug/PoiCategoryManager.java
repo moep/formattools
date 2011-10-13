@@ -22,24 +22,13 @@ package org.mapsforge.storage.debug;
  * 
  */
 public interface PoiCategoryManager {
-
-	// /**
-	// * Loads a category configuration from a file or a database.
-	// */
-	// public void loadCategories();
-
-	/**
-	 * Stores a category configuration in a file or a database.
-	 */
-	public void storeCategories();
-
 	/**
 	 * 
 	 * @param id
 	 *            A categories ID.
 	 * @return The category having this ID or null.
 	 */
-	public PoiCategory getPoiCategoryByID(int id);
+	public PoiCategory getPoiCategoryByID(int id) throws UnknownCategoryException;
 
 	/**
 	 * 
@@ -47,11 +36,11 @@ public interface PoiCategoryManager {
 	 *            The category's title
 	 * @return The category c with <code>c.title.equalsIgnoreCase(title)</code>.
 	 */
-	public PoiCategory getPoiCategoryByTitle(String title);
+	public PoiCategory getPoiCategoryByTitle(String title) throws UnknownCategoryException;
 
 	/**
 	 * 
 	 * @return The tree's root category or null if the tree is empty.
 	 */
-	public PoiCategory getRootCategory();
+	public PoiCategory getRootCategory() throws UnknownCategoryException;
 }
