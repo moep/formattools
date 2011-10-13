@@ -20,7 +20,12 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 import java.util.logging.Logger;
+
+import org.mapsforge.storage.debug.CategoryResolver;
+import org.mapsforge.storage.debug.PoiCategory;
+import org.mapsforge.storage.debug.UnknownCategoryException;
 
 /**
  * A container class for storing POI data in a set an serializing it.
@@ -34,6 +39,9 @@ public class RAMPoiStore {
 	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
 	private List<POI> pois;
 
+	/**
+	 * Default constructor.
+	 */
 	public RAMPoiStore() {
 		this.pois = new LinkedList<POI>();
 	}
@@ -64,14 +72,13 @@ public class RAMPoiStore {
 	 */
 	public void writeToSQLiteDB(String path) {
 
-		// System.load("/home/moep/tmp/formattools/lib/jni/linux_x86/libsqlite_jni.so");
-
 		LOGGER.info("Writing SQLite POI data to " + path);
 
 		// Write data using native SQLite
 		Connection conn = null;
 		PreparedStatement pStmt = null;
 		PreparedStatement pStmt2 = null;
+		PreparedStatement pStmt3 = null;
 		Statement stmt = null;
 		try {
 			Class.forName("SQLite.JDBC");
@@ -81,20 +88,40 @@ public class RAMPoiStore {
 			stmt = conn.createStatement();
 			pStmt = conn.prepareStatement("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
 			pStmt2 = conn.prepareStatement("INSERT INTO poi_data VALUES (?, ?, ?);");
+			pStmt3 = conn.prepareStatement("INSERT INTO poi_categories VALUES (?, ?, ?);");
 
 			// CREATE TABLES
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_index;");
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_data;");
 			stmt.executeUpdate("DROP TABLE IF EXISTS poi_categories;");
-			stmt.executeUpdate("DROP INDEX IF EXISTS poi_categories_index;");
+			// stmt.executeUpdate("DROP INDEX IF EXISTS poi_categories_index;");
 			stmt.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
 			stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));");
-			// TODO model child / parent relationships for categories
-			stmt.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, PRIMARY KEY (id));");
-			stmt.executeUpdate("CREATE INDEX poi_categories_index ON poi_categories (id);");
+			// TODO model child / parent relationships for categories (foreign keys)
+			stmt.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));");
+			// stmt.executeUpdate("CREATE INDEX poi_categories_index ON poi_categories (id);");
 			conn.commit();
 
-			// INSERT
+			// INSERT CATEGORIES
+			PoiCategory root = CategoryResolver.getRootCategory();
+			pStmt3.setLong(1, root.getID());
+			pStmt3.setBytes(2, root.getTitle().getBytes());
+			pStmt3.setNull(3, 0);
+			pStmt3.addBatch();
+
+			Stack<PoiCategory> children = new Stack<PoiCategory>();
+			children.push(root);
+			while (!children.isEmpty()) {
+				for (PoiCategory c : children.pop().getChildren()) {
+					pStmt3.setLong(1, c.getID());
+					pStmt3.setBytes(2, c.getTitle().getBytes());
+					pStmt3.setInt(3, c.getParent().getID());
+					pStmt3.addBatch();
+					children.push(c);
+				}
+			}
+
+			// INSERT DATA
 			int numBatches = (int) Math.ceil(this.pois.size() / BATCH_SIZE);
 			LOGGER.fine("Batches: " + numBatches);
 			int processed = 0;
@@ -121,6 +148,8 @@ public class RAMPoiStore {
 				pStmt2.setInt(3, p.getCategoryID());
 				pStmt2.addBatch();
 
+				// Category
+
 				++processed;
 				if (processed == BATCH_SIZE) {
 					++numCommits;
@@ -138,6 +167,7 @@ public class RAMPoiStore {
 			LOGGER.fine("COMMIT " + numCommits + " of " + numBatches);
 			pStmt.executeBatch();
 			pStmt2.executeBatch();
+			pStmt3.executeBatch();
 			conn.commit();
 
 			conn.close();
@@ -211,7 +241,7 @@ public class RAMPoiStore {
 		public int getCategoryID() {
 			int id = -1;
 			try {
-				id = ((DoubleLinkedPoiCategory) CategoryResolver.getPoiCategoryByTag(this.tag)).getID();
+				id = (CategoryResolver.getPoiCategoryByTag(this.tag)).getID();
 			} catch (UnknownCategoryException e) {
 				// do nothing
 			}

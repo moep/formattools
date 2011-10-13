@@ -14,7 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.poi;
+package org.mapsforge.storage.debug;
+
+import java.util.Collection;
 
 /**
  * This class represents a category for {@link PointOfInterest}. Every {@link PoiCategory} should have a
@@ -22,6 +24,7 @@ package org.mapsforge.poi;
  * a.title.equalsIgnoreCase(b.title).
  * 
  * @author weise
+ * @author Karsten Groll
  * 
  */
 public interface PoiCategory {
@@ -35,4 +38,24 @@ public interface PoiCategory {
 	 * @return parent category of this category or null if this category has no parent.
 	 */
 	public PoiCategory getParent();
+
+	/**
+	 * Sets the node's parent node.
+	 * 
+	 * @param parent
+	 *            The category node to be set as parent.
+	 */
+	public void setParent(PoiCategory parent);
+
+	/**
+	 * @return All child categories of the category or null if this category has no children.
+	 */
+	public Collection<PoiCategory> getChildren();
+
+	/**
+	 * 
+	 * @return The category's id.
+	 */
+	public int getID();
+
 }

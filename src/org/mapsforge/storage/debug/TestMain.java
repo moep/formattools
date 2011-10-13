@@ -12,32 +12,18 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.storage.debug;
 
-import org.mapsforge.poi.PoiCategory;
+public class TestMain {
+	public static void main(String[] args) {
+		RangeQueryCategoryFilter cf = new RangeQueryCategoryFilter();
+		PoiCategory pc1 = new DoubleLinkedPoiCategory("root", null);
+		PoiCategory pc2 = new DoubleLinkedPoiCategory("c1", pc1);
+		PoiCategory pc3 = new DoubleLinkedPoiCategory("c2", pc1);
 
-/**
- * Interface for filtering accepted POIs based on their tag.
- * 
- * @author Karsten Groll
- * 
- */
-public interface CategoryFilter {
+		cf.addCategory(pc2);
+		cf.addCategory(pc3);
 
-	/**
-	 * Returns true if a POIs category is accepted and therefore shall be added to the map file.
-	 * 
-	 * @param category
-	 *            The POI's category.
-	 * @return true if a POIs category is accepted and therefore shall be added to the map file.
-	 */
-	boolean isAcceptedCategory(PoiCategory category);
-
-	/**
-	 * Adds a category to the white list.
-	 * 
-	 * @param category
-	 *            The category to be added.
-	 */
-	void addCategory(PoiCategory category);
+		System.out.println("String: " + cf.getSQLWhereClauseString());
+	}
 }

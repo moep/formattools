@@ -12,12 +12,9 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.storage.debug;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.mapsforge.poi.PoiCategory;
+import java.util.ArrayList;
 
 /**
  * White list category filter that allows all categories and their sub-categories in the white list.
@@ -27,13 +24,13 @@ import org.mapsforge.poi.PoiCategory;
  */
 public class SimpleCategoryFilter implements CategoryFilter {
 
-	private final List whiteList;
+	protected final ArrayList<PoiCategory> whiteList;
 
 	/**
 	 * Default constructor.
 	 */
 	public SimpleCategoryFilter() {
-		whiteList = new LinkedList<PoiCategory>();
+		whiteList = new ArrayList<PoiCategory>();
 	}
 
 	/**

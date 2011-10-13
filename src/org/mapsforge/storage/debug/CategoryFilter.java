@@ -12,15 +12,30 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.storage.debug;
 
 /**
- * This exception is thrown whenever the {@link CategoryResolver} cannot find a category for a given
- * tag.
+ * Interface for filtering accepted POIs based on their tag.
  * 
  * @author Karsten Groll
  * 
  */
-public class UnknownCategoryException extends Exception {
+public interface CategoryFilter {
 
+	/**
+	 * Returns true if a POIs category is accepted and therefore shall be added to the map file.
+	 * 
+	 * @param category
+	 *            The POI's category.
+	 * @return true if a POIs category is accepted and therefore shall be added to the map file.
+	 */
+	boolean isAcceptedCategory(PoiCategory category);
+
+	/**
+	 * Adds a category to the white list.
+	 * 
+	 * @param category
+	 *            The category to be added.
+	 */
+	void addCategory(PoiCategory category);
 }
