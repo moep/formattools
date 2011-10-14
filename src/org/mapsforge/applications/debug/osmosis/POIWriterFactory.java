@@ -31,8 +31,10 @@ public class POIWriterFactory extends TaskManagerFactory {
 		String outputFilePath = getStringArgument(taskConfig, "file", System.getProperty("user.home")
 				+ "/mapsforge.map");
 
+		String categoryConfigFilePath = getStringArgument(taskConfig, "categoryConfigPath", "POICategoriesOsmosis.xml");
+
 		// The creation task
-		Sink task = new POIWriterTask(outputFilePath);
+		Sink task = new POIWriterTask(outputFilePath, categoryConfigFilePath);
 
 		return new SinkManager(taskConfig.getId(), task, taskConfig.getPipeArgs());
 	}

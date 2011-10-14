@@ -45,6 +45,7 @@ public class POIWriterTask implements Sink {
 
 	// Parameters
 	private final String outputFilePath;
+	private final String categoryConfigPath;
 
 	// Temporary variables
 	String[] data;
@@ -68,17 +69,18 @@ public class POIWriterTask implements Sink {
 	private PreparedStatement pStmt3 = null;
 	private Statement stmt = null;
 
-	public POIWriterTask(String outputFilePath) {
+	public POIWriterTask(String outputFilePath, String categoryConfigPath) {
 		LOGGER.info("Mapsforge mapfile writer version " + VERSION);
 		LOGGER.setLevel(Level.FINE);
 
 		this.outputFilePath = outputFilePath;
+		this.categoryConfigPath = categoryConfigPath;
 
 		// Get categories defined in XML
-		this.cm = new XMLPoiCategoryManager("POIDefaultCategories.xml");
+		this.cm = new XMLPoiCategoryManager(categoryConfigPath);
 
 		// Get tag -> POI mapper
-		this.tagMappingResolver = new TagMappingResolver("POIDefaultMappings.xml", this.cm);
+		this.tagMappingResolver = new TagMappingResolver(categoryConfigPath, this.cm);
 
 		// Set accepted categories
 		this.categoryFilter = new SimpleCategoryFilter();

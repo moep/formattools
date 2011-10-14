@@ -16,13 +16,14 @@ package org.mapsforge.applications.debug.osmosis;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Stack;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.mapsforge.applications.debug.osmosis.jaxb.TagMappings;
-import org.mapsforge.applications.debug.osmosis.jaxb.TagMappings.Mapping;
+import org.mapsforge.applications.debug.osmosis.jaxb.Category;
+import org.mapsforge.applications.debug.osmosis.jaxb.Mapping;
 import org.mapsforge.storage.debug.PoiCategory;
 import org.mapsforge.storage.debug.PoiCategoryManager;
 import org.mapsforge.storage.debug.UnknownCategoryException;
@@ -54,22 +55,31 @@ class TagMappingResolver {
 
 		JAXBContext ctx = null;
 		Unmarshaller um = null;
-		TagMappings mappings = null;
+		Category xmlRootCategory = null;
 
 		try {
-			ctx = JAXBContext.newInstance(TagMappings.class);
+			ctx = JAXBContext.newInstance(Category.class);
 			um = ctx.createUnmarshaller();
-			mappings = (TagMappings) um.unmarshal(f);
+			xmlRootCategory = (Category) um.unmarshal(f);
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
 
 		System.out.println("Adding tag mappings");
-		for (Mapping m : mappings.getMapping()) {
-			System.out.println(m.getTag() + " ==> " + m.getCategoryName());
-			this.tagMap.put(m.getTag(), m.getCategoryName());
-		}
+		Stack<Category> categories = new Stack<Category>();
+		categories.push(xmlRootCategory);
 
+		while (!categories.isEmpty()) {
+			for (Category c : categories.pop().getCategory()) {
+				categories.push(c);
+
+				for (Mapping m : c.getMapping()) {
+					System.out.println(m.getTag() + "==>" + c.getTitle());
+					this.tagMap.put(m.getTag(), c.getTitle());
+				}
+
+			}
+		}
 	}
 
 	PoiCategory getCategoryFromTag(String tag) throws UnknownCategoryException {

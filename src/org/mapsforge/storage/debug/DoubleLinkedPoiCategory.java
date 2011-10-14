@@ -93,6 +93,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 
 		DoubleLinkedPoiCategory currentNode = null;
 		sb.append("digraph Categories {\r\n");
+		sb.append("  graph [\r\nrankdir = \"LR\"\r\n]\r\n\r\nnode [\r\nshape = \"plaintext\"\r\n]");
 		while (!stack.isEmpty()) {
 			currentNode = (DoubleLinkedPoiCategory) stack.pop();
 			for (PoiCategory childNode : currentNode.childCategories) {
