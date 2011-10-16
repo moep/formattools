@@ -70,28 +70,31 @@ public class SimpleTileExtractor {
 		// File version (4B)
 		this.mapFile.setFileVersion(getNextInt());
 
-		// Flags (1B)
-		this.mapFile.setFlags(getNextByte());
+		// File size (8B)
+		this.mapFile.setFileSize(getNextLong());
 
-		// Number of zoom intervals (1B)
-		this.mapFile.setAmountOfZoomIntervals(getNextByte());
+		// Date of creation (8B)
+		this.mapFile.setDateOfCreation(getNextLong());
 
-		// Projection name (variable)
-		this.mapFile.setProjection(getNextString());
+		// Bounding box (4*4B)
+		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
 
 		// Tile size (2B)
 		this.mapFile.setTileSize(getNextDword());
 
-		// Bounding box (4*4B)
-		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
+		// Projection name (variable)
+		this.mapFile.setProjection(getNextString());
+
+		// Language preference (variable)
+		this.mapFile.setLanguagePreference(getNextString());
+
+		// Flags (1B)
+		this.mapFile.setFlags(getNextByte());
 
 		// Map start position (8B)
 		if (this.mapFile.isMapStartPositionFlagSet()) {
 			this.mapFile.setMapStartPosition(getNextInt(), getNextInt());
 		}
-
-		// Date of creation (8B)
-		this.mapFile.setDateOfCreation(getNextLong());
 
 		// POI tag mapping (variable)
 		// amount of mappings (2B)
@@ -126,8 +129,8 @@ public class SimpleTileExtractor {
 			this.mapFile.getWayTagMappings()[tagID] = tagName;
 		}
 
-		// Comment (variable)
-		this.mapFile.setComment(getNextString());
+		// Number of zoom intervals (1B)
+		this.mapFile.setAmountOfZoomIntervals(getNextByte());
 
 		// Zoom interval configuration (variable)
 		this.mapFile.prepareZoomIntervalConfiguration();
@@ -135,6 +138,9 @@ public class SimpleTileExtractor {
 			this.mapFile.setZoomIntervalConfiguration(i, getNextByte(), getNextByte(), getNextByte(),
 					getNextLong5(), getNextLong5());
 		}
+
+		// Comment (variable)
+		this.mapFile.setComment(getNextString());
 
 	}
 
