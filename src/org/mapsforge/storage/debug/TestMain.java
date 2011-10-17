@@ -14,31 +14,28 @@
  */
 package org.mapsforge.storage.debug;
 
+import java.io.File;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 import SQLite3.Exception;
 
 public class TestMain {
 
-	public static void traverseTree(PoiCategory cat) {
-		System.out.println("<category title=\"" + cat.getTitle() + "\">");
-
-		for (PoiCategory child : cat.getChildren()) {
-			traverseTree(child);
-		}
-
-		System.out.println("</category>");
-	}
-
 	public static void main(String[] args) throws Exception {
-		PoiCategory root = CategoryResolver.getRootCategory();
+		File f = new File("test.xml");
 
-		// traverseTree(root);
-		for (String key : CategoryResolver.categoryMap.keySet()) {
-			System.out
-					.println("<tns:Mapping categoryName=\""
-							+ CategoryResolver.categoryMap.get(key).getTitle() + "\" tag=\""
-							+ key
-							+ "\" />");
+		JAXBContext ctx = null;
+		Unmarshaller um = null;
+
+		try {
+			ctx = JAXBContext.newInstance();
+			um = ctx.createUnmarshaller();
+			um.unmarshal(f);
+		} catch (JAXBException e) {
+			e.printStackTrace();
 		}
-
 	}
 }

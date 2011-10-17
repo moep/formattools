@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category title="root" xmlns="http://www.example.org/test" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/test test.xsd ">
+	<category title="Amenities">
+		<category title="Food">
+			<category title="Restaurants">
+				<mapping tag="amenity=restaurant"/>
+			</category>
+			<category title="Food counter areas">
+			</category>
+			<category title="Fast food restaurants">
+			</category>
+			<category title="Drinking water sources">
+			</category>
+			<category title="Public grills">
+			</category>
+			<category title="Pubs">
+			</category>
+			<category title="Bars">
+			</category>
+			<category title="Cafes">
+			</category>
+			<category title="Beer gardens">
+			</category>
+			<category title="Ice cream shops">
+			</category>
+		</category>
+		<category title="Education institutes">
+			<category title="Kindergartens">
+			</category>
+			<category title="School grounds">
+			</category>
+			<category title="College campus or buildings">
+			</category>
+			<category title="Public libraries">
+			</category>
+			<category title="University campus or buildings">
+			</category>
+		</category>
+		<category title="Transportation">
+			<category title="Places where you can enter leave a ferry">
+			</category>
+			<category title="Places to park bicycles on">
+			</category>
+			<category title="Bicycle rental stations">
+			</category>
+			<category title="Bus stations">
+			</category>
+			<category title="Car rental stations">
+			</category>
+			<category title="Car sharing stations">
+			</category>
+			<category title="Car washing stations">
+			</category>
+			<category title="Fuel stations">
+			</category>
+			<category title="Containers holding a mixture of salt and grit">
+			</category>
+			<category title="Car parks">
+			</category>
+			<category title="A single parking space">
+			</category>
+			<category title="Entrances / Exits to underground parking facilities">
+			</category>
+			<category title="Places where taxis wait for passengers">
+			</category>
+			<category title="Electric vehicle charging facilities">
+			</category>
+		</category>
+		<category title="Financial institutes">
+			<category title="ATMs and cash points">
+			</category>
+			<category title="Banks">
+			</category>
+			<category title="Currency exchange places">
+			</category>
+		</category>
+		<category title="Healthcare">
+			<category title="Pharmacies">
+			</category>
+			<category title="Hospitals">
+			</category>
+			<category title="Places to drop babies for remorse">
+			</category>
+			<category title="Dentists">
+			</category>
+			<category title="Doctors's practises">
+			</category>
+			<category title="Nursing homes">
+			</category>
+			<category title="Social Facilities">
+			</category>
+			<category title="Veterinary clinics">
+			</category>
+		</category>
+		<category title="Entertainment, arts and culture">
+			<category title="Arts centers">
+			</category>
+			<category title="Cinemas">
+			</category>
+			<category title="Community centers">
+			</category>
+			<category title="Social centers">
+			</category>
+			<category title="Fountains">
+			</category>
+			<category title="Nightclubs (Dancing)">
+			</category>
+			<category title="Strip clubs">
+			</category>
+			<category title="TV, radio or recording studios">
+			</category>
+			<category title="Theatres and operas">
+			</category>
+		</category>
+		<category title="Other amenities">
+			<category title="Public benches">
+			</category>
+			<category title="Brothels">
+			</category>
+			<category title="Public visible clocks">
+			</category>
+			<category title="Court houses">
+			</category>
+			<category title="Crematoriums">
+			</category>
+			<category title="Embassies">
+			</category>
+			<category title="Fire stations">
+			</category>
+			<category title="Grave yards">
+			</category>
+			<category title="Hunting stands">
+			</category>
+			<category title="Marketplaces">
+			</category>
+			<category title="Churches, mosques, temples">
+			</category>
+			<category title="Police stations">
+			</category>
+			<category title="Post boxes">
+			</category>
+			<category title="Post offices">
+			</category>
+			<category title="Prisons (no schools)">
+			</category>
+			<category title="Public buildings">
+			</category>
+			<category title="Recycling facilities">
+			</category>
+			<category title="Saunas">
+			</category>
+			<category title="Bad weather shelters">
+			</category>
+			<category title="Public telephones">
+			</category>
+			<category title="Public toilets">
+			</category>
+			<category title="Town hall buildings">
+			</category>
+			<category title="Vending machines">
+			</category>
+			<category title="Garbage cans">
+			</category>
+			<category title="Garbage containers">
+			</category>
+			<category title="Water places for animals">
+			</category>
+		</category>
+	</category>
+</category>
