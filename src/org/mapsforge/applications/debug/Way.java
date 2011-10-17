@@ -2,18 +2,19 @@
  * Copyright 2010, 2011 mapsforge.org
  *
  * This program is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free Software
+ * terms of the GNU Lesser General License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * PARTICULAR PURPOSE. See the GNU Lesser General License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with
+ * You should have received a copy of the GNU Lesser General License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.mapsforge.applications.debug;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,23 +24,12 @@ import java.util.List;
  * @author Karsten
  * 
  */
-public class Way {
+class Way {
 	private String waySignature;
 	private int waySize;
 	private byte[] subTileBitmap;
-	private byte specialByte1;
-	private byte specialByte2;
-	private byte wayTypeBitmap;
+	private byte specialByte;
 	private List<Integer> tagID;
-	private int wayNodeAmount;
-
-	// First way node
-	private int firstWayNodeLatDiff;
-	private int firstWayNodeLonDiff;
-
-	// Way nodes
-	private List<Integer> wayNodesLatDiff;
-	private List<Integer> wayNodesLonDiff;
 
 	private byte flags;
 	private String name;
@@ -49,14 +39,19 @@ public class Way {
 	private int labelPositionLatDiff;
 	private int labelPositionLonDiff;
 
+	// Number of way data blocks
+	private byte numberOfWayDataBlocks;
+
+	// Way data blocks
+	private List<WayData> wayData;
+
 	/**
 	 * The constructor.
 	 */
-	public Way() {
+	Way() {
 		this.subTileBitmap = new byte[2];
 		this.tagID = new LinkedList<Integer>();
-		this.wayNodesLatDiff = new LinkedList<Integer>();
-		this.wayNodesLonDiff = new LinkedList<Integer>();
+		this.wayData = new ArrayList<WayData>();
 	}
 
 	@Override
@@ -68,67 +63,17 @@ public class Way {
 		sb.append("Way size: ").append(this.waySize).append(MapFile.NL);
 		sb.append("Sub tile bitmap ").append(MapFormatReader.getHex(this.subTileBitmap[0])).append(" ")
 				.append(MapFormatReader.getHex(this.subTileBitmap[1])).append(MapFile.NL);
-		sb.append("Special byte 1: ").append(MapFormatReader.getHex(this.specialByte1))
-				.append(MapFile.NL);
-		sb.append("Special byte 2: ").append(MapFormatReader.getHex(this.specialByte2))
+		sb.append("Special byte 1: ").append(MapFormatReader.getHex(this.specialByte))
 				.append(MapFile.NL);
 		return sb.toString();
 	}
 
 	int getLayer() {
-		return this.specialByte1 & 0xf0 + 5;
+		return this.specialByte & 0xf0 + 5;
 	}
 
 	int getAmountOfTags() {
-		return this.specialByte1 & 0x0f;
-	}
-
-	int getAmountOfRelevantRenderingTags() {
-		return this.specialByte2 & 0xe0;
-	}
-
-	boolean isHighwayTagFlagSet() {
-		return (this.wayTypeBitmap & 0x80) != 0;
-	}
-
-	boolean isRailwayTagFlagSet() {
-		return (this.wayTypeBitmap & 0x40) != 0;
-	}
-
-	boolean isBuildingTagFlagSet() {
-		return (this.wayTypeBitmap & 0x20) != 0;
-	}
-
-	boolean isLanduseTagFlagSet() {
-		return (this.wayTypeBitmap & 0x10) != 0;
-	}
-
-	boolean isLeisureTagFlagSet() {
-		return (this.wayTypeBitmap & 0x08) != 0;
-	}
-
-	boolean isAmenityTagFlagSet() {
-		return (this.wayTypeBitmap & 0x04) != 0;
-	}
-
-	boolean isNaturalTagFlagSet() {
-		return (this.wayTypeBitmap & 0x02) != 0;
-	}
-
-	boolean isWaterwayTagFlagSet() {
-		return (this.wayTypeBitmap & 0x01) != 0;
-	}
-
-	void addTagID(int tag) {
-		this.tagID.add(tag);
-	}
-
-	void addWayNodesLatDiff(int latDiff) {
-		this.wayNodesLatDiff.add(latDiff);
-	}
-
-	void addWayNodesLonDiff(int lonDiff) {
-		this.wayNodesLonDiff.add(lonDiff);
+		return this.specialByte & 0x0f;
 	}
 
 	boolean isWayFlagSet() {
@@ -147,10 +92,24 @@ public class Way {
 		return (this.flags & 0x10) != 0;
 	}
 
+	void addTagID(int id) {
+		this.tagID.add(id);
+	}
+
+	// void addWayDataBlock(WayData wayDataBlock) {
+	// this.wayData.add(wayDataBlock);
+	// }
+
+	WayData createAndAddWayDataBlock(byte numberOfWayCoordinateBlocks) {
+		WayData ret = new WayData(numberOfWayCoordinateBlocks);
+		this.wayData.add(ret);
+		return ret;
+	}
+
 	/**
 	 * @return the waySignature
 	 */
-	public String getWaySignature() {
+	String getWaySignature() {
 		return waySignature;
 	}
 
@@ -158,14 +117,14 @@ public class Way {
 	 * @param waySignature
 	 *            the waySignature to set
 	 */
-	public void setWaySignature(String waySignature) {
+	void setWaySignature(String waySignature) {
 		this.waySignature = waySignature;
 	}
 
 	/**
 	 * @return the waySize
 	 */
-	public int getWaySize() {
+	int getWaySize() {
 		return waySize;
 	}
 
@@ -173,14 +132,14 @@ public class Way {
 	 * @param waySize
 	 *            the waySize to set
 	 */
-	public void setWaySize(int waySize) {
+	void setWaySize(int waySize) {
 		this.waySize = waySize;
 	}
 
 	/**
 	 * @return the subTileBitmap
 	 */
-	public byte[] getSubTileBitmap() {
+	byte[] getSubTileBitmap() {
 		return subTileBitmap;
 	}
 
@@ -191,7 +150,7 @@ public class Way {
 	 * @param byte2
 	 *            Low byte
 	 */
-	public void setSubTileBitmap(byte byte1, byte byte2) {
+	void setSubTileBitmap(byte byte1, byte byte2) {
 		this.subTileBitmap[0] = byte1;
 		this.subTileBitmap[1] = byte2;
 	}
@@ -199,52 +158,39 @@ public class Way {
 	/**
 	 * @return the specialByte1
 	 */
-	public byte getSpecialByte1() {
-		return specialByte1;
+	byte getSpecialByte() {
+		return specialByte;
 	}
 
 	/**
-	 * @param specialByte1
+	 * @param specialByte
 	 *            the specialByte1 to set
 	 */
-	public void setSpecialByte1(byte specialByte1) {
-		this.specialByte1 = specialByte1;
+	void setSpecialByte(byte specialByte) {
+		this.specialByte = specialByte;
 	}
 
 	/**
-	 * @return the specialByte2
+	 * 
+	 * @return Number of way data blocks.
 	 */
-	public byte getSpecialByte2() {
-		return specialByte2;
+	byte getNumberOfWayDataBlocks() {
+		return numberOfWayDataBlocks;
 	}
 
 	/**
-	 * @param specialByte2
-	 *            the specialByte2 to set
+	 * 
+	 * @param numberOfWayDataBlocks
+	 *            Number of way data blocks to be set.
 	 */
-	public void setSpecialByte2(byte specialByte2) {
-		this.specialByte2 = specialByte2;
-	}
-
-	/**
-	 * @return the wayTagBitmap
-	 */
-	public byte getWayTypeBitmap() {
-		return wayTypeBitmap;
-	}
-
-	/**
-	 * @param wayTagBitmap
-	 *            the wayTagBitmap to set
-	 */
-	public void setWayTypeBitmap(byte wayTagBitmap) {
-		this.wayTypeBitmap = wayTagBitmap;
+	void setNumberOfWayDataBlocks(byte numberOfWayDataBlocks) {
+		this.numberOfWayDataBlocks = numberOfWayDataBlocks;
 	}
 
 	/**
 	 * @return the tagID
 	 */
-	public List<Integer> getTagID() {
+	List<Integer> getTagID() {
 		return tagID;
 	}
 
@@ -252,89 +198,14 @@ public class Way {
 	 * @param tagID
 	 *            the tagID to set
 	 */
-	public void setTagID(List<Integer> tagID) {
+	void setTagID(List<Integer> tagID) {
 		this.tagID = tagID;
-	}
-
-	/**
-	 * @return the wayNodeAmount
-	 */
-	public int getWayNodeAmount() {
-		return wayNodeAmount;
-	}
-
-	/**
-	 * @param wayNodeAmount
-	 *            the wayNodeAmount to set
-	 */
-	public void setWayNodeAmount(int wayNodeAmount) {
-		this.wayNodeAmount = wayNodeAmount;
-	}
-
-	/**
-	 * @return the firstWayNodeLatDiff
-	 */
-	public int getFirstWayNodeLatDiff() {
-		return firstWayNodeLatDiff;
-	}
-
-	/**
-	 * @param firstWayNodeLatDiff
-	 *            the firstWayNodeLatDiff to set
-	 */
-	public void setFirstWayNodeLatDiff(int firstWayNodeLatDiff) {
-		this.firstWayNodeLatDiff = firstWayNodeLatDiff;
-	}
-
-	/**
-	 * @return the firstWayNodeLonDiff
-	 */
-	public int getFirstWayNodeLonDiff() {
-		return firstWayNodeLonDiff;
-	}
-
-	/**
-	 * @param firstWayNodeLonDiff
-	 *            the firstWayNodeLonDiff to set
-	 */
-	public void setFirstWayNodeLonDiff(int firstWayNodeLonDiff) {
-		this.firstWayNodeLonDiff = firstWayNodeLonDiff;
-	}
-
-	/**
-	 * @return the wayNodesLatDiff
-	 */
-	public List<Integer> getWayNodesLatDiff() {
-		return wayNodesLatDiff;
-	}
-
-	/**
-	 * @param wayNodesLatDiff
-	 *            the wayNodesLatDiff to set
-	 */
-	public void setWayNodesLatDiff(List<Integer> wayNodesLatDiff) {
-		this.wayNodesLatDiff = wayNodesLatDiff;
-	}
-
-	/**
-	 * @return the wayNodesLonDiff
-	 */
-	public List<Integer> getWayNodesLonDiff() {
-		return wayNodesLonDiff;
-	}
-
-	/**
-	 * @param wayNodesLonDiff
-	 *            the wayNodesLonDiff to set
-	 */
-	public void setWayNodesLonDiff(List<Integer> wayNodesLonDiff) {
-		this.wayNodesLonDiff = wayNodesLonDiff;
 	}
 
 	/**
 	 * @return the flags
 	 */
-	public byte getFlags() {
+	byte getFlags() {
 		return flags;
 	}
 
@@ -342,14 +213,14 @@ public class Way {
 	 * @param flags
 	 *            the flags to set
 	 */
-	public void setFlags(byte flags) {
+	void setFlags(byte flags) {
 		this.flags = flags;
 	}
 
 	/**
 	 * @return the name
 	 */
-	public String getName() {
+	String getName() {
 		return name;
 	}
 
@@ -357,14 +228,14 @@ public class Way {
 	 * @param name
 	 *            the name to set
 	 */
-	public void setName(String name) {
+	void setName(String name) {
 		this.name = name;
 	}
 
 	/**
 	 * @return the reference
 	 */
-	public String getReference() {
+	String getReference() {
 		return reference;
 	}
 
@@ -372,14 +243,14 @@ public class Way {
 	 * @param reference
 	 *            the reference to set
 	 */
-	public void setReference(String reference) {
+	void setReference(String reference) {
 		this.reference = reference;
 	}
 
 	/**
 	 * @return the labelPositionLatDiff
 	 */
-	public int getLabelPositionLatDiff() {
+	int getLabelPositionLatDiff() {
 		return labelPositionLatDiff;
 	}
 
@@ -387,14 +258,14 @@ public class Way {
 	 * @param labelPositionLatDiff
 	 *            the labelPositionLatDiff to set
 	 */
-	public void setLabelPositionLatDiff(int labelPositionLatDiff) {
+	void setLabelPositionLatDiff(int labelPositionLatDiff) {
 		this.labelPositionLatDiff = labelPositionLatDiff;
 	}
 
 	/**
 	 * @return the labelPositionLonDiff
 	 */
-	public int getLabelPositionLonDiff() {
+	int getLabelPositionLonDiff() {
 		return labelPositionLonDiff;
 	}
 
@@ -402,11 +273,39 @@ public class Way {
 	 * @param labelPositionLonDiff
 	 *            the labelPositionLonDiff to set
 	 */
-	public void setLabelPositionLonDiff(int labelPositionLonDiff) {
+	void setLabelPositionLonDiff(int labelPositionLonDiff) {
 		this.labelPositionLonDiff = labelPositionLonDiff;
 	}
 
-	// Multipolygon
-	// TODO add data for multipolygons
+	public List<WayData> getWayData() {
+		return wayData;
+	}
+
+	class WayData {
+		private byte numberOfWayCoordinateBlocks;
+		private int[] numberOfWayNodes;
+		private int[] latDiff;
+		private int[] lonDiff;
+
+		private WayData(byte numberOfWayCoordinateBlocks) {
+			this.numberOfWayCoordinateBlocks = numberOfWayCoordinateBlocks;
+
+			this.numberOfWayNodes = new int[this.numberOfWayCoordinateBlocks];
+			this.latDiff = new int[this.numberOfWayCoordinateBlocks];
+			this.lonDiff = new int[this.numberOfWayCoordinateBlocks];
+		}
+
+		int[] getNumberOfWayNodes() {
+			return numberOfWayNodes;
+		}
+
+		int[] getLatDiff() {
+			return latDiff;
+		}
+
+		int[] getLonDiff() {
+			return lonDiff;
+		}
+	}
 
 }

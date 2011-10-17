@@ -14,6 +14,8 @@
  */
 package org.mapsforge.applications.debug;
 
+import org.mapsforge.applications.debug.Way.WayData;
+
 public class TileFactory {
 	public static Tile getTileFromRawData(byte[] rawData, byte zoomInterval, MapFile mapFile) {
 
@@ -120,31 +122,12 @@ public class TileFactory {
 		// Sub tile bitmap (2B)
 		w.setSubTileBitmap(s.getNextByte(), s.getNextByte());
 
-		// Special byte 1 (1B)
-		w.setSpecialByte1(s.getNextByte());
-
-		// Special byte 2 (1B)
-		w.setSpecialByte2(s.getNextByte());
-
-		// Way type bitmap (1B)
-		w.setWayTypeBitmap(s.getNextByte());
+		// Special byte (1B)
+		w.setSpecialByte(s.getNextByte());
 
 		// Tag ID (n * VBE-U)
 		for (byte tag = 0; tag < w.getAmountOfTags(); tag++) {
 			w.addTagID(s.getNextVBEUInt());
-		}
-
-		// Way node amount (VBE-U)
-		w.setWayNodeAmount(s.getNextVBEUInt());
-
-		// First way node (2*VBE-S)
-		w.setFirstWayNodeLatDiff(s.getNextVBESInt());
-		w.setFirstWayNodeLonDiff(s.getNextVBESInt());
-
-		// Way nodes (n*2*VBE-S)
-		for (int i = 0; i < w.getWayNodeAmount() - 1; i++) {
-			w.addWayNodesLatDiff(s.getNextVBESInt());
-			w.addWayNodesLonDiff(s.getNextVBESInt());
 		}
 
 		// Flags (1B)
@@ -166,23 +149,23 @@ public class TileFactory {
 			w.setLabelPositionLonDiff(s.getNextVBESInt());
 		}
 
-		// Multipolygon (variable, optional)
-		// TODO save multipolygon values
-		if (w.isMultipolygonFlagSet()) {
-			int amountOfInnerWays = s.getNextVBEUInt();
+		w.setNumberOfWayDataBlocks(s.getNextByte());
 
-			// Remaining inner way nodes
-			for (int i = 0; i < amountOfInnerWays; ++i) {
-				int amountOfInnerWayNodes = s.getNextVBEUInt();
-
-				for (int j = 0; j < amountOfInnerWayNodes; j++) {
-					s.getNextVBESInt();
-					s.getNextVBESInt();
-				}
-
-			}
+		for (byte i = 0; i < w.getNumberOfWayDataBlocks(); i++) {
+			getNexWayDataBlock(s, w);
 		}
 
 		return w;
+	}
+
+	private static void getNexWayDataBlock(Serializer s, Way w) {
+		byte numberOfWayCoordinateBlocks = s.getNextByte();
+		WayData wayData = w.createAndAddWayDataBlock(numberOfWayCoordinateBlocks);
+
+		for (byte i = 0; i < numberOfWayCoordinateBlocks; i++) {
+			wayData.getNumberOfWayNodes()[i] = s.getNextVBEUInt();
+			wayData.getLatDiff()[i] = s.getNextVBESInt();
+			wayData.getLonDiff()[i] = s.getNextVBEUInt();
+		}
 	}
 }

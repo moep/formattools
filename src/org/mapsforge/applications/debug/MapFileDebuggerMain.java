@@ -16,9 +16,6 @@ package org.mapsforge.applications.debug;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 
 import org.mapsforge.applications.debug.db.TileSizeSQLiteWriter;
 
@@ -124,21 +121,6 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
-		// writeTileSizesToDB("/home/moep/libya.map", (byte) 0);
-		// writeTileSizesToDB("/home/moep/libya.map", (byte) 1);
-		System.out.println("java.library.path: " + System.getProperty("java.library.path"));
-		Connection conn = null;
-		SQLite.Database db = null;
-		try {
-			Class.forName("SQLite.JDBC");
-			conn = DriverManager.getConnection("jdbc:sqlite://home/moep/test.sqlite");
-			Statement stmt = conn.createStatement();
-			stmt.executeUpdate("CREATE VIRTUAL TABLE demo_index USING rtree(id, minX, maxX, minY, maxY);");
-			stmt.executeUpdate("INSERT INTO demo_index VALUES(1, 80.0, 90.0, 80.0, 90.0);");
-			conn.commit();
-			conn.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		System.out.println(String.format("0x%x", new Integer(0xff)));
 	}
 }

@@ -1,0 +1,1 @@
+Adaption of "Mapsforge Binary OSM File Format" v3 (draft)
