@@ -85,8 +85,10 @@ public class SQLitePoiCategoryManager implements PoiCategoryManager {
 				categoryTitle = this.loadCategoriesStatement.column_string(1);
 				categoryParentID = this.loadCategoriesStatement.column_int(2);
 
-				pc = new DoubleLinkedPoiCategory(categoryTitle, null);
-				this.categoryMap.put(new Integer(pc.getID()), pc);
+				// Log.d(LOG_TAG, categoryID + "|" + categoryTitle + "|" + categoryParentID);
+
+				pc = new DoubleLinkedPoiCategory(categoryTitle, null, categoryID);
+				this.categoryMap.put(new Integer(categoryID), pc);
 
 				// category --> parent ID
 				parentMap.put(pc, new Integer(categoryParentID));
@@ -105,7 +107,7 @@ public class SQLitePoiCategoryManager implements PoiCategoryManager {
 
 		// Assign parent categories;
 		for (PoiCategory c : parentMap.keySet()) {
-			c.setParent(this.categoryMap.get(new Integer(c.getID())));
+			c.setParent(getPoiCategoryByID(parentMap.get(c)));
 		}
 
 	}

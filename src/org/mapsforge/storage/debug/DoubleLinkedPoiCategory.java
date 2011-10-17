@@ -31,11 +31,16 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	private Vector<PoiCategory> childCategories;
 
 	// The categories id
-	private int id = -1;
+	private int id;
 
 	public DoubleLinkedPoiCategory(String title, PoiCategory parent) {
+		this(title, parent, -1);
+	}
+
+	public DoubleLinkedPoiCategory(String title, PoiCategory parent, int id) {
 		this.title = title;
 		this.parent = parent;
+		this.id = id;
 
 		this.childCategories = new Vector<PoiCategory>();
 

@@ -131,7 +131,7 @@ public class MapFileDebuggerMain {
 		SQLite.Database db = null;
 		try {
 			Class.forName("SQLite.JDBC");
-			conn = DriverManager.getConnection("jdbc:sqlite://home/moep/test.sqlite");
+			conn = DriverManager.getConnection("jdbc:sqlite://home/moep/maps/berlin.poi");
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("CREATE VIRTUAL TABLE demo_index USING rtree(id, minX, maxX, minY, maxY);");
 			stmt.executeUpdate("INSERT INTO demo_index VALUES(1, 80.0, 90.0, 80.0, 90.0);");

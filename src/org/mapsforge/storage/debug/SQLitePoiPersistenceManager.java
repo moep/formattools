@@ -8,6 +8,7 @@ import org.mapsforge.core.GeoCoordinate;
 import SQLite3.Database;
 import SQLite3.Exception;
 import SQLite3.Stmt;
+import android.util.Log;
 
 /**
  * POI persistence manager using SQLite 3 with R-tree support.
@@ -194,8 +195,36 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	}
 
 	@Override
-	public void insertPointOfInterest(PointOfInterest poi) {
-		// TODO implement
+	public void insertPointOfInterest(PointOfInterest p) {
+		try {
+			this.insertPoiStatement1.reset();
+			this.insertPoiStatement1.clear_bindings();
+			this.insertPoiStatement2.reset();
+			this.insertPoiStatement2.clear_bindings();
+
+			db.exec("BEGIN;", null);
+			this.insertPoiStatement1.bind(1, p.getId());
+			this.insertPoiStatement1.bind(2, p.getLatitude());
+			this.insertPoiStatement1.bind(3, p.getLatitude());
+			this.insertPoiStatement1.bind(4, p.getLongitude());
+			this.insertPoiStatement1.bind(5, p.getLongitude());
+
+			this.insertPoiStatement2.bind(1, p.getId());
+			this.insertPoiStatement2.bind(2, p.getName());
+			this.insertPoiStatement2.bind(3, p.getCategory().getID());
+
+			Log.d(LOG_TAG, "INSERT INTO poi_data VALUES (" + p.getId() + ", '" + p.getName() + "' "
+					+ p.getCategory().getID() + ");");
+
+			Log.d(LOG_TAG, "step");
+			this.insertPoiStatement1.step();
+			Log.d(LOG_TAG, "step");
+			this.insertPoiStatement2.step();
+
+			db.exec("COMMIT", null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
