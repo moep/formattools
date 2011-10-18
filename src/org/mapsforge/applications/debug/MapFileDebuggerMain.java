@@ -16,10 +16,8 @@ package org.mapsforge.applications.debug;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 
+import org.mapsforge.applications.debug.db.TileSQLiteWriter;
 import org.mapsforge.applications.debug.db.TileSizeSQLiteWriter;
 
 /**
@@ -119,26 +117,53 @@ public class MapFileDebuggerMain {
 		}
 	}
 
+	private static void mapToSQLite(String mapsforeMapFilePath, String outputFilePath) {
+		SimpleTileExtractor ste = null;
+		MapFile mf = null;
+		TileSQLiteWriter writer = null;
+		byte[] zoomLevelConfiguration;
+		byte[] tile;
+
+		try {
+			ste = new SimpleTileExtractor(mapsforeMapFilePath);
+			mf = ste.getMapFile();
+
+			// Get zoom level configuration
+			zoomLevelConfiguration = mf.getBaseZoomLevel();
+
+			// Write tile to DB
+			writer = new TileSQLiteWriter(outputFilePath, zoomLevelConfiguration);
+			int added = 0;
+
+			// Read tile
+			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
+					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
+						writer.insert(ste.getTile(x, y, zoomInterval), x, y, zoomInterval);
+
+						if (added % 1000 == 0) {
+							System.out.printf("Added %7d tiles\r", added);
+						}
+
+						++added;
+					}
+				}
+			}
+
+			// Write batches
+			writer.finish();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TileIndexOutOfBoundsException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * @param args
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) {
-		// writeTileSizesToDB("/home/moep/libya.map", (byte) 0);
-		// writeTileSizesToDB("/home/moep/libya.map", (byte) 1);
-		System.out.println("java.library.path: " + System.getProperty("java.library.path"));
-		Connection conn = null;
-		SQLite.Database db = null;
-		try {
-			Class.forName("SQLite.JDBC");
-			conn = DriverManager.getConnection("jdbc:sqlite://home/moep/maps/berlin.poi");
-			Statement stmt = conn.createStatement();
-			stmt.executeUpdate("CREATE VIRTUAL TABLE demo_index USING rtree(id, minX, maxX, minY, maxY);");
-			stmt.executeUpdate("INSERT INTO demo_index VALUES(1, 80.0, 90.0, 80.0, 90.0);");
-			conn.commit();
-			conn.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		mapToSQLite("/home/moep/germany-0.2.4.map", "/home/moep/germany.map.sqlite");
 	}
 }

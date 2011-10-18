@@ -70,31 +70,28 @@ public class SimpleTileExtractor {
 		// File version (4B)
 		this.mapFile.setFileVersion(getNextInt());
 
-		// File size (8B)
-		this.mapFile.setFileSize(getNextLong());
+		// Flags (1B)
+		this.mapFile.setFlags(getNextByte());
 
-		// Date of creation (8B)
-		this.mapFile.setDateOfCreation(getNextLong());
-
-		// Bounding box (4*4B)
-		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
-
-		// Tile size (2B)
-		this.mapFile.setTileSize(getNextDword());
+		// Number of zoom intervals (1B)
+		this.mapFile.setAmountOfZoomIntervals(getNextByte());
 
 		// Projection name (variable)
 		this.mapFile.setProjection(getNextString());
 
-		// Language preference (variable)
-		this.mapFile.setLanguagePreference(getNextString());
+		// Tile size (2B)
+		this.mapFile.setTileSize(getNextDword());
 
-		// Flags (1B)
-		this.mapFile.setFlags(getNextByte());
+		// Bounding box (4*4B)
+		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
 
 		// Map start position (8B)
 		if (this.mapFile.isMapStartPositionFlagSet()) {
 			this.mapFile.setMapStartPosition(getNextInt(), getNextInt());
 		}
+
+		// Date of creation (8B)
+		this.mapFile.setDateOfCreation(getNextLong());
 
 		// POI tag mapping (variable)
 		// amount of mappings (2B)
@@ -129,8 +126,8 @@ public class SimpleTileExtractor {
 			this.mapFile.getWayTagMappings()[tagID] = tagName;
 		}
 
-		// Number of zoom intervals (1B)
-		this.mapFile.setAmountOfZoomIntervals(getNextByte());
+		// Comment (variable)
+		this.mapFile.setComment(getNextString());
 
 		// Zoom interval configuration (variable)
 		this.mapFile.prepareZoomIntervalConfiguration();
@@ -139,16 +136,13 @@ public class SimpleTileExtractor {
 					getNextLong5(), getNextLong5());
 		}
 
-		// Comment (variable)
-		this.mapFile.setComment(getNextString());
-
 	}
 
 	private void parseSubFileHeaders() throws IOException {
 		for (byte z = 0; z < this.mapFile.getAmountOfZoomIntervals(); z++) {
 			this.offset = this.mapFile.getAbsoluteStartPosition()[z];
 			this.f.seek(this.offset);
-			System.out.print("Reading header for subfile " + z + "...");
+			// System.out.print("Reading header for subfile " + z + "...");
 
 			// Read bounding box
 			long firstX = MercatorProjection.longitudeToTileX(this.mapFile.getMinLon()
@@ -166,10 +160,10 @@ public class SimpleTileExtractor {
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
 			//
-			System.out.println("FirstX : " + firstX);
-			System.out.println("LastX : " + lastX);
-			System.out.println("FirstY : " + firstY);
-			System.out.println("LastY : " + lastY);
+			// System.out.println("FirstX : " + firstX);
+			// System.out.println("LastX : " + lastX);
+			// System.out.println("FirstY : " + firstY);
+			// System.out.println("LastY : " + lastY);
 
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {
@@ -184,7 +178,7 @@ public class SimpleTileExtractor {
 				this.tileOffset[z][i] = getNextLong5();
 			}
 
-			System.out.println("done");
+			// System.out.println("done");
 		}
 	}
 
