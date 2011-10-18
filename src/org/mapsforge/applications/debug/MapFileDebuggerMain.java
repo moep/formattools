@@ -15,8 +15,14 @@
 package org.mapsforge.applications.debug;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.mapsforge.applications.debug.db.TileSQLiteWriter;
 import org.mapsforge.applications.debug.db.TileSizeSQLiteWriter;
 
@@ -139,13 +145,17 @@ public class MapFileDebuggerMain {
 			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
 				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
 					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
-						writer.insert(ste.getTile(x, y, zoomInterval), x, y, zoomInterval);
+						tile = ste.getTile(x, y, zoomInterval);
 
-						if (added % 1000 == 0) {
+						if (tile != null) {
+							writer.insert(tile, x, y, zoomInterval);
+							++added;
+						}
+
+						if (added % 100 == 0) {
 							System.out.printf("Added %7d tiles\r", added);
 						}
 
-						++added;
 					}
 				}
 			}
@@ -159,11 +169,74 @@ public class MapFileDebuggerMain {
 		}
 	}
 
+	private static void mapToZip(String mapsforeMapFilePath, String outputFilePath) {
+		SimpleTileExtractor ste = null;
+		MapFile mf = null;
+		ZipOutputStream zos = null;
+		byte[] tile;
+		int added = 0;
+
+		try {
+			zos = new ZipOutputStream(new FileOutputStream(outputFilePath));
+			ste = new SimpleTileExtractor(mapsforeMapFilePath);
+			mf = ste.getMapFile();
+
+			// Read tile
+			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
+					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
+						tile = ste.getTile(x, y, zoomInterval);
+
+						if (tile != null) {
+							ZipEntry entry = new ZipEntry(zoomInterval + "/" + x + "/" + y);
+							zos.putNextEntry(entry);
+							zos.write(tile);
+							zos.closeEntry();
+							++added;
+						}
+
+						if (added % 100 == 0) {
+							System.out.printf("Added %7d tiles\r", added);
+							System.out.flush();
+						}
+
+					}
+				}
+			}
+
+			zos.close();
+
+			System.out.println("\r\nDone.");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TileIndexOutOfBoundsException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * @param args
 	 *            not used command line parameters.
+	 * @throws IOException
 	 */
-	public static void main(String[] args) {
-		mapToSQLite("/home/moep/germany-0.2.4.map", "/home/moep/germany.map.sqlite");
+	public static void main(String[] args) throws Exception {
+		// System.out.println("Map2SQLite");
+		// mapToSQLite("/home/moep/germany-0.2.4.map", "/home/moep/germany.map.sqlite");
+		// System.out.println("Map2Zip");
+		// mapToZip("/home/moep/germany-0.2.4.map", "/home/moep/germany.map.zip");
+
+		// ZipFile zf = new ZipFile("/home/moep/germany.map.zip");
+		// ZipEntry e = zf.getEntry("1/8462/5485");
+		// System.out.println("Size: " + e.getSize());
+		// System.out.println("Compressed: " + e.getCompressedSize());
+		// zf.close();
+
+		ZipFile zf = new ZipFile("/home/moep/germany.map.zip");
+		ZipArchiveEntry ze = zf.getEntry("1/8458/5481");
+		System.out.println(ze.getCompressedSize());
+		zf.close();
+
 	}
 }
