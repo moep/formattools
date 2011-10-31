@@ -14,8 +14,6 @@
  */
 package org.mapsforge.applications.debug;
 
-import java.nio.ByteBuffer;
-
 /**
  * Class for reading the current map format.
  * 
@@ -25,8 +23,8 @@ import java.nio.ByteBuffer;
 public class MapFormatReader {
 	/** Used in {@link #getHex(byte)}. */
 	private static final String HEXES = "0123456789ABCDEF";
-
 	/** For switching between a long and double representation of longitude and latitude values */
+	private static final double COORDINATES_FACTOR = 1000000.0;
 
 	static String getHex(byte[] raw) {
 		if (raw == null) {
@@ -54,16 +52,6 @@ public class MapFormatReader {
 
 	static String getHex(byte raw) {
 		return MapFormatReader.getHex(new byte[] { raw });
-	}
-
-	private static int byteArrayToInt(byte[] bytes) {
-		return (bytes[0] << 24) | ((bytes[1] & 0xff) << 16) | ((bytes[2] & 0xff) << 8)
-				| (bytes[3] & 0xff);
-	}
-
-	private static long byteArrayToLong(byte[] bytes) {
-		ByteBuffer bb = ByteBuffer.wrap(bytes);
-		return bb.getLong();
 	}
 
 }

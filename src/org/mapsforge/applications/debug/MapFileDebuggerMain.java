@@ -15,18 +15,13 @@
 package org.mapsforge.applications.debug;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.mapsforge.applications.debug.db.TileSQLiteWriter;
-import org.mapsforge.applications.debug.db.TileSizeSQLiteWriter;
 
 /**
  * 
@@ -38,49 +33,6 @@ import org.mapsforge.applications.debug.db.TileSizeSQLiteWriter;
 public class MapFileDebuggerMain {
 	private static String getBaseName(String path) {
 		return new File(path).getName().split("\\.(?=[^\\.]+$)")[0];
-	}
-
-	private static void writeTileSizesToDB(String path, byte zoomInterval) {
-		System.out.println("Writing information (x, y, tileSize) to 'db/" + getBaseName(path)
-				+ "-bzs" + zoomInterval + "-tileSizes.sqlite'...");
-
-		System.out.println("Parsing " + path + " ...");
-		SimpleTileExtractor ste = null;
-		TileSizeSQLiteWriter db = new TileSizeSQLiteWriter("db/" + getBaseName(path) + "-bzs"
-				+ zoomInterval + "-tileSizes.sqlite");
-		byte[] tile;
-
-		// Parse tiles
-		int tilesWritten = 0;
-		try {
-			ste = new SimpleTileExtractor(path);
-			int i = 0;
-			for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
-				for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
-					tile = ste.getTile(x, y, zoomInterval);
-
-					// Write non-empty tiles to db
-					if (tile != null) {
-						db.insertData(tile, x, y);
-						++tilesWritten;
-						if (tilesWritten % 1000 == 0) {
-							db.commit();
-						}
-					}
-					++i;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (TileIndexOutOfBoundsException e) {
-			System.err.println(e.getMessage());
-		}
-
-		db.commit();
-		db.close();
-
-		System.out.println(tilesWritten + " tiles have been written to db.");
-
 	}
 
 	private static void checkIdexes(String path) {
@@ -111,12 +63,6 @@ public class MapFileDebuggerMain {
 					}
 				}
 			}
-
-			// Parse a single tile from RAM
-			byte[] rawTile = ste.getTile(8801, 5373, (byte) 1);
-			TileFactory.getTileFromRawData(rawTile, (byte) 1, ste.getMapFile());
-			// t.getWays();
-			// t.getPois();
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -168,58 +114,6 @@ public class MapFileDebuggerMain {
 			e.printStackTrace();
 		} catch (TileIndexOutOfBoundsException e) {
 			e.printStackTrace();
-		}
-	}
-
-	private static void mapToZip(String mapsforeMapFilePath, String outputFilePath) {
-		SimpleTileExtractor ste = null;
-		MapFile mf = null;
-		byte[] tile;
-		int added = 0;
-
-		ZipArchiveOutputStream zos = null;
-		ArchiveEntry e = null;
-
-		try {
-			zos = new ZipArchiveOutputStream(new FileOutputStream(outputFilePath));
-			ste = new SimpleTileExtractor(mapsforeMapFilePath);
-			mf = ste.getMapFile();
-
-			File f = new File("/home/moep/dummy.txt");
-
-			// Read tile
-			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
-				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
-					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
-						tile = ste.getTile(x, y, zoomInterval);
-
-						if (tile != null) {
-							ZipArchiveEntry entry = new ZipArchiveEntry(zoomInterval + "/" + x + "/"
-									+ y);
-							// ArchiveEntry entry = zos.createArchiveEntry(f, zoomInterval + "/" + x +
-							// "/" + y);
-							zos.putArchiveEntry(entry);
-							zos.write(tile);
-							zos.closeArchiveEntry();
-
-							++added;
-						}
-
-						if (added % 100 == 0) {
-							System.out.printf("Added %7d tiles\r", added);
-							System.out.flush();
-						}
-
-					}
-				}
-			}
-
-			zos.finish();
-			zos.close();
-
-			System.out.println("\r\nDone.");
-		} catch (Exception e1) {
-			e1.printStackTrace();
 		}
 	}
 
@@ -348,7 +242,6 @@ public class MapFileDebuggerMain {
 	/**
 	 * @param args
 	 *            not used command line parameters.
-	 * @throws IOException
 	 */
 	public static void main(String[] args) throws Exception {
 		countAndPrintNumberOfStreetEntries("/home/moep/maps/poland-0.2.4.map");
