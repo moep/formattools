@@ -244,6 +244,6 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) throws Exception {
-		countAndPrintNumberOfStreetEntries("/home/moep/maps/poland-0.2.4.map");
+		countAndPrintNumberOfStreetEntries("/home/moep/maps/berlin.map");
 	}
 }

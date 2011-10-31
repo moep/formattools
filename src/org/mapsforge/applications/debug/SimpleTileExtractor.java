@@ -70,28 +70,31 @@ public class SimpleTileExtractor {
 		// File version (4B)
 		this.mapFile.setFileVersion(getNextInt());
 
-		// Flags (1B)
-		this.mapFile.setFlags(getNextByte());
+		// File size (8B)
+		this.mapFile.setFileSize(getNextLong());
 
-		// Number of zoom intervals (1B)
-		this.mapFile.setAmountOfZoomIntervals(getNextByte());
+		// Date of creation (8B)
+		this.mapFile.setDateOfCreation(getNextLong());
 
-		// Projection name (variable)
-		this.mapFile.setProjection(getNextString());
+		// Bounding box (4*4B)
+		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
 
 		// Tile size (2B)
 		this.mapFile.setTileSize(getNextDword());
 
-		// Bounding box (4*4B)
-		this.mapFile.setBoundingBox(getNextInt(), getNextInt(), getNextInt(), getNextInt());
+		// Projection name (variable)
+		this.mapFile.setProjection(getNextString());
+
+		// Language preference (variable)
+		this.mapFile.setLanguagePreference(getNextString());
+
+		// Flags (1B)
+		this.mapFile.setFlags(getNextByte());
 
 		// Map start position (8B)
 		if (this.mapFile.isMapStartPositionFlagSet()) {
 			this.mapFile.setMapStartPosition(getNextInt(), getNextInt());
 		}
-
-		// Date of creation (8B)
-		this.mapFile.setDateOfCreation(getNextLong());
 
 		// POI tag mapping (variable)
 		// amount of mappings (2B)
@@ -99,7 +102,6 @@ public class SimpleTileExtractor {
 		this.mapFile.preparePOIMappings();
 
 		// POI tag mapping (variable)
-		int tagID;
 		String tagName;
 		for (int i = 0; i < this.mapFile.getAmountOfPOIMappings(); i++) {
 
@@ -107,8 +109,7 @@ public class SimpleTileExtractor {
 			tagName = getNextString();
 
 			// tag ID (2B)
-			tagID = getNextDword();
-			this.mapFile.getPOIMappings()[tagID] = tagName;
+			this.mapFile.getPOIMappings()[i] = tagName;
 		}
 
 		// Way tag mapping (variable)
@@ -122,19 +123,21 @@ public class SimpleTileExtractor {
 			tagName = getNextString();
 
 			// tag ID (2B)
-			tagID = getNextDword();
-			this.mapFile.getWayTagMappings()[tagID] = tagName;
+			this.mapFile.getWayTagMappings()[i] = tagName;
 		}
 
-		// Comment (variable)
-		this.mapFile.setComment(getNextString());
+		// Number of zoom intervals (1B)
+		this.mapFile.setAmountOfZoomIntervals(getNextByte());
 
 		// Zoom interval configuration (variable)
 		this.mapFile.prepareZoomIntervalConfiguration();
 		for (int i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
 			this.mapFile.setZoomIntervalConfiguration(i, getNextByte(), getNextByte(), getNextByte(),
-					getNextLong5(), getNextLong5());
+					getNextLong(), getNextLong());
 		}
+
+		// Comment (variable)
+		this.mapFile.setComment(getNextString());
 
 	}
 
@@ -142,7 +145,7 @@ public class SimpleTileExtractor {
 		for (byte z = 0; z < this.mapFile.getAmountOfZoomIntervals(); z++) {
 			this.offset = this.mapFile.getAbsoluteStartPosition()[z];
 			this.f.seek(this.offset);
-			// System.out.print("Reading header for subfile " + z + "...");
+			System.out.print("Reading header for subfile " + z + "...");
 
 			// Read bounding box
 			long firstX = MercatorProjection.longitudeToTileX(this.mapFile.getMinLon()
@@ -159,7 +162,7 @@ public class SimpleTileExtractor {
 					this.mapFile.getBaseZoomLevel()[z]);
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
-			//
+
 			// System.out.println("FirstX : " + firstX);
 			// System.out.println("LastX : " + lastX);
 			// System.out.println("FirstY : " + firstY);
@@ -178,7 +181,7 @@ public class SimpleTileExtractor {
 				this.tileOffset[z][i] = getNextLong5();
 			}
 
-			// System.out.println("done");
+			System.out.println("done");
 		}
 	}
 
@@ -220,10 +223,10 @@ public class SimpleTileExtractor {
 				+ this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		// this.f.seek(this.offset);
 
-		System.out.print("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
+		// System.out.print("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
 
 		if (isEmptyTile(id, zoomInterval)) {
-			System.out.println(" -> empty");
+			// System.out.println(" -> empty");
 			return null;
 		}
 
@@ -235,7 +238,7 @@ public class SimpleTileExtractor {
 		this.f.seek(this.offset);
 		this.f.read(tile, 0, tileSize);
 
-		System.out.println(" -> " + tileSize);
+		// System.out.println(" -> " + tileSize);
 
 		return tile;
 	}

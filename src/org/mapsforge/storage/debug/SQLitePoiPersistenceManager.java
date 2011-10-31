@@ -8,7 +8,6 @@ import org.mapsforge.core.GeoCoordinate;
 import SQLite3.Database;
 import SQLite3.Exception;
 import SQLite3.Stmt;
-import android.util.Log;
 
 /**
  * POI persistence manager using SQLite 3 with R-tree support.
@@ -213,12 +212,12 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 			this.insertPoiStatement2.bind(2, p.getName());
 			this.insertPoiStatement2.bind(3, p.getCategory().getID());
 
-			Log.d(LOG_TAG, "INSERT INTO poi_data VALUES (" + p.getId() + ", '" + p.getName() + "' "
-					+ p.getCategory().getID() + ");");
+			// Log.d(LOG_TAG, "INSERT INTO poi_data VALUES (" + p.getId() + ", '" + p.getName() + "' "
+			// + p.getCategory().getID() + ");");
 
-			Log.d(LOG_TAG, "step");
+			// Log.d(LOG_TAG, "step");
 			this.insertPoiStatement1.step();
-			Log.d(LOG_TAG, "step");
+			// Log.d(LOG_TAG, "step");
 			this.insertPoiStatement2.step();
 
 			db.exec("COMMIT", null);

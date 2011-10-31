@@ -13,6 +13,5 @@
 	<classpathentry kind="lib" path="lib/osmosis/woodstox-core-lgpl-4.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/xercesImpl-2.9.1.jar"/>
 	<classpathentry kind="lib" path="lib/sqlite-jdbc-custom.jar"/>
-	<classpathentry kind="lib" path="/opt/android-sdk-linux/platforms/android-14/android.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

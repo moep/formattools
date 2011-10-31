@@ -37,6 +37,8 @@ class MapFile {
 	private byte amountOfZoomIntervals;
 	private String projection;
 	private int tileSize;
+	private long fileSize;
+	private String languagePreference;
 
 	// Bounding box
 	private int maxLat;
@@ -369,6 +371,14 @@ class MapFile {
 
 	}
 
+	public void setLanguagePreference(String languagePreference) {
+		this.languagePreference = languagePreference;
+	}
+
+	public void setFileSize(long fileSize) {
+		this.fileSize = fileSize;
+	}
+
 	public int getMaxLat() {
 		return maxLat;
 	}
@@ -410,6 +420,14 @@ class MapFile {
 	 */
 	public List<SubFile> getSubFiles() {
 		return subFiles;
+	}
+
+	public long getFileSize() {
+		return this.fileSize;
+	}
+
+	public String getLanguagePreference() {
+		return this.languagePreference;
 	}
 
 }

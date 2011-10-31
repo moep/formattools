@@ -20,7 +20,6 @@ import java.util.TreeMap;
 import SQLite3.Database;
 import SQLite3.Exception;
 import SQLite3.Stmt;
-import android.util.Log;
 
 /**
  * A category manager that reads and stores categories from a SQLite database using the Android SQLite3
@@ -45,7 +44,7 @@ public class SQLitePoiCategoryManager implements PoiCategoryManager {
 	 *            SQLite3 database object. (Using SQLite wrapper for Android.)
 	 */
 	public SQLitePoiCategoryManager(Database db) {
-		Log.d(LOG_TAG, "Initializing category manager");
+		// Log.d(LOG_TAG, "Initializing category manager");
 		this.db = db;
 		this.categoryMap = new TreeMap<Integer, PoiCategory>();
 
