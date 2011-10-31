@@ -103,12 +103,6 @@ public class MapFileDebuggerMain {
 				}
 			}
 
-			// Parse a single tile from RAM
-			byte[] rawTile = ste.getTile(8801, 5373, (byte) 1);
-			TileFactory.getTileFromRawData(rawTile, (byte) 1, ste.getMapFile());
-			// t.getWays();
-			// t.getPois();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (TileIndexOutOfBoundsException e) {
@@ -120,7 +114,15 @@ public class MapFileDebuggerMain {
 	 * @param args
 	 *            not used command line parameters.
 	 */
-	public static void main(String[] args) {
-		System.out.println(String.format("0x%x", new Integer(0xff)));
+	public static void main(String[] args) throws Exception {
+		checkIdexes("/home/moep/maps/berlin.map");
+
+		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/berlin.map");
+		// byte[] tile = ste.getTile(8801, 5373, (byte) 1);
+		// TileFactory.getTileFromRawData(tile, (byte) 1, ste.getMapFile());
+
+		// FileOutputStream fos = new FileOutputStream("/home/moep/maps/debug.tile");
+		// fos.write(tile);
+		// fos.close();
 	}
 }

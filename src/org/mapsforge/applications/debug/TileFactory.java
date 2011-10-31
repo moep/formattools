@@ -112,11 +112,10 @@ public class TileFactory {
 		// Way signature (32B, optional)
 		if (mapFile.isDebugFlagSet()) {
 			String signature = s.getNextString(32);
-			// System.out.println("Way signature: " + signature);
 			w.setWaySignature(signature);
 		}
 
-		// Way size (VBE-U)
+		// Way data size (VBE-U)
 		w.setWaySize(s.getNextVBEUInt());
 
 		// Sub tile bitmap (2B)
@@ -162,10 +161,21 @@ public class TileFactory {
 		byte numberOfWayCoordinateBlocks = s.getNextByte();
 		WayData wayData = w.createAndAddWayDataBlock(numberOfWayCoordinateBlocks);
 
+		// For each way coordinate block
 		for (byte i = 0; i < numberOfWayCoordinateBlocks; i++) {
+			// Amount of way nodes of this way
 			wayData.getNumberOfWayNodes()[i] = s.getNextVBEUInt();
-			wayData.getLatDiff()[i] = s.getNextVBESInt();
-			wayData.getLonDiff()[i] = s.getNextVBEUInt();
+
+			// Geo coordinate difference
+			wayData.getLatDiff()[i] = new int[wayData.getNumberOfWayNodes()[i]];
+			wayData.getLonDiff()[i] = new int[wayData.getNumberOfWayNodes()[i]];
+			wayData.getLatDiff()[i][0] = s.getNextVBESInt();
+			wayData.getLonDiff()[i][0] = s.getNextVBESInt();
+			for (int j = 1; j < wayData.getNumberOfWayNodes()[i]; j++) {
+				wayData.getLatDiff()[i][j] = s.getNextVBESInt();
+				wayData.getLonDiff()[i][j] = s.getNextVBESInt();
+			}
+
 		}
 	}
 }

@@ -283,28 +283,32 @@ class Way {
 
 	class WayData {
 		private byte numberOfWayCoordinateBlocks;
+
+		// Way nodes per way coordinate block
 		private int[] numberOfWayNodes;
-		private int[] latDiff;
-		private int[] lonDiff;
+
+		// Latitude and longitude differences for way j on way coordinate block i
+		private int[][] latDiff;
+		private int[][] lonDiff;
 
 		private WayData(byte numberOfWayCoordinateBlocks) {
 			this.numberOfWayCoordinateBlocks = numberOfWayCoordinateBlocks;
 
 			this.numberOfWayNodes = new int[this.numberOfWayCoordinateBlocks];
-			this.latDiff = new int[this.numberOfWayCoordinateBlocks];
-			this.lonDiff = new int[this.numberOfWayCoordinateBlocks];
+			this.latDiff = new int[this.numberOfWayCoordinateBlocks][];
+			this.lonDiff = new int[this.numberOfWayCoordinateBlocks][];
 		}
 
 		int[] getNumberOfWayNodes() {
 			return numberOfWayNodes;
 		}
 
-		int[] getLatDiff() {
-			return latDiff;
+		int[][] getLatDiff() {
+			return this.latDiff;
 		}
 
-		int[] getLonDiff() {
-			return lonDiff;
+		int[][] getLonDiff() {
+			return this.lonDiff;
 		}
 	}
 

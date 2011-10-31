@@ -102,7 +102,6 @@ public class SimpleTileExtractor {
 		this.mapFile.preparePOIMappings();
 
 		// POI tag mapping (variable)
-		int tagID;
 		String tagName;
 		for (int i = 0; i < this.mapFile.getAmountOfPOIMappings(); i++) {
 
@@ -110,8 +109,7 @@ public class SimpleTileExtractor {
 			tagName = getNextString();
 
 			// tag ID (2B)
-			tagID = getNextDword();
-			this.mapFile.getPOIMappings()[tagID] = tagName;
+			this.mapFile.getPOIMappings()[i] = tagName;
 		}
 
 		// Way tag mapping (variable)
@@ -125,8 +123,7 @@ public class SimpleTileExtractor {
 			tagName = getNextString();
 
 			// tag ID (2B)
-			tagID = getNextDword();
-			this.mapFile.getWayTagMappings()[tagID] = tagName;
+			this.mapFile.getWayTagMappings()[i] = tagName;
 		}
 
 		// Number of zoom intervals (1B)
@@ -136,7 +133,7 @@ public class SimpleTileExtractor {
 		this.mapFile.prepareZoomIntervalConfiguration();
 		for (int i = 0; i < this.mapFile.getAmountOfZoomIntervals(); i++) {
 			this.mapFile.setZoomIntervalConfiguration(i, getNextByte(), getNextByte(), getNextByte(),
-					getNextLong5(), getNextLong5());
+					getNextLong(), getNextLong());
 		}
 
 		// Comment (variable)
@@ -165,11 +162,11 @@ public class SimpleTileExtractor {
 					this.mapFile.getBaseZoomLevel()[z]);
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
-			//
-			System.out.println("FirstX : " + firstX);
-			System.out.println("LastX : " + lastX);
-			System.out.println("FirstY : " + firstY);
-			System.out.println("LastY : " + lastY);
+
+			// System.out.println("FirstX : " + firstX);
+			// System.out.println("LastX : " + lastX);
+			// System.out.println("FirstY : " + firstY);
+			// System.out.println("LastY : " + lastY);
 
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {

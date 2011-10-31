@@ -357,15 +357,17 @@ class MapFile {
 	public void setZoomIntervalConfiguration(int zoomInterval, byte baseZoomLevel,
 			byte minimalZoomLevel, byte maximalZoomLevel, long absoluteStartPosition, long subFileSize) {
 
-		// System.out.println("setZoomIntervalConfiguration(" + zoomInterval + "," + this.baseZoomLevel
-		// + "," + this.minimalZoomLevel + "," + maximalZoomLevel + "," + absoluteStartPosition
-		// + "," + subFileSize + ")");
-
 		this.baseZoomLevel[zoomInterval] = baseZoomLevel;
 		this.minimalZoomLevel[zoomInterval] = minimalZoomLevel;
 		this.maximalZoomLevel[zoomInterval] = maximalZoomLevel;
 		this.absoluteStartPosition[zoomInterval] = absoluteStartPosition;
 		this.subFileSize[zoomInterval] = subFileSize;
+
+		// System.out.println("setZoomIntervalConfiguration(" + zoomInterval + "," +
+		// this.baseZoomLevel[zoomInterval]
+		// + "," + this.minimalZoomLevel[zoomInterval] + "," + this.maximalZoomLevel[zoomInterval] + ","
+		// + this.absoluteStartPosition[zoomInterval]
+		// + "," + this.subFileSize[zoomInterval] + ")");
 
 	}
 
