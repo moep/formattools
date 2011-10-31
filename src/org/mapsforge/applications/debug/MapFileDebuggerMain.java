@@ -17,6 +17,10 @@ package org.mapsforge.applications.debug;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -219,68 +223,127 @@ public class MapFileDebuggerMain {
 		}
 	}
 
-	// private static void mapToZip(String mapsforeMapFilePath, String outputFilePath) {
-	// SimpleTileExtractor ste = null;
-	// MapFile mf = null;
-	// InputStream is = null;
-	// byte[] tile = null;
-	// int added = 0;
-	//
-	// ZipFile zf = null;
-	// ZipParameters p = new ZipParameters();
-	// // Tell zipper that input is not a file
-	// p.setSourceExternalStream(true);
-	// p.setCompressionLevel(Zip4jConstants.COMP_STORE);
-	//
-	// try {
-	// ste = new SimpleTileExtractor(mapsforeMapFilePath);
-	// mf = ste.getMapFile();
-	// zf = new ZipFile(new File(outputFilePath));
-	//
-	// // Read tile
-	// for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals();
-	// zoomInterval++) {
-	// for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
-	// for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
-	// tile = ste.getTile(x, y, zoomInterval);
-	//
-	// if (tile != null) {
-	// p.setFileNameInZip(added + ".tile");
-	// is = new FileInputStream("/home/moep/dummy.txt");
-	// zf.addStream(is, p);
-	// is.close();
-	// ++added;
-	// }
-	//
-	// if (added % 100 == 0) {
-	// System.out.printf("Added %7d tiles\r", added);
-	// System.out.flush();
-	// }
-	//
-	// }
-	// }
-	// }
-	//
-	// System.out.println("\r\nDone.");
-	// } catch (FileNotFoundException e) {
-	// e.printStackTrace();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// } catch (TileIndexOutOfBoundsException e) {
-	// e.printStackTrace();
-	// } catch (ZipException e) {
-	// e.printStackTrace();
-	// } finally {
-	//
-	// if (is != null) {
-	// try {
-	// is.close();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// }
-	// }
-	// }
+	private static void countAndPrintNumberOfStreetEntries(String path) {
+		SimpleTileExtractor ste = null;
+		byte[] rawTile;
+		Tile tile = null;
+		List<Way> ways = null;
+		HashMap<String, Integer> globalCount = new HashMap<String, Integer>();
+
+		Integer count = null;
+
+		// Total amount of street names
+		int totalStreetNameCount = 0;
+		// Street names that are in more than 1 tile
+		int multipleOccurenceStreetNameCount = 0;
+		// Exception values (#tiles > 100 for a given street name)
+		List<Integer> exceptionalValues = new ArrayList<Integer>();
+
+		// Test if tile coordinates are correct (NEEDS DEBUG FILE!)
+		try {
+			ste = new SimpleTileExtractor(path);
+
+			for (byte zoomInterval = 1; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
+					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
+						rawTile = ste.getTile(x, y, zoomInterval);
+						if (rawTile == null)
+							continue;
+
+						tile = TileFactory.getTileFromRawData(rawTile, zoomInterval, ste.getMapFile());
+
+						// Get all way
+						ways = tile.getWays();
+
+						if (ways == null)
+							continue;
+
+						HashMap<String, Integer> localCount = new HashMap<String, Integer>();
+
+						for (Way w : ways) {
+							if (w.getName() == null)
+								continue;
+
+							if (localCount.containsKey(w.getName())) {
+								count = Integer.valueOf(localCount.get(w.getName()).intValue() + 1);
+								localCount.put(w.getName(), count);
+
+							} else {
+								localCount.put(w.getName(), new Integer(1));
+							}
+
+						}
+
+						// System.out.println("This tile has " + localCount.size() + " street names.");
+						for (String key : localCount.keySet()) {
+							// if (localCount.get(key).intValue() > 1) {
+							// System.out.println("  " + key + ": " + localCount.get(key));
+							// }
+
+							// Has the street name been discovered before?
+							if (globalCount.containsKey(key)) {
+								count = Integer.valueOf(globalCount.get(key).intValue() + 1);
+								globalCount.put(key, count);
+							} else {
+								++totalStreetNameCount;
+								globalCount.put(key, new Integer(1));
+							}
+
+						}
+
+						tile = null;
+
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TileIndexOutOfBoundsException e) {
+			System.err.println(e.getMessage());
+		}
+
+		int[] streetNamesPerTile = new int[100];
+
+		for (String key : globalCount.keySet()) {
+			try {
+				++streetNamesPerTile[globalCount.get(key).intValue()];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				System.err.println(e.getMessage());
+
+				try {
+					exceptionalValues.add(Integer.parseInt(e.getMessage()));
+				} catch (NumberFormatException e1) {
+					System.err.println(e.getMessage());
+				}
+
+			}
+
+			if (globalCount.get(key).intValue() > 1) {
+				++multipleOccurenceStreetNameCount;
+			}
+		}
+
+		System.out.println("----------");
+		System.out.println("TileCount | # Street names");
+		for (int i = 1; i < streetNamesPerTile.length; i++) {
+			System.out.printf("    %3d   |      %4d      \r\n", i, streetNamesPerTile[i]);
+		}
+
+		System.out.println("----------");
+		System.out.println("Outsiders: ");
+		Collections.sort(exceptionalValues);
+		for (Integer i : exceptionalValues) {
+			System.out.print(i + ", ");
+		}
+		System.out.println();
+
+		System.out.println("----------");
+		System.out.println("Total street names: " + totalStreetNameCount);
+		System.out.println("Streetnames in > 1 tiles: " + multipleOccurenceStreetNameCount);
+		System.out.printf("Total: %2.2f%%\r\n", (100.0f * multipleOccurenceStreetNameCount / totalStreetNameCount));
+
+	}
 
 	/**
 	 * @param args
@@ -288,34 +351,6 @@ public class MapFileDebuggerMain {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws Exception {
-		System.out.println("Map2SQLite");
-		mapToSQLite("/home/moep/germany-0.2.4.map", "/home/moep/germany-compressed.map.sqlite", true);
-		// System.out.println("Map2Zip");
-		// mapToZip("/home/moep/germany-0.2.4.map", "/home/moep/germany.map.zip");
-
-		// System.out.println("Map2Zip");
-		// mapToZip("/home/moep/berlin.map", "/home/moep/berlin.map.zip");
-
-		// ZipFile zf = new ZipFile("/home/moep/germany.map.zip");
-		// ZipArchiveEntry entry = zf.getEntry("1/8787/5364");
-		// System.out.println(entry.getName());
-		// zf.close();
-
-		// net.lingala.zip4j.core.ZipFile zf2 = new
-		// net.lingala.zip4j.core.ZipFile("/home/moep/bla/test.zip");
-		// System.out.println(zf2.getFileHeaders().size());
-		// System.out.println("Getting header");
-		// FileHeader header = zf2.getFileHeader("1/8787/5364");
-		// System.out.println("Header == null: " + (header == null));
-		// System.out.println("Getting data");
-		// System.out.println(header.getFileName());
-		// System.out.println("Done");
-
-		// ZipFile zf = new ZipFile("/home/moep/germany.map.zip");
-		// ZipEntry e = zf.getEntry("1/8462/5485");
-		// System.out.println("Size: " + e.getSize());
-		// System.out.println("Compressed: " + e.getCompressedSize());
-		// zf.close();
-
+		countAndPrintNumberOfStreetEntries("/home/moep/maps/poland-0.2.4.map");
 	}
 }

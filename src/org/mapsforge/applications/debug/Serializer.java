@@ -82,38 +82,73 @@ public class Serializer {
 	}
 
 	public int getNextVBEUInt() {
-		byte shift = 0;
-		int ret = 0;
-		byte b;
+		// byte shift = 0;
+		// int ret = 0;
+		// byte b;
+		//
+		// // Bytes with continuation bit (low order bytes)
+		// while (((b = getNextByte()) & 0x80) != 0) {
+		// ret |= (b & 0x7f) << shift;
+		// shift += 7;
+		// }
+		//
+		// // High order byte (last byte)
+		// ret |= (b & 0x7f) << shift;
+		//
+		// return ret;
 
-		// Bytes with continuation bit (low order bytes)
-		while (((b = getNextByte()) & 0x80) != 0) {
-			ret |= (b & 0x7f) << shift;
-			shift += 7;
+		int variableByteDecode = 0;
+		byte variableByteShift = 0;
+
+		// check if the continuation bit is set
+		byte b = getNextByte();
+		while ((b & 0x80) != 0) {
+			variableByteDecode |= (b & 0x7f) << variableByteShift;
+			variableByteShift += 7;
+			b = getNextByte();
 		}
 
-		// High order byte (last byte)
-		ret |= (b & 0x7f) << shift;
-
-		return ret;
+		// read the seven data bits from the last byte
+		return variableByteDecode
+				| (b << variableByteShift);
 	}
 
 	public int getNextVBESInt() {
-		// TODO test it
-		byte shift = 0;
-		int ret = 0;
-		byte b;
+		// // TODO test it
+		// byte shift = 0;
+		// int ret = 0;
+		// byte b;
+		//
+		// // Bytes with continuation bit (low order bytes)
+		// while (((b = getNextByte()) & 0x80) != 0) {
+		// ret |= (b & 0x7f) << shift;
+		// shift += 7;
+		// }
+		//
+		// // High order byte (last byte)
+		// ret |= (b & 0x7f) << shift;
+		//
+		// return (ret & 0x80000000) == 0 ? ret : -ret;
 
-		// Bytes with continuation bit (low order bytes)
-		while (((b = getNextByte()) & 0x80) != 0) {
-			ret |= (b & 0x7f) << shift;
-			shift += 7;
+		int variableByteDecode = 0;
+		byte variableByteShift = 0;
+
+		// check if the continuation bit is set
+		byte b = getNextByte();
+		while ((b & 0x80) != 0) {
+			variableByteDecode |= (b & 0x7f) << variableByteShift;
+			variableByteShift += 7;
+			b = getNextByte();
 		}
 
-		// High order byte (last byte)
-		ret |= (b & 0x7f) << shift;
-
-		return (ret & 0x80000000) == 0 ? ret : -ret;
+		// read the six data bits from the last byte
+		if ((b & 0x40) != 0) {
+			// negative
+			return -(variableByteDecode | ((b & 0x3f) << variableByteShift));
+		}
+		// positive
+		return variableByteDecode
+				| ((b & 0x3f) << variableByteShift);
 	}
 
 }

@@ -220,10 +220,10 @@ public class SimpleTileExtractor {
 				+ this.mapFile.getAbsoluteStartPosition()[zoomInterval];
 		// this.f.seek(this.offset);
 
-		// System.out.print("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
+		System.out.print("Getting tile " + id + " (" + x + ", " + y + ") @ position " + this.offset);
 
 		if (isEmptyTile(id, zoomInterval)) {
-			// System.out.println(" -> empty");
+			System.out.println(" -> empty");
 			return null;
 		}
 
@@ -235,7 +235,7 @@ public class SimpleTileExtractor {
 		this.f.seek(this.offset);
 		this.f.read(tile, 0, tileSize);
 
-		// System.out.println(" -> " + tileSize);
+		System.out.println(" -> " + tileSize);
 
 		return tile;
 	}

@@ -20,7 +20,6 @@ public class TileFactory {
 		Tile t = new Tile();
 		Serializer s = new Serializer(rawData);
 
-		System.out.println("Reading tile header");
 		// H E A D E R
 
 		// Tile signature (32B, optional)
@@ -50,7 +49,6 @@ public class TileFactory {
 			t.addPOI(getNextPOI(s, mapFile));
 		}
 
-		System.out.println("Ways");
 		// W A Y S
 		// System.out.println("This tile has " + t.getCumulatedNumberOfWaysOnZoomLevel(mapFile
 		// .getMaximalZoomLevel()[zoomInterval]) + " ways");
