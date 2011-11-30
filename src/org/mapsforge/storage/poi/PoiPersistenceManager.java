@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 import java.util.Collection;
 
@@ -103,7 +103,7 @@ public interface PoiPersistenceManager {
 
 	/**
 	 * Find all {@link PointOfInterest} of the given {@link PoiCategory} in a rectangle specified by the
-	 * two given {@link GeoCoordinate}s. The only POIs that are allowed by the {@link CategoryFilter}
+	 * two given {@link GeoCoordinate}s. The only POIs that are allowed by the {@link PoiCategoryFilter}
 	 * object will be returned.
 	 * 
 	 * @param p1
@@ -122,7 +122,7 @@ public interface PoiPersistenceManager {
 	 *         in the rectangle specified by the two given {@link GeoCoordinate}s.
 	 */
 	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1,
-			GeoCoordinate p2, String categoryName, int limit, CategoryFilter filter);
+			GeoCoordinate p2, String categoryName, int limit, PoiCategoryFilter filter);
 
 	/**
 	 * Sets this manager's {@link PoiCategoryManager} for retrieving and editing POI categories.

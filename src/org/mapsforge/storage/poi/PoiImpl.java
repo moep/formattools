@@ -1,4 +1,4 @@
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 import org.mapsforge.core.GeoCoordinate;
 

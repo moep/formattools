@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,14 +23,14 @@ import java.util.Collection;
  * @author Karsten Groll
  * 
  */
-public class SimpleCategoryFilter implements CategoryFilter {
+public class SimplePoiCategoryFilter implements PoiCategoryFilter {
 
 	protected final ArrayList<PoiCategory> whiteList;
 
 	/**
 	 * Default constructor.
 	 */
-	public SimpleCategoryFilter() {
+	public SimplePoiCategoryFilter() {
 		whiteList = new ArrayList<PoiCategory>();
 	}
 

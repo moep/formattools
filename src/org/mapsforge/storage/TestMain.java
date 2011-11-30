@@ -12,15 +12,30 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage;
 
-/**
- * This exception is thrown whenever the {@link CategoryResolver} cannot find a category for a given
- * tag.
- * 
- * @author Karsten Groll
- * 
- */
-public class UnknownCategoryException extends Exception {
+import java.io.File;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+import SQLite3.Exception;
+
+public class TestMain {
+
+	public static void main(String[] args) throws Exception {
+		File f = new File("test.xml");
+
+		JAXBContext ctx = null;
+		Unmarshaller um = null;
+
+		try {
+			ctx = JAXBContext.newInstance();
+			um = ctx.createUnmarshaller();
+			um.unmarshal(f);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		}
+	}
 }

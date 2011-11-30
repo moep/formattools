@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 import java.util.HashMap;
 
@@ -23,7 +23,7 @@ import java.util.HashMap;
  * 
  */
 @Deprecated
-public class CategoryResolver {
+public class PoiCategoryResolver {
 
 	static final HashMap<String, PoiCategory> categoryMap = new HashMap<String, PoiCategory>();
 
@@ -332,18 +332,18 @@ public class CategoryResolver {
 	 * @param value
 	 *            The tags value (e.g. 'fuel');
 	 * @return The submost category for a given tag.
-	 * @throws UnknownCategoryException
+	 * @throws UnknownPoiCategoryException
 	 *             when there is no matching category.
 	 */
-	public static PoiCategory getPoiCategoryByTag(String key, String value) throws UnknownCategoryException {
+	public static PoiCategory getPoiCategoryByTag(String key, String value) throws UnknownPoiCategoryException {
 		if (!categoryMap.containsKey(key + "=" + value)) {
-			throw new UnknownCategoryException();
+			throw new UnknownPoiCategoryException();
 		}
 
 		return categoryMap.get(key + "=" + value);
 	}
 
-	public static PoiCategory getPoiCategoryByTag(String tag) throws UnknownCategoryException {
+	public static PoiCategory getPoiCategoryByTag(String tag) throws UnknownPoiCategoryException {
 		String key = tag.split("=")[0];
 		String value = tag.split("=")[1];
 		return getPoiCategoryByTag(key, value);

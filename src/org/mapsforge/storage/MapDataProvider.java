@@ -12,38 +12,20 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage;
 
 import java.util.Collection;
 
+import org.mapsforge.storage.data.Way;
+
 /**
- * Interface for filtering accepted POIs based on their tag.
+ * This interface provides methods for searching an retrieving map data atoms such as streets, POIs etc.
  * 
  * @author Karsten Groll
  * 
  */
-public interface CategoryFilter {
 
-	/**
-	 * Returns true if a POIs category is accepted and therefore shall be added to the map file.
-	 * 
-	 * @param category
-	 *            The POI's category.
-	 * @return true if a POIs category is accepted and therefore shall be added to the map file.
-	 */
-	boolean isAcceptedCategory(PoiCategory category);
-
-	/**
-	 * Adds a category to the white list.
-	 * 
-	 * @param category
-	 *            The category to be added.
-	 */
-	void addCategory(PoiCategory category);
-
-	/**
-	 * 
-	 * @return Set of all categories that are accepted by this filter.
-	 */
-	Collection<PoiCategory> getAcceptedCategories();
+// TODO finish
+public interface MapDataProvider {
+	public Collection<Way> getAllStreets();
 }

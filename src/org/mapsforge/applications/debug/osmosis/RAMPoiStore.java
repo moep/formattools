@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.Stack;
 import java.util.logging.Logger;
 
-import org.mapsforge.storage.debug.CategoryResolver;
-import org.mapsforge.storage.debug.PoiCategory;
-import org.mapsforge.storage.debug.PoiCategoryManager;
-import org.mapsforge.storage.debug.UnknownCategoryException;
+import org.mapsforge.storage.poi.PoiCategory;
+import org.mapsforge.storage.poi.PoiCategoryManager;
+import org.mapsforge.storage.poi.PoiCategoryResolver;
+import org.mapsforge.storage.poi.UnknownPoiCategoryException;
 
 /**
  * A container class for storing POI data in a set an serializing it.
@@ -106,7 +106,7 @@ public class RAMPoiStore {
 			conn.commit();
 
 			// INSERT CATEGORIES
-			PoiCategory root = CategoryResolver.getRootCategory();
+			PoiCategory root = PoiCategoryResolver.getRootCategory();
 			pStmt3.setLong(1, root.getID());
 			pStmt3.setBytes(2, root.getTitle().getBytes());
 			pStmt3.setNull(3, 0);
@@ -244,8 +244,8 @@ public class RAMPoiStore {
 		public int getCategoryID() {
 			int id = -1;
 			try {
-				id = (CategoryResolver.getPoiCategoryByTag(this.tag)).getID();
-			} catch (UnknownCategoryException e) {
+				id = (PoiCategoryResolver.getPoiCategoryByTag(this.tag)).getID();
+			} catch (UnknownPoiCategoryException e) {
 				// do nothing
 			}
 

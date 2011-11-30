@@ -12,20 +12,20 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 /**
  * This class generates a prepared SQL query for retrieving POIs filtered by a given
- * {@link CategoryFilter}.
+ * {@link PoiCategoryFilter}.
  * 
  * @author Karsten Groll
  * 
  */
-public class CategoryRangeQueryGenerator {
+public class PoiCategoryRangeQueryGenerator {
 
-	private CategoryFilter filter;
+	private PoiCategoryFilter filter;
 
-	CategoryRangeQueryGenerator(CategoryFilter filter) {
+	PoiCategoryRangeQueryGenerator(PoiCategoryFilter filter) {
 		this.filter = filter;
 	}
 

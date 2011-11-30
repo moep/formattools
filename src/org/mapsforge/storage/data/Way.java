@@ -12,30 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.data;
 
-import java.io.File;
+/**
+ * 
+ * @author Karsten Groll
+ *
+ */
+public class Way {
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
-import SQLite3.Exception;
-
-public class TestMain {
-
-	public static void main(String[] args) throws Exception {
-		File f = new File("test.xml");
-
-		JAXBContext ctx = null;
-		Unmarshaller um = null;
-
-		try {
-			ctx = JAXBContext.newInstance();
-			um = ctx.createUnmarshaller();
-			um.unmarshal(f);
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		}
-	}
 }

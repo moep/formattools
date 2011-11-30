@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 /**
  * A category manager is a storage for {@link PoiCategory}s. It manages the categories' hierarchy in a
@@ -28,7 +28,7 @@ public interface PoiCategoryManager {
 	 *            A categories ID.
 	 * @return The category having this ID or null.
 	 */
-	public PoiCategory getPoiCategoryByID(int id) throws UnknownCategoryException;
+	public PoiCategory getPoiCategoryByID(int id) throws UnknownPoiCategoryException;
 
 	/**
 	 * 
@@ -36,11 +36,11 @@ public interface PoiCategoryManager {
 	 *            The category's title
 	 * @return The category c with <code>c.title.equalsIgnoreCase(title)</code>.
 	 */
-	public PoiCategory getPoiCategoryByTitle(String title) throws UnknownCategoryException;
+	public PoiCategory getPoiCategoryByTitle(String title) throws UnknownPoiCategoryException;
 
 	/**
 	 * 
 	 * @return The tree's root category or null if the tree is empty.
 	 */
-	public PoiCategory getRootCategory() throws UnknownCategoryException;
+	public PoiCategory getRootCategory() throws UnknownPoiCategoryException;
 }

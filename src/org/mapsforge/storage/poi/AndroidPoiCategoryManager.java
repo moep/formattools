@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -28,14 +28,11 @@ import SQLite3.Stmt;
  * @author Karsten Groll
  * 
  */
-public class SQLitePoiCategoryManager implements PoiCategoryManager {
-	private Database db = null;
+public class AndroidPoiCategoryManager implements PoiCategoryManager {
 	private static final String LOG_TAG = "mapformat";
-
+	private Database db = null;
 	private Stmt loadCategoriesStatement = null;
-
 	private PoiCategory rootCategory = null;
-
 	private TreeMap<Integer, PoiCategory> categoryMap = null;
 
 	/**
@@ -43,7 +40,7 @@ public class SQLitePoiCategoryManager implements PoiCategoryManager {
 	 * @param db
 	 *            SQLite3 database object. (Using SQLite wrapper for Android.)
 	 */
-	public SQLitePoiCategoryManager(Database db) {
+	public AndroidPoiCategoryManager(Database db) {
 		// Log.d(LOG_TAG, "Initializing category manager");
 		this.db = db;
 		this.categoryMap = new TreeMap<Integer, PoiCategory>();

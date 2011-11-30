@@ -1,4 +1,4 @@
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +47,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		createOrOpenDBFile();
 
 		// Load categories from database
-		this.cm = new SQLitePoiCategoryManager(db);
+		this.cm = new AndroidPoiCategoryManager(db);
 
 		// Queries
 		try {
@@ -138,7 +138,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 					this.poi = new PoiImpl(id, lat, lon, data,
 							this.cm.getPoiCategoryByID(categoryID));
 					this.ret.add(poi);
-				} catch (UnknownCategoryException e) {
+				} catch (UnknownPoiCategoryException e) {
 					e.printStackTrace();
 				}
 			}
@@ -152,9 +152,9 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 	@Override
 	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2, String categoryName, int limit,
-			CategoryFilter filter) {
+			PoiCategoryFilter filter) {
 
-		CategoryRangeQueryGenerator queryGen = new CategoryRangeQueryGenerator(filter);
+		PoiCategoryRangeQueryGenerator queryGen = new PoiCategoryRangeQueryGenerator(filter);
 		try {
 			this.findInBoxFilteredStatement = db.prepare(queryGen.getSQLSelectString());
 
@@ -181,7 +181,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 					this.poi = new PoiImpl(id, lat, lon, data,
 							this.cm.getPoiCategoryByID(categoryID));
 					this.ret.add(poi);
-				} catch (UnknownCategoryException e) {
+				} catch (UnknownPoiCategoryException e) {
 					e.printStackTrace();
 				}
 			}
@@ -328,7 +328,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				try {
 					this.poi = new PoiImpl(id, lat, lon, data,
 							this.cm.getPoiCategoryByID(categoryID));
-				} catch (UnknownCategoryException e) {
+				} catch (UnknownPoiCategoryException e) {
 					e.printStackTrace();
 				}
 			}

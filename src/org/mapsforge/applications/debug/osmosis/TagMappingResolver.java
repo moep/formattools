@@ -24,9 +24,9 @@ import javax.xml.bind.Unmarshaller;
 
 import org.mapsforge.applications.debug.osmosis.jaxb.Category;
 import org.mapsforge.applications.debug.osmosis.jaxb.Mapping;
-import org.mapsforge.storage.debug.PoiCategory;
-import org.mapsforge.storage.debug.PoiCategoryManager;
-import org.mapsforge.storage.debug.UnknownCategoryException;
+import org.mapsforge.storage.poi.PoiCategory;
+import org.mapsforge.storage.poi.PoiCategoryManager;
+import org.mapsforge.storage.poi.UnknownPoiCategoryException;
 
 /**
  * This class maps a given tag (e.g. amenity=restaurant) to a certain {@link PoiCategory}. The mapping
@@ -82,7 +82,7 @@ class TagMappingResolver {
 		}
 	}
 
-	PoiCategory getCategoryFromTag(String tag) throws UnknownCategoryException {
+	PoiCategory getCategoryFromTag(String tag) throws UnknownPoiCategoryException {
 		String categoryName = this.tagMap.get(tag);
 		// Tag not found?
 		if (categoryName == null) {

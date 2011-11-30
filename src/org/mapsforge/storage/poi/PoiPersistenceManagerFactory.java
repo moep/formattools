@@ -14,23 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.storage.debug;
+package org.mapsforge.storage.poi;
+
 
 /**
- * Factory providing methods for instantiating {@link PoiPersistenceManager}
- * implementations.
+ * Factory providing methods for instantiating {@link PoiPersistenceManager} implementations. (Other
+ * implementations will follow.)
  * 
  * @author Karsten Groll
  * @author weise
  */
-public class PersistenceManagerFactory {
+public class PoiPersistenceManagerFactory {
 
 	/**
 	 * @param poiFilePath
 	 *            Path to a .poi file.
 	 * @return {@link PoiPersistenceManager} using an underlying PostGis database.
 	 */
-	public static PoiPersistenceManager getSQLitePersistenceManager(
+	public static PoiPersistenceManager getSQLitePoiPersistenceManager(
 			String poiFilePath) {
 		return new SQLitePoiPersistenceManager(poiFilePath);
 	}

@@ -24,9 +24,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.mapsforge.applications.debug.osmosis.jaxb.Category;
-import org.mapsforge.storage.debug.DoubleLinkedPoiCategory;
-import org.mapsforge.storage.debug.PoiCategory;
-import org.mapsforge.storage.debug.PoiCategoryManager;
+import org.mapsforge.storage.poi.DoubleLinkedPoiCategory;
+import org.mapsforge.storage.poi.PoiCategory;
+import org.mapsforge.storage.poi.PoiCategoryManager;
 
 class XMLPoiCategoryManager implements PoiCategoryManager {
 	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());

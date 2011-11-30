@@ -25,11 +25,11 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.mapsforge.storage.debug.CategoryFilter;
-import org.mapsforge.storage.debug.PoiCategory;
-import org.mapsforge.storage.debug.PoiCategoryManager;
-import org.mapsforge.storage.debug.SimpleCategoryFilter;
-import org.mapsforge.storage.debug.UnknownCategoryException;
+import org.mapsforge.storage.poi.PoiCategory;
+import org.mapsforge.storage.poi.PoiCategoryFilter;
+import org.mapsforge.storage.poi.PoiCategoryManager;
+import org.mapsforge.storage.poi.SimplePoiCategoryFilter;
+import org.mapsforge.storage.poi.UnknownPoiCategoryException;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
@@ -57,7 +57,7 @@ public class POIWriterTask implements Sink {
 	private final TagMappingResolver tagMappingResolver;
 
 	// Accepted categories
-	private final CategoryFilter categoryFilter;
+	private final PoiCategoryFilter categoryFilter;
 
 	// Statistics
 	private int nodesAdded = 0;
@@ -83,10 +83,10 @@ public class POIWriterTask implements Sink {
 		this.tagMappingResolver = new TagMappingResolver(categoryConfigPath, this.cm);
 
 		// Set accepted categories
-		this.categoryFilter = new SimpleCategoryFilter();
+		this.categoryFilter = new SimplePoiCategoryFilter();
 		try {
 			this.categoryFilter.addCategory(this.cm.getRootCategory());
-		} catch (UnknownCategoryException e) {
+		} catch (UnknownPoiCategoryException e) {
 			LOGGER.warning("Could not add category to filter: " + e.getMessage());
 		}
 
@@ -97,13 +97,13 @@ public class POIWriterTask implements Sink {
 			e.printStackTrace();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} catch (UnknownCategoryException e) {
+		} catch (UnknownPoiCategoryException e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	private void prepareDatabase(String path) throws ClassNotFoundException, SQLException, UnknownCategoryException {
+	private void prepareDatabase(String path) throws ClassNotFoundException, SQLException, UnknownPoiCategoryException {
 		Class.forName("SQLite.JDBC");
 		this.conn = DriverManager.getConnection("jdbc:sqlite:/" + path);
 		this.conn.setAutoCommit(false);
@@ -269,7 +269,7 @@ public class POIWriterTask implements Sink {
 
 					++this.nodesAdded;
 				}
-			} catch (UnknownCategoryException e) {
+			} catch (UnknownPoiCategoryException e) {
 				LOGGER.warning("The '" + tag + "' refers to a POI that does not exist: " + e.getMessage());
 			}
 		}

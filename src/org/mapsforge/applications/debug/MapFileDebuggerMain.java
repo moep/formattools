@@ -244,7 +244,9 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) throws Exception {
-		countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
+		mapToSQLite("/home/moep/maps/china.map", "/home/moep/maps/mapsforge/china.map", false);
+
+		// countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
 		// checkIdexes("/home/moep/maps/brandenburg.map");
 		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/brandenburg.map");
 		// byte[] tile = ste.getTile(8812, 5354, (byte) 1);
