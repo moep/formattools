@@ -15,7 +15,7 @@
 package org.mapsforge.applications.debug;
 
 /**
- * Class for reading the current map format.
+ * Helper functions for getting nicer output.
  * 
  * @author Karsten Groll
  * 

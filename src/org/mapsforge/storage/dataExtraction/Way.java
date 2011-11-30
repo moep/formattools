@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug;
+package org.mapsforge.storage.dataExtraction;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

@@ -23,6 +23,8 @@ package org.mapsforge.storage.tile;
  *         TODO Do we need exceptions here? (Tile not found, invalid coordinates, ...)
  * 
  *         TODO Distinguish between image and vector tiles
+ * 
+ *         TODO Cache data tiles (does it make sense?)
  */
 public interface TilePersistanceManager {
 	//
@@ -67,7 +69,7 @@ public interface TilePersistanceManager {
 	 * @param baseZoomLevel
 	 *            The tile's base zoom level.
 	 */
-	public void updateOrInsertTile(final byte[] rawData, final int xPos, final int yPos, final byte baseZoomLevel);
+	public void insertOrUpdateTile(final byte[] rawData, final int xPos, final int yPos, final byte baseZoomLevel);
 
 	/**
 	 * Replaces a tile in the database with the given data. If the tile does not exist it will be
@@ -81,7 +83,7 @@ public interface TilePersistanceManager {
 	 * @param baseZoomLevel
 	 *            The tile's base zoom level.
 	 */
-	public void updateOrInsertTile(final byte[] rawData, final int id, final byte baseZoomLevel);
+	public void insertOrUpdateTile(final byte[] rawData, final int id, final byte baseZoomLevel);
 
 	/**
 	 * Deletes a tile at the specified position. If there is no such tile the methods does nothing.

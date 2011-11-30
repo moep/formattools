@@ -12,16 +12,19 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug;
+package org.mapsforge.storage.dataExtraction;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import org.mapsforge.storage.poi.PointOfInterest;
 
 /**
- * Container class for POIs.
+ * Container class for POIs in the map database. This class is not intended to be mixed with
+ * {@link PointOfInterest} or with any other class of the POI package.
  * 
- * @author Karsten
+ * 
+ * @author Karsten Groll
  * 
  */
 public class POI {
@@ -41,26 +44,6 @@ public class POI {
 	 */
 	public POI() {
 		this.tagID = new LinkedList<Integer>();
-	}
-
-	@Override
-	public String toString() {
-		// TODO handle flags
-		StringBuilder sb = new StringBuilder();
-		sb.append("--- P O I ---").append(MapFile.NL);
-		sb.append("POI signature: ").append(this.poiSignature).append(MapFile.NL);
-		sb.append("Lat diff: ").append(this.latDiff).append(MapFile.NL);
-		sb.append("Lon diff: ").append(this.lonDiff).append(MapFile.NL);
-		sb.append("Special byte: ").append(MapFormatReader.getHex(this.specialByte)).append(MapFile.NL);
-		sb.append("Tag IDs: ").append(MapFile.NL);
-		for (Integer i : tagID) {
-			sb.append(i).append(MapFile.NL);
-		}
-		sb.append("Flags: ").append(MapFormatReader.getHex(this.specialByte)).append(MapFile.NL);
-		sb.append("Name: ").append(this.name).append(MapFile.NL);
-		sb.append("Elevation: ").append(this.elevation).append(MapFile.NL);
-		sb.append("Hosue number: ").append(this.houseNumber).append(MapFile.NL);
-		return sb.toString();
 	}
 
 	/**

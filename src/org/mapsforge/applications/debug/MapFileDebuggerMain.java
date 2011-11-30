@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import org.mapsforge.applications.debug.db.TileSQLiteWriter;
+import org.mapsforge.storage.tile.PCTilePersistanceManager;
 
 /**
  * 
@@ -74,7 +74,10 @@ public class MapFileDebuggerMain {
 	private static void mapToSQLite(String mapsforeMapFilePath, String outputFilePath, boolean useCompression) {
 		SimpleTileExtractor ste = null;
 		MapFile mf = null;
-		TileSQLiteWriter writer = null;
+
+		// TileSQLiteWriter writer = null;
+		PCTilePersistanceManager writer = null;
+
 		byte[] zoomLevelConfiguration;
 		byte[] tile;
 
@@ -86,7 +89,9 @@ public class MapFileDebuggerMain {
 			zoomLevelConfiguration = mf.getBaseZoomLevel();
 
 			// Write tile to DB
-			writer = new TileSQLiteWriter(outputFilePath, zoomLevelConfiguration, useCompression);
+			// writer = new TileSQLiteWriter(outputFilePath, zoomLevelConfiguration, useCompression);
+			writer = new PCTilePersistanceManager(outputFilePath);
+			writer.setZoomLevelConfiguration(zoomLevelConfiguration);
 			int added = 0;
 
 			// Read tile
@@ -96,7 +101,8 @@ public class MapFileDebuggerMain {
 						tile = ste.getTile(x, y, zoomInterval);
 
 						if (tile != null) {
-							writer.insert(tile, x, y, zoomInterval);
+							// writer.insert(tile, x, y, zoomInterval);
+							writer.insertOrUpdateTile(tile, x, y, zoomInterval);
 							++added;
 						}
 
@@ -109,7 +115,8 @@ public class MapFileDebuggerMain {
 			}
 
 			// Write batches
-			writer.finish();
+			// writer.finish();
+			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (TileIndexOutOfBoundsException e) {
@@ -244,7 +251,7 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) throws Exception {
-		mapToSQLite("/home/moep/maps/china.map", "/home/moep/maps/mapsforge/china.map", false);
+		mapToSQLite("/home/moep/maps/berlin.map", "/home/moep/maps/mapsforge/berlin.map", false);
 
 		// countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
 		// checkIdexes("/home/moep/maps/brandenburg.map");

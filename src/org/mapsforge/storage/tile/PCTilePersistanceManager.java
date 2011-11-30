@@ -33,10 +33,13 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	// Database
 	private Connection conn = null;
 	private Statement stmt = null;
-	private PreparedStatement updateOrInsertTileByIDStmt = null;
+	private PreparedStatement insertOrUpdateTileByIDStmt = null;
 	private PreparedStatement deleteTileByIDStmt = null;
 	private PreparedStatement getTileByIDStmt = null;
 	private ResultSet resultSet = null;
+
+	// e.g.: zoomLevelMapping[baseZoomLevel = 1] -> zoom level 14
+	private byte[] zoomLevelConfiguration;
 
 	/**
 	 * Open the specified map database. If the database does not exist it will be created.
@@ -54,6 +57,10 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 		}
 	}
 
+	public void setZoomLevelConfiguration(byte[] zoomLevelConfiguration) {
+		this.zoomLevelConfiguration = zoomLevelConfiguration;
+	}
+
 	private void openOrCreateDB(String path) throws ClassNotFoundException, SQLException {
 		Class.forName("SQLite.JDBC");
 
@@ -61,7 +68,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 		this.conn.setAutoCommit(false);
 
 		this.stmt = conn.createStatement();
-		this.updateOrInsertTileByIDStmt = conn.prepareStatement("INSERT OR REPLACE INTO ? VALUES (?,?);");
+		this.insertOrUpdateTileByIDStmt = conn.prepareStatement("INSERT OR REPLACE INTO ? VALUES (?,?);");
 		this.deleteTileByIDStmt = conn.prepareStatement("DELETE FROM ? WHERE id == ?;");
 		this.getTileByIDStmt = conn.prepareStatement("SELECT data FROM ? WHERE id == ?;");
 
@@ -76,23 +83,30 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 		System.out.println("Creating database");
 
 		// CREATE TABLES
-		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tiles_0 (id INTEGER, data BLOB, PRIMARY KEY (id));");
-		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tiles_1 (id INTEGER, data BLOB, PRIMARY KEY (id));");
+		for (int i = 0; i < this.zoomLevelConfiguration.length; i++) {
+			this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tiles_" + i + " (id INTEGER, data BLOB, PRIMARY KEY (id));");
+		}
 		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS metadata (key STRING, value STRING, PRIMARY KEY (key));");
 
-		// Add meta data
+		// INSERT (metadata)
 		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('version', '0.4-experimental');");
 		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('timestamp', strftime('%s'));");
 		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('minimum_latitude', 'TODO');");
 		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('maximum_latitude', 'TODO');");
 		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('minimum_longitude', 'TODO');");
 		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('maximum_longitude', 'TODO');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('number_of_base_zoom_levels', '2');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('bzl_0_min_max', 'xx,yy');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('bzl_1_min_max', 'xx,yy');");
+		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('number_of_base_zoom_levels', '"
+				+ this.zoomLevelConfiguration.length + "');");
+
+		// TODO: Do we need this?
+		for (int i = 0; i < this.zoomLevelConfiguration.length; i++) {
+			this.stmt.executeUpdate("INSERT INTO metadata VALUES ('bzl_" + i + "_min_max', 'xx,yy');");
+		}
+
 		// vector or png
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('bzl_0_type', 'vector');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('bzl_1_type', 'vector');");
+		for (int i = 0; i < this.zoomLevelConfiguration.length; i++) {
+			this.stmt.executeUpdate("INSERT INTO metadata VALUES ('bzl_" + i + "_type', 'vector');");
+		}
 		this.conn.commit();
 	}
 
@@ -109,21 +123,20 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	// }
 
 	@Override
-	public void updateOrInsertTile(byte[] rawData, int xPos, int yPos, byte baseZoomLevel) {
+	public void insertOrUpdateTile(byte[] rawData, int xPos, int yPos, byte baseZoomLevel) {
 		int id = (int) (Math.pow(yPos, 4) + xPos);
-		updateOrInsertTile(rawData, id, baseZoomLevel);
+		insertOrUpdateTile(rawData, id, baseZoomLevel);
 
 	}
 
 	@Override
-	public void updateOrInsertTile(byte[] rawData, int id, byte baseZoomLevel) {
-		System.out.println("update or insert: " + new String(rawData));
+	public void insertOrUpdateTile(byte[] rawData, int id, byte baseZoomLevel) {
 		try {
-			this.updateOrInsertTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
-			this.updateOrInsertTileByIDStmt.setInt(2, id);
-			this.updateOrInsertTileByIDStmt.setBytes(3, rawData);
+			this.insertOrUpdateTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
+			this.insertOrUpdateTileByIDStmt.setInt(2, id);
+			this.insertOrUpdateTileByIDStmt.setBytes(3, rawData);
 
-			this.updateOrInsertTileByIDStmt.execute();
+			this.insertOrUpdateTileByIDStmt.execute();
 			this.conn.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -139,7 +152,6 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 
 	@Override
 	public void deleteTile(int id, byte baseZoomLevel) {
-		System.out.println("delete: " + id);
 		try {
 			this.deleteTileByIDStmt.clearBatch();
 			this.deleteTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
@@ -162,7 +174,6 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 
 	@Override
 	public byte[] getTileData(int id, byte baseZoomLevel) {
-		System.out.println("get: " + id);
 		byte[] result = null;
 
 		try {
@@ -205,14 +216,13 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 *            Not used.
 	 */
 	public static void main(String[] args) {
-		TilePersistanceManager tpm = new PCTilePersistanceManager("/home/moep/maps/mapsforge/test.map");
+		TilePersistanceManager tpm = new PCTilePersistanceManager("/home/moep/maps/mapsforge/berlin.map");
 		byte[] tile;
 
-		tpm.updateOrInsertTile("moep".getBytes(), 1, (byte) 0);
-		tile = tpm.getTileData(1, (byte) 0);
+		// tpm.insertOrUpdateTile("moep".getBytes(), 1, (byte) 0);
+		tile = tpm.getTileData(8810, 5374, (byte) 1);
 		tpm.close();
 
 		System.out.println("Tile size: " + tile.length);
-		System.out.println(new String(tile));
 	}
 }

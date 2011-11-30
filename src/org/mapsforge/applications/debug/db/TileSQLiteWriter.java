@@ -26,6 +26,7 @@ import java.util.zip.GZIPOutputStream;
 
 import SQLite.Database;
 
+@Deprecated
 public class TileSQLiteWriter {
 	private static final int BATCH_SIZE = 10000;
 	private Connection conn = null;

@@ -12,13 +12,10 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug;
-
-import static org.mapsforge.applications.debug.MapFormatReader.getHex;
+package org.mapsforge.storage.dataExtraction;
 
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * This class is a representation of a map file. It contains its basic structure with ways and POIs.
@@ -79,79 +76,6 @@ class MapFile {
 	public MapFile() {
 		// Log.d("Map file has been initialized");
 		this.subFiles = new LinkedList<SubFile>();
-	}
-
-	@Override
-	public String toString() {
-		return this.headerToString();
-	}
-
-	/**
-	 * 
-	 * @return a string representation of the file header.
-	 */
-	public String headerToString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("------ H E A D E R ------").append(MapFile.NL);
-		sb.append("Magic bytes: " + getHex(this.magicByte) + " (" + new String(this.magicByte) + ")")
-				.append(MapFile.NL);
-		sb.append("Header size: " + getHex(this.headerSize) + " (" + this.headerSize + ")").append(
-				MapFile.NL);
-		sb.append("File version: " + getHex(this.fileVersion) + " (" + this.fileVersion + ")").append(
-				MapFile.NL);
-		sb.append("Flags: " + getHex(this.flags)).append(MapFile.NL);
-		sb.append(
-				"Amount of zoom intervals: " + getHex(this.amountOfZoomIntervals) + " ("
-						+ this.amountOfZoomIntervals + ")").append(MapFile.NL);
-		sb.append("Projection: " + this.projection).append(MapFile.NL);
-		sb.append("Tile size: " + getHex(this.tileSize) + " (" + this.tileSize + ")")
-				.append(MapFile.NL);
-		sb.append("Bounding box: ").append(MapFile.NL);
-		sb.append("  Max lat: " + getHex(this.maxLat) + " (" + this.maxLat + ")").append(MapFile.NL);
-		sb.append("  Min lon: " + getHex(this.minLon) + " (" + this.minLon + ")").append(MapFile.NL);
-		sb.append("  Min Lat: " + getHex(this.minLat) + " (" + this.minLat + ")").append(MapFile.NL);
-		sb.append("  Max Lon: " + getHex(this.maxLon) + " (" + this.maxLon + ")").append(MapFile.NL);
-
-		if (isMapStartPositionFlagSet()) {
-			sb.append("Map start position (lon/lat): " + this.mapStartLon + " " + this.mapStartLat)
-					.append(
-							MapFile.NL);
-		}
-
-		sb
-				.append(
-						"Date of creation: " + getHex(this.dateOfCreation) + " (" + this.dateOfCreation
-								+ ")").append(MapFile.NL);
-		sb.append(
-				"Amount of POI mappings: " + getHex(this.amountOfPOIMappings) + " ("
-						+ this.amountOfPOIMappings + ")").append(MapFile.NL);
-		for (int id = 0; id < this.amountOfPOIMappings; ++id) {
-			sb.append("  " + id + " => " + this.poiMappings[id]).append(MapFile.NL);
-		}
-
-		sb.append(
-				"Amount of way mappings: " + getHex(this.amountOfWayTagMappings) + " ("
-						+ this.amountOfWayTagMappings + ")").append(MapFile.NL);
-		for (int id = 0; id < this.amountOfWayTagMappings; ++id) {
-			sb.append("  " + id + " => " + this.wayTagMappings[id]).append(MapFile.NL);
-		}
-
-		sb.append("Comment: " + this.comment).append(MapFile.NL);
-		sb.append("Zoom interval configuration:").append(MapFile.NL);
-		sb
-				.append(
-						"  Zoom interval\tBase zoom level\tMinimal zoom level\tMaximal zoom level\tAbsolute start position\tSubfile size")
-				.append(MapFile.NL);
-		for (int interval = 0; interval < this.amountOfZoomIntervals; ++interval) {
-			sb.append(
-					"  " + interval + "\t\t" + this.baseZoomLevel[interval] + "\t\t"
-							+ this.minimalZoomLevel[interval] + "\t\t\t"
-							+ this.maximalZoomLevel[interval]
-							+ "\t\t\t" + this.absoluteStartPosition[interval] + "\t\t\t"
-							+ this.subFileSize[interval]).append(MapFile.NL);
-		}
-
-		return sb.toString();
 	}
 
 	/**

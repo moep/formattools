@@ -12,17 +12,16 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug;
+package org.mapsforge.storage.dataExtraction;
 
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * Container class for tile data. (No image data.)
  * 
- * @author Karsten
+ * @author Karsten Groll
  * 
  */
 class Tile {
