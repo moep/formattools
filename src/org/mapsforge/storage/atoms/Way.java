@@ -39,6 +39,10 @@ public class Way {
 		return this.coordinates;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	public void rehash() {
 		if (this.coordinates == null) {
 			this.hash = -1;

@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 
 import org.mapsforge.storage.tile.PCTilePersistanceManager;
+import org.mapsforge.storage.tile.TileDataContainer;
 
 /**
  * 
@@ -90,9 +92,10 @@ public class MapFileDebuggerMain {
 
 			// Write tile to DB
 			// writer = new TileSQLiteWriter(outputFilePath, zoomLevelConfiguration, useCompression);
-			writer = new PCTilePersistanceManager(outputFilePath);
-			writer.setZoomLevelConfiguration(zoomLevelConfiguration);
+			writer = new PCTilePersistanceManager(outputFilePath, zoomLevelConfiguration);
 			int added = 0;
+
+			Vector<TileDataContainer> tiles = new Vector<TileDataContainer>();
 
 			// Read tile
 			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
@@ -102,11 +105,16 @@ public class MapFileDebuggerMain {
 
 						if (tile != null) {
 							// writer.insert(tile, x, y, zoomInterval);
-							writer.insertOrUpdateTile(tile, x, y, zoomInterval);
+							tiles.add(new TileDataContainer(tile, TileDataContainer.TILE_TYPE_VECTOR,
+									x, y, zoomInterval));
+							// writer.insertOrUpdateTile(tile, x, y, zoomInterval);
+
 							++added;
 						}
 
 						if (added % 100 == 0) {
+							writer.insertOrUpdateTiles(tiles);
+							tiles.clear();
 							System.out.printf("Added %7d tiles\r", added);
 						}
 
@@ -116,6 +124,7 @@ public class MapFileDebuggerMain {
 
 			// Write batches
 			// writer.finish();
+			writer.insertOrUpdateTiles(tiles);
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();

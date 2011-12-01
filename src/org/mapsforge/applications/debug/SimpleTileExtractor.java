@@ -168,6 +168,11 @@ public class SimpleTileExtractor {
 			// System.out.println("FirstY : " + firstY);
 			// System.out.println("LastY : " + lastY);
 
+			// System.out.println("Min lat: " + this.mapFile.getMinLat());
+			// System.out.println("Max lat: " + this.mapFile.getMaxLat());
+			// System.out.println("Min lon: " + this.mapFile.getMinLon());
+			// System.out.println("Max lon: " + this.mapFile.getMaxLon());
+
 			// Skip index signature (16B, optional)
 			if (this.mapFile.isDebugFlagSet()) {
 				this.offset += 16;
@@ -175,6 +180,12 @@ public class SimpleTileExtractor {
 
 			int numBlocks = (this.tileBoundingBox[z].getMaxX() - this.tileBoundingBox[z].getMinX() + 1)
 					* (this.tileBoundingBox[z].getMaxY() - this.tileBoundingBox[z].getMinY() + 1);
+			// numBlocks = Math.abs(numBlocks);
+
+			// System.out.println("TBB: (" + this.tileBoundingBox[z].getMinX() + "," +
+			// this.tileBoundingBox[z].getMaxX() +
+			// ")...(" + this.tileBoundingBox[z].getMinY() + "," + this.tileBoundingBox[z].getMaxY() +
+			// ")");
 
 			this.tileOffset[z] = new long[numBlocks];
 			for (int i = 0; i < numBlocks; i++) {

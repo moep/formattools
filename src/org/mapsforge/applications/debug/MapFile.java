@@ -19,7 +19,6 @@ import static org.mapsforge.applications.debug.MapFormatReader.getHex;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * This class is a representation of a map file. It contains its basic structure with ways and POIs.
  * This class can be used to edit and convert .map files to other formats.
@@ -260,7 +259,7 @@ class MapFile {
 		this.tileSize = tileSize;
 	}
 
-	public void setBoundingBox(int maxLat, int minLon, int minLat, int maxLon) {
+	public void setBoundingBox(int minLat, int minLon, int maxLat, int maxLon) {
 		this.maxLat = maxLat;
 		this.minLon = minLon;
 		this.minLat = minLat;
