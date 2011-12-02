@@ -16,6 +16,8 @@ package org.mapsforge.storage.tile;
 
 import java.util.Collection;
 
+import org.mapsforge.storage.dataExtraction.MapFileMetaData;
+
 /**
  * This interface abstracts from an underlying tile-based map file format by providing methods for
  * inserting, updating and deleting tiles.
@@ -29,34 +31,6 @@ import java.util.Collection;
  *         TODO Cache data tiles (does it make sense?)
  */
 public interface TilePersistanceManager {
-	//
-	// /**
-	// * Inserts a byte array containing data for a single tile into the map database.
-	// *
-	// * @param rawData
-	// * The tile's data in binary representation.
-	// * @param xPos
-	// * The tile's x coordinate in the grid for the given base zoom level.
-	// * @param yPos
-	// * The tile's y coordinate in the grid for the given base zoom level.
-	// * @param baseZoomLevel
-	// * The tile's base zoom level.
-	// */
-	// public void insertTile(final byte[] rawData, final int xPos, final int yPos, final byte
-	// baseZoomLevel);
-	//
-	// /**
-	// * Inserts a byte array containing data for a single tile into the map database.
-	// *
-	// * @param rawData
-	// * The tile's data in binary representation.
-	// * @param id
-	// * The tile's coordinate for the given base zoom level in a 1-dimensional representation:
-	// * id = (y * 4^baseZoomLevel) + x
-	// * @param baseZoomLevel
-	// * The tile's base zoom level.
-	// */
-	// public void insertTile(final byte[] rawData, final int id, final byte baseZoomLevel);
 
 	/**
 	 * Replaces a tile in the database with the given data. If the tile does not exist it will be
@@ -177,11 +151,12 @@ public interface TilePersistanceManager {
 	public Collection<TileDataContainer> getTileData(final int[] ids, final byte baseZoomLevel);
 
 	/**
-	 * Retrieves all available base zoom levels.
+	 * Retrieves the map files metadata such as file version, bounding box, zoom interval configuration
+	 * and more.
 	 * 
 	 * @return All base zoom levels <code>[bzl_0, ..., bzl_n]</code>.
 	 */
-	public byte[] getBaseZoomLevels();
+	public MapFileMetaData getMetaData();
 
 	/**
 	 * Closes the db.

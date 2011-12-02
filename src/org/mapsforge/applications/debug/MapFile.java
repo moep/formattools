@@ -266,6 +266,14 @@ class MapFile {
 		this.maxLon = maxLon;
 	}
 
+	public int getMapStartLon() {
+		return mapStartLon;
+	}
+
+	public int getMapStartLat() {
+		return mapStartLat;
+	}
+
 	public void setMapStartPosition(int lat, int lon) {
 		this.mapStartLat = lat;
 		this.mapStartLon = lon;

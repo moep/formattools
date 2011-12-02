@@ -16,11 +16,13 @@ package org.mapsforge.storage;
 
 import java.util.Collection;
 
-import org.mapsforge.core.GeoCoordinate;
+import org.mapsforge.core.Rect;
 import org.mapsforge.storage.atoms.Way;
 
 /**
  * This interface provides methods for searching an retrieving map data atoms such as streets, POIs etc.
+ * It abstracts from an underlying storage architecture. This means that this interface can be used for
+ * retrieving data from the mapsforge map format or from an arbitrary database.
  * 
  * @author Karsten Groll
  * 
@@ -31,13 +33,11 @@ public interface MapDataProvider {
 	/**
 	 * Gets all Way within the given bounding box.
 	 * 
-	 * @param p1
-	 *            {@link GeoCoordinate} specifying one corner of the rectangle. (minLat, minLon)
-	 * 
-	 * @param p2
-	 *            {@link GeoCoordinate} specifying one corner of the rectangle. (maxLat, maxLon)
+	 * @param boundingBox
+	 *            The bounding box.
 	 * 
 	 * @return All ways within the given bounding box.
 	 */
-	public Collection<Way> getAllWaysInBoundingBox(GeoCoordinate p1, GeoCoordinate p2);
+	public Collection<Way> getAllWaysInBoundingBox(final Rect boundingBox);
+
 }

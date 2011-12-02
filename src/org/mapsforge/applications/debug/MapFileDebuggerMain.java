@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import org.mapsforge.storage.dataExtraction.MapFileMetaData;
 import org.mapsforge.storage.tile.PCTilePersistanceManager;
 import org.mapsforge.storage.tile.TileDataContainer;
 
@@ -73,7 +74,7 @@ public class MapFileDebuggerMain {
 		}
 	}
 
-	private static void mapToSQLite(String mapsforeMapFilePath, String outputFilePath, boolean useCompression) {
+	private static void mapToSQLite(String mapsforgeMapFilePath, String outputFilePath, boolean useCompression) {
 		SimpleTileExtractor ste = null;
 		MapFile mf = null;
 
@@ -84,7 +85,7 @@ public class MapFileDebuggerMain {
 		byte[] tile;
 
 		try {
-			ste = new SimpleTileExtractor(mapsforeMapFilePath);
+			ste = new SimpleTileExtractor(mapsforgeMapFilePath);
 			mf = ste.getMapFile();
 
 			// Get zoom level configuration
@@ -92,7 +93,34 @@ public class MapFileDebuggerMain {
 
 			// Write tile to DB
 			// writer = new TileSQLiteWriter(outputFilePath, zoomLevelConfiguration, useCompression);
-			writer = new PCTilePersistanceManager(outputFilePath, zoomLevelConfiguration);
+			MapFileMetaData mfm = new MapFileMetaData();
+			mfm.setFileVersion("0.4-experimental");
+			mfm.setDateOfCreation(System.currentTimeMillis());
+			mfm.setBoundingBox(mf.getMinLat(), mf.getMinLon(), mf.getMaxLat(), mf.getMaxLon());
+			mfm.setTileSize(mf.getTileSize());
+			mfm.setProjection(mf.getProjection());
+			mfm.setLanguagePreference(mf.getLanguagePreference());
+			mfm.setFlags(mf.getFlags());
+			mfm.setMapStartPosition(mf.getMapStartLat(), mf.getMapStartLon());
+			mfm.setComment(mf.getComment() + "(Converted with MapFileDebugger)");
+			mfm.setAmountOfPOIMappings(mf.getAmountOfPOIMappings());
+			mfm.preparePOIMappings();
+			for (int i = 0; i < mf.getAmountOfPOIMappings(); i++) {
+				mfm.setPOIMappings(mf.getPOIMappings());
+			}
+			mfm.setAmountOfWayTagMappings(mf.getAmountOfWayTagMappings());
+			mfm.prepareWayTagMappings();
+			for (int i = 0; i < mf.getAmountOfWayTagMappings(); i++) {
+				mfm.setWayTagMappings(mf.getWayTagMappings());
+			}
+			mfm.setAmountOfZoomIntervals(mf.getAmountOfZoomIntervals());
+			mfm.prepareZoomIntervalConfiguration();
+			for (int i = 0; i < mf.getAmountOfZoomIntervals(); i++) {
+				mfm.setZoomIntervalConfiguration(i, mf.getBaseZoomLevel()[i], mf.getMinimalZoomLevel()[i],
+						mf.getMinimalZoomLevel()[i], TileDataContainer.TILE_TYPE_VECTOR);
+			}
+
+			writer = new PCTilePersistanceManager(outputFilePath, mfm);
 			int added = 0;
 
 			Vector<TileDataContainer> tiles = new Vector<TileDataContainer>();
@@ -264,7 +292,8 @@ public class MapFileDebuggerMain {
 
 		// countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
 		// checkIdexes("/home/moep/maps/brandenburg.map");
-		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/brandenburg.map");
+		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/berlin.map");
+		// System.out.println(ste.getMapFile());
 		// byte[] tile = ste.getTile(8812, 5354, (byte) 1);
 		// FileOutputStream os = new FileOutputStream("/home/moep/maps/debug.tile");
 		// os.write(tile);

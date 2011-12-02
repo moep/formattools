@@ -18,12 +18,11 @@ import java.nio.ByteBuffer;
 
 public class Serializer {
 	private ByteBuffer buffer;
-	private int offset;
-	private byte[] tmp;
+	private byte[] bytes;
 
 	public Serializer(byte[] data) {
 		this.buffer = ByteBuffer.wrap(data);
-		this.tmp = new byte[100];
+		this.bytes = new byte[100];
 	}
 
 	public static long byteArrayToLong(byte[] bytes) {
@@ -70,12 +69,12 @@ public class Serializer {
 	public long getNextLong5() {
 
 		for (int i = 0; i < 5; i++) {
-			this.tmp[i] = this.buffer.get();
+			this.bytes[i] = this.buffer.get();
 		}
 
-		long ret = (this.tmp[0] & 0xffL) << 32 | (this.tmp[1] & 0xffL) << 24
-				| (this.tmp[2] & 0xffL) << 16 | (this.tmp[3] & 0xffL) << 8
-				| (this.tmp[4] & 0xffL);
+		long ret = (this.bytes[0] & 0xffL) << 32 | (this.bytes[1] & 0xffL) << 24
+				| (this.bytes[2] & 0xffL) << 16 | (this.bytes[3] & 0xffL) << 8
+				| (this.bytes[4] & 0xffL);
 
 		return ret;
 
@@ -149,6 +148,16 @@ public class Serializer {
 		// positive
 		return variableByteDecode
 				| ((b & 0x3f) << variableByteShift);
+	}
+
+	/**
+	 * Skips n bytes.
+	 * 
+	 * @param bytes
+	 *            Number of bytes to be skipped.
+	 */
+	public void skip(int bytes) {
+		this.buffer.position(this.buffer.position() + bytes);
 	}
 
 }

@@ -14,41 +14,39 @@
  */
 package org.mapsforge.storage.dataExtraction;
 
-import java.util.LinkedList;
-import java.util.List;
+import org.mapsforge.core.GeoCoordinate;
+import org.mapsforge.storage.tile.TileDataContainer;
 
 /**
- * This class is a representation of a map file. It contains its basic structure with ways and POIs.
- * This class can be used to edit and convert .map files to other formats.
+ * This class serves as a container for a map file's meta data.
  * 
- * @author Karsten
+ * @author Karsten Groll
  * 
  */
-class MapFile {
+public class MapFileMetaData {
 
 	static final String NL = "\r\n";
 
-	private byte[] magicByte;
-	private int headerSize;
-	private int fileVersion;
-	private byte flags;
-	private byte amountOfZoomIntervals;
-	private String projection;
-	private int tileSize;
-	private long fileSize;
-	private String languagePreference;
+	private String fileVersion;
+	private long dateOfCreation;
 
 	// Bounding box
-	private int maxLat;
-	private int minLon;
 	private int minLat;
+	private int minLon;
+	private int maxLat;
 	private int maxLon;
+
+	private int tileSize;
+	private String projection;
+	private String languagePreference;
+	private byte flags;
 
 	// Map start position
 	private int mapStartLon;
+
 	private int mapStartLat;
 
-	private long dateOfCreation;
+	private String comment;
 
 	// POI tag mapping
 	private int amountOfPOIMappings;
@@ -58,37 +56,53 @@ class MapFile {
 	private int amountOfWayTagMappings;
 	private String[] wayTagMappings;
 
-	private String comment;
-
 	// Zoom interval configuration
+	private byte amountOfZoomIntervals;
 	private byte[] baseZoomLevel;
 	private byte[] minimalZoomLevel;
 	private byte[] maximalZoomLevel;
-	private long[] absoluteStartPosition;
-	private long[] subFileSize;
+	private byte[] tileType;
 
-	// Subfiles
-	private List<SubFile> subFiles;
+	/**
+	 * Creates a meta data object initialized with default values.
+	 * 
+	 * @return Meta data object initialized with default values;
+	 */
+	public static MapFileMetaData createInstanceWithDefaultValues() {
+		MapFileMetaData ret = new MapFileMetaData();
+		ret.setFileVersion("0.4-experimental");
+		ret.setDateOfCreation(System.currentTimeMillis());
+		ret.setBoundingBox(-90 * (int) GeoCoordinate.FACTOR_DOUBLE_TO_INT, -180 * (int) GeoCoordinate.FACTOR_DOUBLE_TO_INT,
+				90 * (int) GeoCoordinate.FACTOR_DOUBLE_TO_INT, 180 * (int) GeoCoordinate.FACTOR_DOUBLE_TO_INT);
+		ret.setTileSize(256);
+		ret.setProjection("Mercator");
+		ret.setComment("Default metadata");
+
+		ret.setAmountOfZoomIntervals((byte) 2);
+		ret.prepareZoomIntervalConfiguration();
+		ret.setZoomIntervalConfiguration(0, (byte) 8, (byte) 0, (byte) 11, TileDataContainer.TILE_TYPE_VECTOR);
+		ret.setZoomIntervalConfiguration(1, (byte) 14, (byte) 12, (byte) 21, TileDataContainer.TILE_TYPE_VECTOR);
+
+		return ret;
+	}
 
 	/**
 	 * The constructor.
 	 */
-	public MapFile() {
-		// Log.d("Map file has been initialized");
-		this.subFiles = new LinkedList<SubFile>();
+	public MapFileMetaData() {
 	}
 
 	/**
 	 * @return true if the map has map start position data.
 	 */
-	boolean isMapStartPositionFlagSet() {
+	public boolean isMapStartPositionFlagSet() {
 		return (this.flags & 0x40) != 0;
 	}
 
 	/**
 	 * @return true if the map is in debug mode.
 	 */
-	boolean isDebugFlagSet() {
+	public boolean isDebugFlagSet() {
 		return (this.flags & 0x80) != 0;
 	}
 
@@ -114,66 +128,46 @@ class MapFile {
 		this.baseZoomLevel = new byte[this.amountOfZoomIntervals];
 		this.minimalZoomLevel = new byte[this.amountOfZoomIntervals];
 		this.maximalZoomLevel = new byte[this.amountOfZoomIntervals];
-		this.absoluteStartPosition = new long[this.amountOfZoomIntervals];
-		this.subFileSize = new long[this.amountOfZoomIntervals];
+		this.tileType = new byte[this.amountOfZoomIntervals];
 	}
 
-	/**
-	 * Adds a subfile for a base zoom interval.
-	 * 
-	 * @param sf
-	 *            The subfile (@link {@link SubFile})
-	 */
-	public void addSubFile(SubFile sf) {
-		this.subFiles.add(sf);
-	}
-
-	public byte[] getMagicByte() {
-		return magicByte;
-	}
-
-	public void setMagicByte(byte[] magicByte) {
-		this.magicByte = magicByte;
-	}
-
-	public int getHeaderSize() {
-		return headerSize;
-	}
-
-	public void setHeaderSize(int headerSize) {
-		this.headerSize = headerSize;
-	}
-
-	public int getFileVersion() {
+	public String getFileVersion() {
 		return fileVersion;
 	}
 
-	public void setFileVersion(int fileVersion) {
+	public void setFileVersion(String fileVersion) {
 		this.fileVersion = fileVersion;
 	}
 
-	public byte getFlags() {
-		return flags;
+	public long getDateOfCreation() {
+		return dateOfCreation;
 	}
 
-	public void setFlags(byte flags) {
-		this.flags = flags;
+	public void setDateOfCreation(long dateOfCreation) {
+		this.dateOfCreation = dateOfCreation;
 	}
 
-	public byte getAmountOfZoomIntervals() {
-		return amountOfZoomIntervals;
+	public void setBoundingBox(int minLat, int minLon, int maxLat, int maxLon) {
+		this.maxLat = maxLat;
+		this.minLon = minLon;
+		this.minLat = minLat;
+		this.maxLon = maxLon;
 	}
 
-	public void setAmountOfZoomIntervals(byte amountOfZoomIntervals) {
-		this.amountOfZoomIntervals = amountOfZoomIntervals;
+	public int getMinLat() {
+		return minLat;
 	}
 
-	public String getProjection() {
-		return projection;
+	public int getMinLon() {
+		return minLon;
 	}
 
-	public void setProjection(String projection) {
-		this.projection = projection;
+	public int getMaxLat() {
+		return maxLat;
+	}
+
+	public int getMaxLon() {
+		return maxLon;
 	}
 
 	public int getTileSize() {
@@ -184,11 +178,36 @@ class MapFile {
 		this.tileSize = tileSize;
 	}
 
-	public void setBoundingBox(int maxLat, int minLon, int minLat, int maxLon) {
-		this.maxLat = maxLat;
-		this.minLon = minLon;
-		this.minLat = minLat;
-		this.maxLon = maxLon;
+	public String getProjection() {
+		return projection;
+	}
+
+	public void setProjection(String projection) {
+		this.projection = projection;
+	}
+
+	public String getLanguagePreference() {
+		return this.languagePreference;
+	}
+
+	public void setLanguagePreference(String languagePreference) {
+		this.languagePreference = languagePreference;
+	}
+
+	public byte getFlags() {
+		return flags;
+	}
+
+	public void setFlags(byte flags) {
+		this.flags = flags;
+	}
+
+	public int getMapStartLon() {
+		return mapStartLon;
+	}
+
+	public int getMapStartLat() {
+		return mapStartLat;
 	}
 
 	public void setMapStartPosition(int lat, int lon) {
@@ -196,12 +215,19 @@ class MapFile {
 		this.mapStartLon = lon;
 	}
 
-	public long getDateOfCreation() {
-		return dateOfCreation;
+	/**
+	 * @return the comment
+	 */
+	public String getComment() {
+		return comment;
 	}
 
-	public void setDateOfCreation(long dateOfCreation) {
-		this.dateOfCreation = dateOfCreation;
+	/**
+	 * @param comment
+	 *            the comment to set
+	 */
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
 	/**
@@ -264,64 +290,24 @@ class MapFile {
 		this.wayTagMappings = wayTagMappings;
 	}
 
-	/**
-	 * @return the comment
-	 */
-	public String getComment() {
-		return comment;
+	public byte getAmountOfZoomIntervals() {
+		return amountOfZoomIntervals;
 	}
 
-	/**
-	 * @param comment
-	 *            the comment to set
-	 */
-	public void setComment(String comment) {
-		this.comment = comment;
+	public void setAmountOfZoomIntervals(byte amountOfZoomIntervals) {
+		this.amountOfZoomIntervals = amountOfZoomIntervals;
 	}
 
-	public void setZoomIntervalConfiguration(int zoomInterval, byte baseZoomLevel,
-			byte minimalZoomLevel, byte maximalZoomLevel, long absoluteStartPosition, long subFileSize) {
-
+	public void setZoomIntervalConfiguration(int zoomInterval, byte baseZoomLevel, byte minimalZoomLevel, byte maximalZoomLevel,
+			byte tileType) {
 		this.baseZoomLevel[zoomInterval] = baseZoomLevel;
 		this.minimalZoomLevel[zoomInterval] = minimalZoomLevel;
 		this.maximalZoomLevel[zoomInterval] = maximalZoomLevel;
-		this.absoluteStartPosition[zoomInterval] = absoluteStartPosition;
-		this.subFileSize[zoomInterval] = subFileSize;
-
-		// System.out.println("setZoomIntervalConfiguration(" + zoomInterval + "," +
-		// this.baseZoomLevel[zoomInterval]
-		// + "," + this.minimalZoomLevel[zoomInterval] + "," + this.maximalZoomLevel[zoomInterval] + ","
-		// + this.absoluteStartPosition[zoomInterval]
-		// + "," + this.subFileSize[zoomInterval] + ")");
-
-	}
-
-	public void setLanguagePreference(String languagePreference) {
-		this.languagePreference = languagePreference;
-	}
-
-	public void setFileSize(long fileSize) {
-		this.fileSize = fileSize;
-	}
-
-	public int getMaxLat() {
-		return maxLat;
-	}
-
-	public int getMinLon() {
-		return minLon;
-	}
-
-	public int getMinLat() {
-		return minLat;
-	}
-
-	public int getMaxLon() {
-		return maxLon;
+		this.tileType[zoomInterval] = tileType;
 	}
 
 	public byte[] getBaseZoomLevel() {
-		return baseZoomLevel;
+		return this.baseZoomLevel;
 	}
 
 	public byte[] getMinimalZoomLevel() {
@@ -330,29 +316,6 @@ class MapFile {
 
 	public byte[] getMaximalZoomLevel() {
 		return maximalZoomLevel;
-	}
-
-	public long[] getAbsoluteStartPosition() {
-		return absoluteStartPosition;
-	}
-
-	long[] getSubFileSize() {
-		return subFileSize;
-	}
-
-	/**
-	 * @return the subFiles
-	 */
-	public List<SubFile> getSubFiles() {
-		return subFiles;
-	}
-
-	public long getFileSize() {
-		return this.fileSize;
-	}
-
-	public String getLanguagePreference() {
-		return this.languagePreference;
 	}
 
 }
