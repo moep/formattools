@@ -25,8 +25,8 @@ import org.mapsforge.core.Rect;
 import org.mapsforge.storage.atoms.Way;
 import org.mapsforge.storage.dataExtraction.MapFileMetaData;
 import org.mapsforge.storage.poi.PoiPersistenceManager;
-import org.mapsforge.storage.tile.PCTilePersistanceManager;
-import org.mapsforge.storage.tile.TilePersistanceManager;
+import org.mapsforge.storage.tile.PCTilePersistenceManager;
+import org.mapsforge.storage.tile.TilePersistenceManager;
 
 /**
  * This class reads map data atoms such as ways and POIs from the mapsforge tile format. Ways are read
@@ -38,17 +38,17 @@ import org.mapsforge.storage.tile.TilePersistanceManager;
 public class MapDataProviderImpl implements MapDataProvider {
 
 	/** The data tile provider. */
-	private TilePersistanceManager tpm = null;
+	private TilePersistenceManager tpm = null;
 	private MapFileMetaData mfm = null;
 
 	/**
 	 * The constructor.
 	 * 
 	 * @param tpm
-	 *            A {@link TilePersistanceManager} for retrieving tiles and meta information about tiles
+	 *            A {@link TilePersistenceManager} for retrieving tiles and meta information about tiles
 	 *            and base zoom levels.
 	 */
-	public MapDataProviderImpl(TilePersistanceManager tpm) {
+	public MapDataProviderImpl(TilePersistenceManager tpm) {
 		this.tpm = tpm;
 		this.mfm = this.tpm.getMetaData();
 	}
@@ -148,8 +148,13 @@ public class MapDataProviderImpl implements MapDataProvider {
 		s.skip(firstWayOffset);
 
 		// Parse all ways
+		Way w;
 		for (int way = 0; way < waysOnZoomLevel[maxZoomLevel - minZoomLevel]; way++) {
-			container.add(parseNextWay(s));
+			w = parseNextWay(s);
+			// TODO Should duplicates be prevented?
+			// if (!container.contains(w)) {
+			container.add(w);
+			// }
 		}
 	}
 
@@ -262,7 +267,7 @@ public class MapDataProviderImpl implements MapDataProvider {
 	 *            Not used.
 	 */
 	public static void main(String[] args) {
-		TilePersistanceManager tpm = new PCTilePersistanceManager("/home/moep/maps/mapsforge/berlin.map");
+		TilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
 		MapDataProvider mdp = new MapDataProviderImpl(tpm);
 
 		// Berlin Mitte

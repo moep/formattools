@@ -30,7 +30,7 @@ import org.mapsforge.storage.dataExtraction.MapFileMetaData;
  * 
  *         TODO Cache data tiles (does it make sense?)
  */
-public interface TilePersistanceManager {
+public interface TilePersistenceManager {
 
 	/**
 	 * Replaces a tile in the database with the given data. If the tile does not exist it will be

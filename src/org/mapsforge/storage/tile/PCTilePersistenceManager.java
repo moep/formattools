@@ -34,7 +34,7 @@ import org.mapsforge.storage.dataExtraction.MapFileMetaData;
  * @author Karsten Groll
  * 
  */
-public class PCTilePersistanceManager implements TilePersistanceManager {
+public class PCTilePersistenceManager implements TilePersistenceManager {
 	// Database
 	private Connection conn = null;
 	private Statement stmt = null;
@@ -56,7 +56,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 *            created. Otherwise the meta data will be parsed from the map file. If set to null, an
 	 *            empty meta data container will be used for creating the database.
 	 */
-	public PCTilePersistanceManager(String path, MapFileMetaData mapFileMetaData) {
+	public PCTilePersistenceManager(String path, MapFileMetaData mapFileMetaData) {
 
 		if (mapFileMetaData == null) {
 			// Create default metadata values
@@ -80,7 +80,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 * @param path
 	 *            Path to a map database file.
 	 */
-	public PCTilePersistanceManager(String path) {
+	public PCTilePersistenceManager(String path) {
 		this(path, null);
 	}
 
@@ -511,7 +511,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 *            Not used.
 	 */
 	public static void main(String[] args) {
-		PCTilePersistanceManager tpm = new PCTilePersistanceManager("/home/moep/maps/mapsforge/berlin.map");
+		PCTilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
 
 		Vector<TileDataContainer> tiles = new Vector<TileDataContainer>();
 		tiles.add(new TileDataContainer("moep".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 1, 0, (byte) 1));
