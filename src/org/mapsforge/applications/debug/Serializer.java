@@ -14,9 +14,13 @@
  */
 package org.mapsforge.applications.debug;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
+// TODO Can this be joined with org.mapsforge.android.maps.mapdatabase.ReadBuffer?
 public class Serializer {
+	private static final String CHARSET_UTF8 = "UTF-8";
+
 	private ByteBuffer buffer;
 	private byte[] bytes;
 
@@ -38,24 +42,28 @@ public class Serializer {
 		return this.buffer.get();
 	}
 
+	// TODO Make UTF8-ready
 	public String getNextString(int length) {
-		StringBuilder sb = new StringBuilder(length);
-		for (int i = 0; i < length; i++) {
-			sb.append((char) this.buffer.get());
+		// StringBuilder sb = new StringBuilder(length);
+		// for (int i = 0; i < length; i++) {
+		// sb.append((char) this.buffer.get());
+		// }
+		// return sb.toString();
+		String ret;
+		try {
+			ret = new String(this.buffer.array(), this.buffer.position(), length, CHARSET_UTF8);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
 		}
-		return sb.toString();
+
+		skip(length);
+		return ret;
 	}
 
 	public String getNextString() {
 		int strlen = getNextVBEUInt();
-
-		StringBuffer sb = new StringBuffer(strlen);
-		for (int i = 0; i < strlen; i++) {
-			// TODO getChar
-			sb.append((char) this.buffer.get());
-		}
-
-		return sb.toString();
+		return getNextString(strlen);
 	}
 
 	public short getNextShort() {

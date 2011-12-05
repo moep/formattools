@@ -434,7 +434,6 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 			this.stmt.execute("SELECT count(*) FROM poi_tags;");
 			this.resultSet = this.stmt.getResultSet();
 			while (this.resultSet.next()) {
-				System.out.println("#POI tags: " + this.resultSet.getString(1));
 				numPoiTags = Integer.parseInt(this.resultSet.getString(1));
 			}
 			this.mapFileMetaData.setAmountOfPOIMappings(numPoiTags);
@@ -525,6 +524,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 
 		Collection<TileDataContainer> ret = tpm.getTileData(new int[] { 2, 3, 4 }, (byte) 1);
 		for (TileDataContainer c : ret) {
+			// This line only makes sense if the debug flag is set
 			System.out.println(c.getData());
 		}
 

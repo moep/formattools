@@ -15,7 +15,7 @@
 package org.mapsforge.storage.tile;
 
 /**
- * This container stores a single tile's data and its type.
+ * This container stores a single tile's raw data and its type.
  * 
  * @author Karsten Groll
  * 
@@ -52,7 +52,7 @@ public class TileDataContainer {
 		setTileType(tileType);
 		setXPos(xPos);
 		setYPos(yPos);
-		setBaseZoomLevel(baseZoomLevel);
+		setBaseZoomInterval(baseZoomLevel);
 	}
 
 	/**
@@ -138,10 +138,10 @@ public class TileDataContainer {
 
 	/**
 	 * 
-	 * @param baseZoomLevel
-	 *            The tile's base zoom level.
+	 * @param baseZoomInterval
+	 *            The tile's base zoom interval.
 	 */
-	public void setBaseZoomLevel(int baseZoomLevel) {
-		this.baseZoomLevel = baseZoomLevel;
+	public void setBaseZoomInterval(int baseZoomInterval) {
+		this.baseZoomLevel = baseZoomInterval;
 	}
 }
