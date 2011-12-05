@@ -161,9 +161,11 @@ public class SimpleTileExtractor {
 					/ SimpleTileExtractor.COORDINATES_FACTOR,
 					this.mapFile.getBaseZoomLevel()[z]);
 
-			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
+			// this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
+			// TODO why are firstY and lastY in the wrong position? Should I change setBoundingBox()?
+			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) lastY, (int) firstY);
 
-			// System.out.println("FirstX : " + firstX);
+			// System.out.println("\nFirstX : " + firstX);
 			// System.out.println("LastX : " + lastX);
 			// System.out.println("FirstY : " + firstY);
 			// System.out.println("LastY : " + lastY);

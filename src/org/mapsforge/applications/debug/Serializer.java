@@ -58,7 +58,7 @@ public class Serializer {
 		return sb.toString();
 	}
 
-	public int getNextShort() {
+	public short getNextShort() {
 		return this.buffer.getShort();
 	}
 

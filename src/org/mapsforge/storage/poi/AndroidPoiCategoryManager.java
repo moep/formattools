@@ -23,7 +23,7 @@ import SQLite3.Stmt;
 
 /**
  * A category manager that reads and stores categories from a SQLite database using the Android SQLite3
- * wrapper. (This class can only be used within Android.)
+ * wrapper. (This class can only be used within Android as it uses an Android-specific SQLite wrapper.)
  * 
  * @author Karsten Groll
  * 
@@ -60,6 +60,9 @@ public class AndroidPoiCategoryManager implements PoiCategoryManager {
 	//
 	// }
 
+	/**
+	 * Loads the categories and their hierarchies from the database.
+	 */
 	private void loadCategories() {
 		PoiCategory pc = null;
 

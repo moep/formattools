@@ -117,7 +117,7 @@ public class MapFileDebuggerMain {
 			mfm.prepareZoomIntervalConfiguration();
 			for (int i = 0; i < mf.getAmountOfZoomIntervals(); i++) {
 				mfm.setZoomIntervalConfiguration(i, mf.getBaseZoomLevel()[i], mf.getMinimalZoomLevel()[i],
-						mf.getMinimalZoomLevel()[i], TileDataContainer.TILE_TYPE_VECTOR);
+						mf.getMaximalZoomLevel()[i], TileDataContainer.TILE_TYPE_VECTOR);
 			}
 
 			writer = new PCTilePersistanceManager(outputFilePath, mfm);

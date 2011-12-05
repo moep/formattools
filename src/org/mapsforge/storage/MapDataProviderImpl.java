@@ -83,12 +83,13 @@ public class MapDataProviderImpl implements MapDataProvider {
 				for (int x = minX; x <= maxX; x++) {
 					// For each tile: extract ways and ignore duplicates
 					tile = this.tpm.getTileData(x, y, z);
+					System.out.println("extracting " + x + " " + y + " " + z);
 					extractAndAddWaysToContainer(tile, ret, z);
 				}
 			}
 		}
 
-		// TODO Don't read PNG tiles.
+		// TODO How to handle PNG tiles?
 
 		return ret;
 	}
@@ -112,23 +113,31 @@ public class MapDataProviderImpl implements MapDataProvider {
 		Serializer s = new Serializer(tile);
 
 		// Tile signature (32B, optional)
-		// ###TileStart
 		if (this.mfm.isDebugFlagSet()) {
 			System.out.println(s.getNextString(32));
 			// s.skip(32);
 		}
 
 		// Number of ways / POIs per zoom level
-		byte[] poisOnZoomLevel = new byte[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
+		short[] poisOnZoomLevel = new short[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
 				- this.mfm.getMinimalZoomLevel()[baseZoomInterval]
 				+ 1];
-		byte[] waysOnZoomLevel = new byte[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
+		short[] waysOnZoomLevel = new short[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
 				- this.mfm.getMinimalZoomLevel()[baseZoomInterval]
 				+ 1];
 
+		System.out.println("Covering zoom levels (" + this.mfm.getMinimalZoomLevel()[baseZoomInterval] + ","
+				+ this.mfm.getMaximalZoomLevel()[baseZoomInterval] + ")");
+
 		// Zoom table (variable)
-		for (int row = this.mfm.getMinimalZoomLevel()[baseZoomInterval]; row <= this.mfm.getMaximalZoomLevel()[baseZoomInterval]; row++) {
-			System.out.println(s.getNextShort() + " " + s.getNextShort());
+		int minZoomLevel = this.mfm.getMinimalZoomLevel()[baseZoomInterval];
+		int maxZoomLevel = this.mfm.getMaximalZoomLevel()[baseZoomInterval];
+		for (int row = minZoomLevel; row <= maxZoomLevel; row++) {
+			poisOnZoomLevel[row - minZoomLevel] = s.getNextShort();
+			waysOnZoomLevel[row - minZoomLevel] = s.getNextShort();
+
+			// System.out.println(row + "|" + poisOnZoomLevel[row - minZoomLevel] + "|" +
+			// waysOnZoomLevel[row - minZoomLevel]);
 		}
 
 		// First way offset (VBE-U)
@@ -136,8 +145,115 @@ public class MapDataProviderImpl implements MapDataProvider {
 		System.out.println("First way offset: " + firstWayOffset);
 		s.skip(firstWayOffset);
 
-		// TODO debug only
-		System.out.println("Debug tag: " + s.getNextString(32));
+		// Parse all ways
+		for (int way = 0; way < waysOnZoomLevel[maxZoomLevel - minZoomLevel]; way++) {
+			parseNextWay(s);
+		}
+	}
+
+	private Way parseNextWay(Serializer s) {
+		long[] wayPoints = null;
+		String name = null;
+
+		// Debug tag
+		if (this.mfm.isDebugFlagSet()) {
+			System.out.println(s.getNextString(32));
+			// s.skip(32);
+		}
+
+		// Way data size
+		int wayDataSize = s.getNextVBEUInt();
+		System.out.println("Way data size: " + wayDataSize);
+		// s.skip(wayDataSize);
+
+		// Sub tile bitmap
+		s.skip(2);
+
+		// Special byte
+		byte specialByte = s.getNextByte();
+		System.out.println("Special Byte: " + specialByte);
+		System.out.println("Amount of tags: " + (specialByte & (byte) 0x0f));
+		// Tag IDs
+		for (byte pos = 0; pos < (specialByte & (byte) 0x0f); pos++) {
+			// TODO create skip method
+			System.out.println("Tag: " + s.getNextVBEUInt());
+		}
+
+		// Flags
+		byte flags = s.getNextByte();
+		System.out.println("Flags: " + flags);
+		System.out.println("Way name flag: " + ((flags & (byte) 0x80) != 0));
+		System.out.println("Reference flag: " + ((flags & (byte) 0x40) != 0));
+		System.out.println("Label position flag: " + ((flags & (byte) 0x20) != 0));
+		System.out.println("Way data blocks flag: " + ((flags & (byte) 0x10) != 0));
+		System.out.println("Double delta flag: " + ((flags & (byte) 0x08) != 0));
+
+		// Way name
+		if ((flags & (byte) 0x80) != 0) {
+			name = s.getNextString();
+			System.out.println("Name: " + name);
+		}
+
+		// Reference
+		if ((flags & (byte) 0x40) != 0) {
+			// TODO create skip method
+			s.getNextString();
+		}
+
+		// Label position
+		if ((flags & (byte) 0x20) != 0) {
+			// TODO create skip method
+			s.getNextVBESInt();
+			s.getNextVBESInt();
+		}
+
+		// Number of way data blocks
+		// TODO Does the latest format still ignore this?
+		byte numWayDataBlocks = 1;
+		// if ((flags & (byte) 0x10) != 0) {
+		numWayDataBlocks = s.getNextByte();
+		// }
+
+		byte numWayCoordinateBlocks;
+		byte wayCoordinateBlock;
+		int numWayNodes;
+		int wayNode;
+		for (byte wayDataBlock = 0; wayDataBlock < numWayDataBlocks; wayDataBlock++) {
+			numWayCoordinateBlocks = s.getNextByte();
+			System.out.println("way data block " + wayDataBlock + " has " + numWayCoordinateBlocks
+					+ " way coordinate blocks.");
+
+			// Read inner and outer ways
+			for (wayCoordinateBlock = 0; wayCoordinateBlock < numWayCoordinateBlocks; wayCoordinateBlock++) {
+				numWayNodes = s.getNextVBEUInt();
+
+				System.out.println("coordinate block " + wayCoordinateBlock + " has " + numWayNodes + " way nodes.");
+
+				if (wayCoordinateBlock == 0) {
+					wayPoints = new long[numWayNodes * 2];
+				}
+
+				// Read way points
+				for (wayNode = 0; wayNode < numWayNodes; wayNode++) {
+					// TODO Handle multipolygons
+
+					// Store values for outer polygon only
+					if (wayCoordinateBlock == 0) {
+						// TODO Decode values
+						wayPoints[wayNode * 2] = s.getNextVBESInt();
+						wayPoints[wayNode * 2 + 1] = s.getNextVBESInt();
+					} else {
+						// TODO create skip method
+						// Skip inner polygon waypoints
+						s.getNextVBESInt();
+						s.getNextVBESInt();
+					}
+				}
+
+			}
+		}
+
+		return new Way(wayPoints, name);
 	}
 
 	/**
@@ -154,6 +270,7 @@ public class MapDataProviderImpl implements MapDataProvider {
 		// 52.523219,13.394523
 		// 52.511128,13.42186
 		// This should affect 4 tiles on zoom level 14
+		System.out.println("=========================");
 		mdp.getAllWaysInBoundingBox(new Rect(13.394523, 13.42186, 52.511128, 52.523219));
 
 		tpm.close();
