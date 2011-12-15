@@ -19,16 +19,13 @@ package org.mapsforge.storage.poi;
 import org.mapsforge.core.GeoCoordinate;
 
 /**
- * This class represents a point of interest. Every poi should be uniquely identifiable by its
- * id so that for two pois a and b a.equals(b) if and only if a.id == b.id.
+ * This class represents a point of interest. Every POI should be uniquely identifiable by its id so
+ * that for two POIs a and b a.equals(b) if and only if a.id == b.id.
  * 
  * @author weise
  * 
  */
-/**
- * @author weise
- * 
- */
+
 public interface PointOfInterest {
 
 	/**

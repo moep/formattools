@@ -33,10 +33,33 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	// The categories id
 	private int id;
 
+	/**
+	 * Creates a new category without knowing its position in the final category tree. If all categories
+	 * have been created you have to call {@link #calculateCategoryIDs(DoubleLinkedPoiCategory, int)} to
+	 * assign the IDs.
+	 * 
+	 * @param title
+	 *            The category's unique title.
+	 * @param parent
+	 *            The category's parent category. For creating a root node, set the parent ID to null.
+	 */
 	public DoubleLinkedPoiCategory(String title, PoiCategory parent) {
 		this(title, parent, -1);
 	}
 
+	/**
+	 * Creates a new category. This constructor should only be called from {@link PoiCategoryManager}
+	 * when reading a category configuration from a database or XML file. Otherwise call
+	 * {@link #DoubleLinkedPoiCategory(String, PoiCategory)}.
+	 * 
+	 * @param title
+	 *            The category's unique title.
+	 * @param id
+	 *            The category's position in the tree determined by left-order-dfs-traversal.
+	 * 
+	 * @param parent
+	 *            The category's parent category. For creating a root node, set the parent ID to null.
+	 */
 	public DoubleLinkedPoiCategory(String title, PoiCategory parent, int id) {
 		this.title = title;
 		this.parent = parent;
@@ -80,6 +103,7 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 	 * 
 	 * @return The node's ID.
 	 */
+	@Override
 	public int getID() {
 		return this.id;
 	}

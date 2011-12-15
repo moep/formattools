@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.preprocessing.poi.osmosis;
 
 import org.openstreetmap.osmosis.core.pipeline.common.TaskConfiguration;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskManager;
@@ -29,7 +29,7 @@ public class POIWriterFactory extends TaskManagerFactory {
 	protected TaskManager createTaskManagerImpl(TaskConfiguration taskConfig) {
 		// Output file
 		String outputFilePath = getStringArgument(taskConfig, "file", System.getProperty("user.home")
-				+ "/mapsforge.map");
+				+ "/map.pbf");
 
 		String categoryConfigFilePath = getStringArgument(taskConfig, "categoryConfigPath", "POICategoriesOsmosis.xml");
 

@@ -1,18 +1,16 @@
 /*
  * Copyright 2010, 2011 mapsforge.org
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.mapsforge.storage.poi;
 
@@ -110,19 +108,16 @@ public interface PoiPersistenceManager {
 	 *            {@link GeoCoordinate} specifying one corner of the rectangle. (minLat, minLon)
 	 * @param p2
 	 *            {@link GeoCoordinate} specifying one corner of the rectangle. (maxLat, maxLon)
-	 * @param categoryName
-	 *            unique title of {@link PoiCategory} the returned {@link PointOfInterest} should belong
-	 *            to.
-	 * @param limit
-	 *            max number of {@link PointOfInterest} to be returned.
 	 * @param filter
 	 *            POI category filter object that helps determining whether a POI should be added to the
 	 *            set or not.
+	 * @param limit
+	 *            max number of {@link PointOfInterest} to be returned.
 	 * @return {@link Collection} of {@link PointOfInterest} of the given {@link PoiCategory} contained
 	 *         in the rectangle specified by the two given {@link GeoCoordinate}s.
 	 */
 	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1,
-			GeoCoordinate p2, String categoryName, int limit, PoiCategoryFilter filter);
+			GeoCoordinate p2, PoiCategoryFilter filter, int limit);
 
 	/**
 	 * Sets this manager's {@link PoiCategoryManager} for retrieving and editing POI categories.

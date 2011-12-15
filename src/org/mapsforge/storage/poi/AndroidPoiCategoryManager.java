@@ -29,7 +29,8 @@ import SQLite3.Stmt;
  * 
  */
 public class AndroidPoiCategoryManager implements PoiCategoryManager {
-	private static final String LOG_TAG = "mapformat";
+	// private static final String LOG_TAG = "mapformat";
+	// This warning can be ignored. This object IS in use within this class.
 	private Database db = null;
 	private Stmt loadCategoriesStatement = null;
 	private PoiCategory rootCategory = null;
@@ -53,12 +54,6 @@ public class AndroidPoiCategoryManager implements PoiCategoryManager {
 
 		loadCategories();
 	}
-
-	// @Override
-	// public void loadCategories() {
-	//
-	//
-	// }
 
 	private void loadCategories() {
 		PoiCategory pc = null;

@@ -12,21 +12,17 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.preprocessing.poi.osmosis;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
 
-import org.openstreetmap.osmosis.core.pipeline.common.TaskManagerFactory;
-import org.openstreetmap.osmosis.core.plugin.PluginLoader;
-
-public class MapsforgePluginLoader implements PluginLoader {
+public class SimpleLogFormatter extends Formatter {
 
 	@Override
-	public Map<String, TaskManagerFactory> loadTaskFactories() {
-		HashMap<String, TaskManagerFactory> map = new HashMap<String, TaskManagerFactory>();
-		map.put("write-poi", new POIWriterFactory());
-		return map;
-	}
+	public String format(LogRecord record) {
+		StringBuffer sb = new StringBuffer();
 
+		return sb.toString();
+	}
 }

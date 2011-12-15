@@ -5,20 +5,22 @@ The script in not intended for building the project. Use Eclipse for this
 purpose.
 -->
 <project name="mapsforge-debug">
-	<target name="mapfile-writer-jar">
+	<target name="mapsforge-poidb-writer-jar-create">
 		<mkdir dir="dist" />
-		<jar destfile="dist/mapsforge-mapfile-writer-0.3-experimental.jar" duplicate="preserve">
-			<fileset dir="src" includes="org/mapsforge/applications/debug/osmosis/" excludes="org/mapsforge/applications/debug/osmosis/plugin.xml" />
-			<fileset dir="bin" includes="org/mapsforge/applications/debug/osmosis/" />
-			<fileset dir="bin" includes="org/mapsforge/poi/" />
-			<fileset dir="src" includes="org/mapsforge/poi/" />
-			<fileset dir="src/org/mapsforge/applications/debug/osmosis" includes="plugin.xml" />
-			<fileset dir="src/" includes="omsosis-plugins.conf" />
+		<delete file="dist/mapsforge-poidb-writer-0.3-experimental.jar" />
+		<jar destfile="dist/mapsforge-poidb-writer-0.3-experimental.jar" duplicate="preserve">
+			<fileset dir="src/" excludes="org/mapsforge/preprocessing/poi/osmosis/plugin.xml" includes="org/mapsforge/preprocessing/poi/osmosis/" />
+			<fileset dir="src/" excludes="org/mapsforge/storage/poi/AndroidPoiCategoryManager.java" includes="org/mapsforge/storage/poi/" />
+
+			<fileset dir="bin/" includes="org/mapsforge/preprocessing/poi/osmosis/" />
+			<fileset dir="bin/" excludes="org/mapsforge/storage/poi/AndroidPoiCategoryManager.class" includes="org/mapsforge/storage/poi/" />
+			<fileset dir="src/org/mapsforge/preprocessing/poi/osmosis/" includes="plugin.xml"/>
+			<fileset dir="src/" includes="osmosis-plugin.conf" />
 		</jar>
 
 	</target>
-	
-	<target name="mapfile-writer-copy" depends="mapfile-writer-jar">
-		<copy file="dist/mapsforge-mapfile-writer-0.3-experimental.jar" todir="${user.home}/.openstreetmap/osmosis/plugins/" />
+
+	<target name="mapsforge-poidb-writer-copy" depends="mapsforge-poidb-writer-jar-create">
+		<copy file="dist/mapsforge-poidb-writer-0.3-experimental.jar" todir="${user.home}/.openstreetmap/osmosis/plugins/" />
 	</target>
 </project>

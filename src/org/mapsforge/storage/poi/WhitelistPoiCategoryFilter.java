@@ -18,25 +18,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * White list category filter that allows all categories and their sub-categories in the white list.
+ * Whitelist category filter that accepts all categories and their sub-categories in the white list.
  * 
  * @author Karsten Groll
  * 
  */
-public class SimplePoiCategoryFilter implements PoiCategoryFilter {
+public class WhitelistPoiCategoryFilter implements PoiCategoryFilter {
 
+	/**
+	 * Whitelist containing all elements (and implicitly their child elements) that will be accepted by
+	 * this filter.
+	 */
 	protected final ArrayList<PoiCategory> whiteList;
 
 	/**
 	 * Default constructor.
 	 */
-	public SimplePoiCategoryFilter() {
+	public WhitelistPoiCategoryFilter() {
 		whiteList = new ArrayList<PoiCategory>();
 	}
 
 	/**
 	 * Adds a POI category to the white list. A parent category (e.g. amenity_food) automatically white
-	 * lists its sub-categories like amenity_food_fast_food.
+	 * lists its sub-categories. (Example: If amenity_food is in the whitelist and fast_food is a child
+	 * category of amenity_food, then the filter will also accept POIs of category fast_food.)
 	 * 
 	 * @param category
 	 *            The category to be added to the white list.
@@ -61,8 +66,12 @@ public class SimplePoiCategoryFilter implements PoiCategoryFilter {
 
 	}
 
+	/**
+	 * @return All elements in the whitelist, but not their child elements.
+	 */
 	@Override
 	public Collection<PoiCategory> getAcceptedCategories() {
+		// TODO Should the sub categories also be included here?
 		return this.whiteList;
 	}
 

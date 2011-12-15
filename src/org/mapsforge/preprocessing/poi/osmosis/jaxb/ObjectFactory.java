@@ -6,7 +6,7 @@
 //
 
 
-package org.mapsforge.applications.debug.osmosis.jaxb;
+package org.mapsforge.preprocessing.poi.osmosis.jaxb;
 
 import javax.xml.bind.annotation.XmlRegistry;
 

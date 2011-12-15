@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.mapsforge.applications.debug.osmosis;
+package org.mapsforge.preprocessing.poi.osmosis;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,8 +28,8 @@ import java.util.logging.Logger;
 import org.mapsforge.storage.poi.PoiCategory;
 import org.mapsforge.storage.poi.PoiCategoryFilter;
 import org.mapsforge.storage.poi.PoiCategoryManager;
-import org.mapsforge.storage.poi.SimplePoiCategoryFilter;
 import org.mapsforge.storage.poi.UnknownPoiCategoryException;
+import org.mapsforge.storage.poi.WhitelistPoiCategoryFilter;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
@@ -42,10 +42,6 @@ public class POIWriterTask implements Sink {
 
 	// For debug purposes only (at least for now)
 	private static final boolean INCLUDE_META_DATA = false;
-
-	// Parameters
-	private final String outputFilePath;
-	private final String categoryConfigPath;
 
 	// Temporary variables
 	String[] data;
@@ -69,12 +65,21 @@ public class POIWriterTask implements Sink {
 	private PreparedStatement pStmt3 = null;
 	private Statement stmt = null;
 
+	/**
+	 * This method writes all nodes that can be mapped to a specific category and whose category is in a
+	 * given whitelist to a SQLite3 database. The category tree and tag mappings are retrieved from an
+	 * XML file.
+	 * 
+	 * @param outputFilePath
+	 *            Path to the database file that should be written. The file name should end with
+	 *            ".poi".
+	 * @param categoryConfigPath
+	 *            The XML configuration file containing the category tree and tag mappings. You can use
+	 *            "POICategoriesOsmosis.xml" from the mapsforge library here.
+	 */
 	public POIWriterTask(String outputFilePath, String categoryConfigPath) {
 		LOGGER.info("Mapsforge mapfile writer version " + VERSION);
 		LOGGER.setLevel(Level.FINE);
-
-		this.outputFilePath = outputFilePath;
-		this.categoryConfigPath = categoryConfigPath;
 
 		// Get categories defined in XML
 		this.cm = new XMLPoiCategoryManager(categoryConfigPath);
@@ -82,8 +87,8 @@ public class POIWriterTask implements Sink {
 		// Get tag -> POI mapper
 		this.tagMappingResolver = new TagMappingResolver(categoryConfigPath, this.cm);
 
-		// Set accepted categories
-		this.categoryFilter = new SimplePoiCategoryFilter();
+		// Set accepted categories (Allow all categories)
+		this.categoryFilter = new WhitelistPoiCategoryFilter();
 		try {
 			this.categoryFilter.addCategory(this.cm.getRootCategory());
 		} catch (UnknownPoiCategoryException e) {
@@ -120,7 +125,6 @@ public class POIWriterTask implements Sink {
 		// stmt.executeUpdate("DROP INDEX IF EXISTS poi_categories_index;");
 		this.stmt.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
 		this.stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));");
-		// TODO model child / parent relationships for categories (foreign keys)
 		this.stmt.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));");
 		// stmt.executeUpdate("CREATE INDEX poi_categories_index ON poi_categories (id);");
 		this.conn.commit();
@@ -151,30 +155,33 @@ public class POIWriterTask implements Sink {
 	private void writePOI(long id, double latitude, double longitude, HashMap<String, String> poiData, PoiCategory category) {
 		try {
 			// Index data
-			pStmt.setLong(1, id);
-			pStmt.setDouble(2, latitude);
-			pStmt.setDouble(3, longitude);
-			pStmt.setDouble(4, latitude);
-			pStmt.setDouble(5, longitude);
+			this.pStmt.setLong(1, id);
+			this.pStmt.setDouble(2, longitude);
+			this.pStmt.setDouble(3, longitude);
+			this.pStmt.setDouble(4, latitude);
+			this.pStmt.setDouble(5, latitude);
 
 			// POI data
-			pStmt2.setLong(1, id);
+			this.pStmt2.setLong(1, id);
 
 			// If all important data should be written to db
+			// TODO Use PBF here
 			if (INCLUDE_META_DATA) {
-				pStmt2.setBytes(2, tagsToString(poiData).getBytes());
+				this.pStmt2.setBytes(2, tagsToString(poiData).getBytes());
 			} else {
 
 				// If name tag is set
 				if (poiData.get("name") != null) {
-					pStmt2.setBytes(2, poiData.get("name").getBytes());
+					this.pStmt2.setBytes(2, poiData.get("name").getBytes());
 				} else {
-					pStmt2.setNull(2, 0);
+					this.pStmt2.setNull(2, 0);
 				}
 			}
 
-			pStmt2.setInt(3, category.getID());
-			pStmt2.addBatch();
+			this.pStmt2.setInt(3, category.getID());
+
+			this.pStmt.addBatch();
+			this.pStmt2.addBatch();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -223,19 +230,12 @@ public class POIWriterTask implements Sink {
 	}
 
 	private void processNode(Node n) {
-		// TODO filter tags
 		// Only add nodes that have data
 		if (n.getTags().size() != 0) {
-
-			// for (String key : n.getMetaTags().keySet()) {
-			// System.out.println("Meta tag: " + key + " -> " + n.getMetaTags().get(key));
-			// }
 
 			Tag t = null;
 			PoiCategory pc = null;
 			HashMap<String, String> tagMap = new HashMap<String, String>(20, 1.0f);
-			// String name = null;
-			// String url = null;
 			String tag = null;
 
 			// Get nodes tag and name / URL
@@ -246,11 +246,6 @@ public class POIWriterTask implements Sink {
 				if (t.getKey().equals("amenity")) {
 					tag = t.getKey() + "=" + t.getValue();
 				}
-
-				// Determine the POI's name
-				// if (t.getKey().equals("name")) {
-				// name = t.getValue();
-				// }
 
 				tagMap.put(t.getKey(), t.getValue());
 			}
@@ -264,13 +259,11 @@ public class POIWriterTask implements Sink {
 
 				// Add node if its category matches
 				if (pc != null && this.categoryFilter.isAcceptedCategory(pc)) {
-
 					writePOI(n.getId(), n.getLatitude(), n.getLongitude(), tagMap, pc);
-
 					++this.nodesAdded;
 				}
 			} catch (UnknownPoiCategoryException e) {
-				LOGGER.warning("The '" + tag + "' refers to a POI that does not exist: " + e.getMessage());
+				LOGGER.warning("The '" + tag + "' tag refers to a POI that does not exist: " + e.getMessage());
 			}
 		}
 	}

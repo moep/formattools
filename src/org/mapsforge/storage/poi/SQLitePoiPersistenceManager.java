@@ -1,3 +1,17 @@
+/*
+ * Copyright 2010, 2011 mapsforge.org
+ *
+ * This program is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.mapsforge.storage.poi;
 
 import java.util.ArrayList;
@@ -10,7 +24,8 @@ import SQLite3.Exception;
 import SQLite3.Stmt;
 
 /**
- * POI persistence manager using SQLite 3 with R-tree support.
+ * POI persistence manager using SQLite 3 with R-tree support. This implementation does only work on
+ * Android.
  * 
  * @author Karsten Groll
  * 
@@ -18,7 +33,6 @@ import SQLite3.Stmt;
 class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	// Number of tables needed for db verification
 	private static final int NUMBER_OF_TABLES = 3;
-	private static final String LOG_TAG = "mapformat";
 
 	private String dbFilePath = null;
 	private Database db = null;
@@ -29,6 +43,8 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	private Stmt findByIDStatement = null;
 	private Stmt insertPoiStatement1 = null;
 	private Stmt insertPoiStatement2 = null;
+	private Stmt deletePoiStatement1 = null;
+	private Stmt deletePoiStatement2 = null;
 	private Stmt isValidDBStatement = null;
 
 	// Container for return values
@@ -44,6 +60,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	SQLitePoiPersistenceManager(String dbFilePath) {
 		// Open / create POI database
 		this.dbFilePath = dbFilePath;
+		System.out.println("blubb");
 		createOrOpenDBFile();
 
 		// Load categories from database
@@ -69,15 +86,18 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 							+ "JOIN poi_data ON poi_index.id = poi_data.id "
 							+ "WHERE " + "poi_index.id = ?;");
 
-			// Inserts a POI into index
+			// Inserts a POI into index and adds its data
 			this.insertPoiStatement1 = this.db
 					.prepare("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
-			// Inserts a POI's data
 			this.insertPoiStatement2 = this.db
 					.prepare("INSERT INTO poi_data VALUES (?, ?, ?);");
 
+			// Deletes a POI given by its ID
+			this.deletePoiStatement1 = this.db.prepare("DELETE FROM poi_index WHERE id == ?;");
+			this.deletePoiStatement2 = this.db.prepare("DELETE FROM poi_data WHERE id == ?;");
+
 		} catch (Exception e) {
-			e.printStackTrace();
+			// TODO Android error handling
 		}
 
 		this.ret = new ArrayList<PointOfInterest>();
@@ -143,16 +163,15 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				}
 			}
 		} catch (Exception e) {
-			// Log.e(LOG_TAG, e.getMessage());
-			e.printStackTrace();
+			// TODO Android error handling
 		}
 
 		return this.ret;
 	}
 
 	@Override
-	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2, String categoryName, int limit,
-			PoiCategoryFilter filter) {
+	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2, PoiCategoryFilter filter,
+			int limit) {
 
 		PoiCategoryRangeQueryGenerator queryGen = new PoiCategoryRangeQueryGenerator(filter);
 		try {
@@ -187,7 +206,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			// TODO Android error handling
 		}
 
 		return this.ret;
@@ -222,21 +241,63 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 			db.exec("COMMIT", null);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// TODO Android error handling
 		}
 
 	}
 
 	@Override
 	public void insertPointsOfInterest(Collection<PointOfInterest> pois) {
-		// TODO implement
+		try {
+			this.insertPoiStatement1.reset();
+			this.insertPoiStatement1.clear_bindings();
+			this.insertPoiStatement2.reset();
+			this.insertPoiStatement2.clear_bindings();
+
+			db.exec("BEGIN;", null);
+			for (PointOfInterest p : pois) {
+				this.insertPoiStatement1.bind(1, p.getId());
+				this.insertPoiStatement1.bind(2, p.getLatitude());
+				this.insertPoiStatement1.bind(3, p.getLatitude());
+				this.insertPoiStatement1.bind(4, p.getLongitude());
+				this.insertPoiStatement1.bind(5, p.getLongitude());
+
+				this.insertPoiStatement2.bind(1, p.getId());
+				this.insertPoiStatement2.bind(2, p.getName());
+				this.insertPoiStatement2.bind(3, p.getCategory().getID());
+
+				this.insertPoiStatement1.step();
+				this.insertPoiStatement2.step();
+			}
+
+			db.exec("COMMIT", null);
+		} catch (Exception e) {
+			// TODO Android error handling
+		}
 
 	}
 
 	@Override
-	public void removePointOfInterest(PointOfInterest poi) {
-		// TODO implement
+	public void removePointOfInterest(PointOfInterest aPoi) {
+		try {
+			this.deletePoiStatement1.reset();
+			this.deletePoiStatement1.clear_bindings();
+			this.deletePoiStatement2.reset();
+			this.deletePoiStatement2.clear_bindings();
 
+			db.exec("BEGIN", null);
+
+			this.deletePoiStatement1.bind(1, aPoi.getId());
+			this.deletePoiStatement2.bind(1, aPoi.getId());
+
+			this.deletePoiStatement1.step();
+			this.deletePoiStatement2.step();
+
+			db.exec("COMMIT", null);
+
+		} catch (Exception e) {
+			// TODO Android error handling
+		}
 	}
 
 	@Override
@@ -270,6 +331,22 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.insertPoiStatement2 != null) {
 			try {
 				this.insertPoiStatement2.close();
+			} catch (Exception e) {
+				// TODO Android error handling
+			}
+		}
+
+		if (this.deletePoiStatement1 != null) {
+			try {
+				this.deletePoiStatement1.close();
+			} catch (Exception e) {
+				// TODO Android error handling
+			}
+		}
+
+		if (this.deletePoiStatement2 != null) {
+			try {
+				this.deletePoiStatement2.close();
 			} catch (Exception e) {
 				// TODO Android error handling
 			}
@@ -344,6 +421,8 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	 * If the file does not exist it will be created and filled.
 	 */
 	private void createOrOpenDBFile() {
+		// FIXME This method causes a crash on native level if the file cannot be created. (Use
+		// Java methods to avoid this.)
 
 		// Create or open File
 		this.db = new Database();
@@ -366,22 +445,13 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 	private void createTables() throws Exception {
 		// db.open() created a new file, so let's create its tables
+		this.db.exec("DROP TABLE IF EXISTS poi_index;", null);
 		this.db.exec("DROP TABLE IF EXISTS poi_data;", null);
 		this.db.exec("DROP TABLE IF EXISTS poi_categories;", null);
-		this.db.exec("DROP INDEX IF EXISTS poi_categories_index;", null);
-		this.db.exec(
-				"CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);",
-				null);
-		this.db.exec(
-				"CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));",
-				null);
-		// TODO model child / parent relationships for categories
-		this.db.exec(
-				"CREATE TABLE poi_categories (id INTEGER, name VARCHAR, PRIMARY KEY (id));",
-				null);
-		// this.db.exec(
-		// "CREATE INDEX poi_categories_index ON poi_categories (id);",
-		// null);
+
+		this.db.exec("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);", null);
+		this.db.exec("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));", null);
+		this.db.exec("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));", null);
 	}
 
 	/**

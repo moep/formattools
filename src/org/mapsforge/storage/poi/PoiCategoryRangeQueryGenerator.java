@@ -46,6 +46,7 @@ public class PoiCategoryRangeQueryGenerator {
 	}
 
 	/**
+	 * Gets the WHERE clause for the SQL query that looks up POI entries.
 	 * 
 	 * @return A string like <code>WHERE id BETWEEN 2 AND 5 OR BETWEEN 10 AND 12</code>.
 	 */
