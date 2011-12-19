@@ -20,7 +20,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import SQLite3.Exception;
+import org.sqlite.android.Exception;
+
 
 public class TestMain {
 

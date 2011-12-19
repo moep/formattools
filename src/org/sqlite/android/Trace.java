@@ -1,4 +1,4 @@
-package SQLite3;
+package org.sqlite.android;
 
 /**
  * Callback interface for SQLite's trace function.

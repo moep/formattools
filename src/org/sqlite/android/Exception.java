@@ -1,4 +1,4 @@
-package SQLite3;
+package org.sqlite.android;
 
 /**
  * Class for SQLite related exceptions.

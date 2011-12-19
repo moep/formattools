@@ -1,6 +1,6 @@
 /* DO NOT EDIT */
 
-package SQLite3;
+package org.sqlite.android;
 
 /**
  * Container for SQLite constants.

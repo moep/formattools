@@ -17,9 +17,10 @@ package org.mapsforge.storage.poi;
 import java.util.HashMap;
 import java.util.TreeMap;
 
-import SQLite3.Database;
-import SQLite3.Exception;
-import SQLite3.Stmt;
+import org.sqlite.android.Database;
+import org.sqlite.android.Exception;
+import org.sqlite.android.Stmt;
+
 
 /**
  * A category manager that reads and stores categories from a SQLite database using the Android SQLite3

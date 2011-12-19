@@ -1,4 +1,4 @@
-package SQLite3;
+package org.sqlite.android;
 
 /**
  * Context for execution of SQLite's user defined functions. A reference to an

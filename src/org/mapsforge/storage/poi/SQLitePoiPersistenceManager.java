@@ -18,17 +18,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.mapsforge.core.GeoCoordinate;
-
-import SQLite3.Database;
-import SQLite3.Exception;
-import SQLite3.Stmt;
+import org.sqlite.android.Database;
+import org.sqlite.android.Exception;
+import org.sqlite.android.Stmt;
 
 /**
- * POI persistence manager using SQLite 3 with R-tree support. This implementation does only work on
- * Android.
+ * POI persistence manager using SQLite 3 with R-tree support. This implementation does only work on Android.
  * 
  * @author Karsten Groll
- * 
  */
 class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	// Number of tables needed for db verification
@@ -52,15 +49,13 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	PointOfInterest poi;
 
 	/**
-	 * 
 	 * @param dbFilePath
-	 *            Path to SQLite file containing POI data. If the file does not exist the file and its
-	 *            tables will be created.
+	 *            Path to SQLite file containing POI data. If the file does not exist the file and its tables
+	 *            will be created.
 	 */
 	SQLitePoiPersistenceManager(String dbFilePath) {
 		// Open / create POI database
 		this.dbFilePath = dbFilePath;
-		System.out.println("blubb");
 		createOrOpenDBFile();
 
 		// Load categories from database
@@ -84,13 +79,12 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 					.prepare("SELECT poi_index.id, poi_index.minLat, poi_index.minLon, poi_data.data, poi_data.category "
 							+ "FROM poi_index "
 							+ "JOIN poi_data ON poi_index.id = poi_data.id "
-							+ "WHERE " + "poi_index.id = ?;");
+							+ "WHERE "
+							+ "poi_index.id = ?;");
 
 			// Inserts a POI into index and adds its data
-			this.insertPoiStatement1 = this.db
-					.prepare("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
-			this.insertPoiStatement2 = this.db
-					.prepare("INSERT INTO poi_data VALUES (?, ?, ?);");
+			this.insertPoiStatement1 = this.db.prepare("INSERT INTO poi_index VALUES (?, ?, ?, ?, ?);");
+			this.insertPoiStatement2 = this.db.prepare("INSERT INTO poi_data VALUES (?, ?, ?);");
 
 			// Deletes a POI given by its ID
 			this.deletePoiStatement1 = this.db.prepare("DELETE FROM poi_index WHERE id == ?;");
@@ -104,27 +98,21 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	}
 
 	@Override
-	public Collection<PointOfInterest> findNearPosition(GeoCoordinate point,
-			int distance, String categoryName, int limit) {
+	public Collection<PointOfInterest> findNearPosition(GeoCoordinate point, int distance, String categoryName,
+			int limit) {
 
-		double minLat = point.getLatitude()
-				- GeoCoordinate.latitudeDistance(distance);
-		double minLon = point.getLongitude()
-				- GeoCoordinate
-						.longitudeDistance(distance, point.getLatitude());
-		double maxLat = point.getLatitude()
-				+ GeoCoordinate.latitudeDistance(distance);
-		double maxLon = point.getLongitude()
-				+ GeoCoordinate
-						.longitudeDistance(distance, point.getLatitude());
+		double minLat = point.getLatitude() - GeoCoordinate.latitudeDistance(distance);
+		double minLon = point.getLongitude() - GeoCoordinate.longitudeDistance(distance, point.getLatitude());
+		double maxLat = point.getLatitude() + GeoCoordinate.latitudeDistance(distance);
+		double maxLon = point.getLongitude() + GeoCoordinate.longitudeDistance(distance, point.getLatitude());
 
-		return findInRect(new GeoCoordinate(minLat, minLon), new GeoCoordinate(
-				maxLat, maxLon), categoryName, limit);
+		return findInRect(new GeoCoordinate(minLat, minLon), new GeoCoordinate(maxLat, maxLon), categoryName,
+				limit);
 	}
 
 	@Override
-	public Collection<PointOfInterest> findInRect(GeoCoordinate p1,
-			GeoCoordinate p2, String categoryName, int limit) {
+	public Collection<PointOfInterest> findInRect(GeoCoordinate p1, GeoCoordinate p2, String categoryName,
+			int limit) {
 		// Clear previous results
 		this.ret.clear();
 
@@ -155,8 +143,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				categoryID = this.findInBoxStatement.column_int(4);
 
 				try {
-					this.poi = new PoiImpl(id, lat, lon, data,
-							this.cm.getPoiCategoryByID(categoryID));
+					this.poi = new PoiImpl(id, lat, lon, data, this.cm.getPoiCategoryByID(categoryID));
 					this.ret.add(poi);
 				} catch (UnknownPoiCategoryException e) {
 					e.printStackTrace();
@@ -170,8 +157,8 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 	}
 
 	@Override
-	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2, PoiCategoryFilter filter,
-			int limit) {
+	public Collection<PointOfInterest> findInRectWithFilter(GeoCoordinate p1, GeoCoordinate p2,
+			PoiCategoryFilter filter, int limit) {
 
 		PoiCategoryRangeQueryGenerator queryGen = new PoiCategoryRangeQueryGenerator(filter);
 		try {
@@ -197,8 +184,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				categoryID = this.findInBoxFilteredStatement.column_int(4);
 
 				try {
-					this.poi = new PoiImpl(id, lat, lon, data,
-							this.cm.getPoiCategoryByID(categoryID));
+					this.poi = new PoiImpl(id, lat, lon, data, this.cm.getPoiCategoryByID(categoryID));
 					this.ret.add(poi);
 				} catch (UnknownPoiCategoryException e) {
 					e.printStackTrace();
@@ -403,8 +389,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				categoryID = this.findByIDStatement.column_int(4);
 
 				try {
-					this.poi = new PoiImpl(id, lat, lon, data,
-							this.cm.getPoiCategoryByID(categoryID));
+					this.poi = new PoiImpl(id, lat, lon, data, this.cm.getPoiCategoryByID(categoryID));
 				} catch (UnknownPoiCategoryException e) {
 					e.printStackTrace();
 				}
@@ -451,18 +436,18 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 		this.db.exec("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);", null);
 		this.db.exec("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));", null);
-		this.db.exec("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));", null);
+		this.db.exec(
+				"CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));",
+				null);
 	}
 
 	/**
-	 * 
 	 * @return True if the database is a valid POI database.
 	 */
 	private boolean isValidDataBase() {
 		try {
-			this.isValidDBStatement = db.prepare("SELECT count(name) "
-					+ "FROM sqlite_master " + "WHERE name IN "
-					+ "('poi_index', 'poi_data', 'poi_categories');");
+			this.isValidDBStatement = db.prepare("SELECT count(name) " + "FROM sqlite_master "
+					+ "WHERE name IN " + "('poi_index', 'poi_data', 'poi_categories');");
 		} catch (Exception e1) {
 			// TODO Android error handling
 		}

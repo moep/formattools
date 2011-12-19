@@ -17,6 +17,7 @@ package org.mapsforge.preprocessing.poi.osmosis;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -36,6 +37,7 @@ import org.mapsforge.storage.poi.UnknownPoiCategoryException;
  * 
  */
 class TagMappingResolver {
+	private static final Logger LOGGER = Logger.getLogger(POIWriterTask.class.getName());
 	private final PoiCategoryManager categoryManager;
 
 	/** Maps a tag to a category's title */
@@ -67,7 +69,7 @@ class TagMappingResolver {
 			e.printStackTrace();
 		}
 
-		System.out.println("Adding tag mappings");
+		LOGGER.info("Adding tag mappings...");
 		Stack<Category> categories = new Stack<Category>();
 		categories.push(xmlRootCategory);
 
@@ -76,7 +78,7 @@ class TagMappingResolver {
 				categories.push(c);
 
 				for (Mapping m : c.getMapping()) {
-					System.out.println(m.getTag() + "==>" + c.getTitle());
+					LOGGER.finer("'" + m.getTag() + "' ==> '" + c.getTitle() + "'");
 					this.tagMap.put(m.getTag(), c.getTitle());
 				}
 

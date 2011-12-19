@@ -1,4 +1,4 @@
-package SQLite3;
+package org.sqlite.android;
 
 /**
  * Class to represent compiled SQLite VM.
@@ -46,7 +46,7 @@ public class Vm {
 	 * @return true as long as more row data can be retrieved, false, otherwise.
 	 */
 
-	public native boolean step(Callback cb) throws SQLite3.Exception;
+	public native boolean step(Callback cb) throws org.sqlite.android.Exception;
 
 	/**
 	 * Compile the next SQL statement for the SQLite VM instance.
@@ -55,13 +55,13 @@ public class Vm {
 	 *         statement sequence.
 	 */
 
-	public native boolean compile() throws SQLite3.Exception;
+	public native boolean compile() throws org.sqlite.android.Exception;
 
 	/**
 	 * Abort the compiled SQLite VM.
 	 */
 
-	public native void stop() throws SQLite3.Exception;
+	public native void stop() throws org.sqlite.android.Exception;
 
 	/**
 	 * Destructor for object.

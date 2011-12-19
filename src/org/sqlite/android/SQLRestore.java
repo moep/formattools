@@ -1,4 +1,4 @@
-package SQLite3;
+package org.sqlite.android;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -19,7 +19,7 @@ public class SQLRestore {
 		this.db = db;
 	}
 
-	public void restore() throws SQLite3.Exception {
+	public void restore() throws org.sqlite.android.Exception {
 		String line = null, sql = null;
 		while (true) {
 			try {
@@ -27,7 +27,7 @@ public class SQLRestore {
 			} catch (EOFException e) {
 				line = null;
 			} catch (IOException e) {
-				throw new SQLite3.Exception("I/O error");
+				throw new org.sqlite.android.Exception("I/O error");
 			}
 			if (line == null) {
 				break;
@@ -43,7 +43,7 @@ public class SQLRestore {
 			}
 		}
 		if (sql != null) {
-			throw new SQLite3.Exception("Incomplete SQL: " + sql);
+			throw new org.sqlite.android.Exception("Incomplete SQL: " + sql);
 		}
 	}
 }

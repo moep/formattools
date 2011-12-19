@@ -1,4 +1,4 @@
-package SQLite3;
+package org.sqlite.android;
 
 /**
  * String encoder/decoder for SQLite.

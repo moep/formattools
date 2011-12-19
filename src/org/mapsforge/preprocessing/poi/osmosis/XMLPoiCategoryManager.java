@@ -40,7 +40,7 @@ class XMLPoiCategoryManager implements PoiCategoryManager {
 	 *            Path to POI category XML file containing the category tree configuration.
 	 */
 	XMLPoiCategoryManager(String configFilePath) {
-		System.out.println("Loading POI categories from XML...");
+		LOGGER.info("Loading POI categories from XML...");
 
 		this.titleMap = new HashMap<String, DoubleLinkedPoiCategory>();
 
@@ -79,8 +79,6 @@ class XMLPoiCategoryManager implements PoiCategoryManager {
 				child = createOrGetPoiCategory(c.getTitle());
 				child.setParent(parent);
 
-				// System.out.println(parent.getTitle() + "-->" + child.getTitle());
-
 				currentXMLNode.add(c);
 			}
 		}
@@ -105,9 +103,9 @@ class XMLPoiCategoryManager implements PoiCategoryManager {
 		//
 		// PoiCategory sushi = createOrGetPoiCategory("sushi");
 		// sushi.setParent(rest);
-		System.out.println("---");
+
 		DoubleLinkedPoiCategory.calculateCategoryIDs(this.root, 0);
-		System.out.println(DoubleLinkedPoiCategory.getGraphVizString(this.root));
+		// System.out.println(DoubleLinkedPoiCategory.getGraphVizString(this.root));
 
 	}
 
@@ -117,7 +115,7 @@ class XMLPoiCategoryManager implements PoiCategoryManager {
 		// Category does not exist -> create it
 		if (ret == null) {
 			ret = new DoubleLinkedPoiCategory(title, null);
-			System.out.println("Added category: " + ret);
+			LOGGER.finer("Added category: " + ret);
 			this.titleMap.put(title, ret);
 		}
 

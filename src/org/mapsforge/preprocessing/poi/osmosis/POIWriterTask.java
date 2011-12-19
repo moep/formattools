@@ -66,13 +66,11 @@ public class POIWriterTask implements Sink {
 	private Statement stmt = null;
 
 	/**
-	 * This method writes all nodes that can be mapped to a specific category and whose category is in a
-	 * given whitelist to a SQLite3 database. The category tree and tag mappings are retrieved from an
-	 * XML file.
+	 * This method writes all nodes that can be mapped to a specific category and whose category is in a given
+	 * whitelist to a SQLite3 database. The category tree and tag mappings are retrieved from an XML file.
 	 * 
 	 * @param outputFilePath
-	 *            Path to the database file that should be written. The file name should end with
-	 *            ".poi".
+	 *            Path to the database file that should be written. The file name should end with ".poi".
 	 * @param categoryConfigPath
 	 *            The XML configuration file containing the category tree and tag mappings. You can use
 	 *            "POICategoriesOsmosis.xml" from the mapsforge library here.
@@ -108,7 +106,8 @@ public class POIWriterTask implements Sink {
 
 	}
 
-	private void prepareDatabase(String path) throws ClassNotFoundException, SQLException, UnknownPoiCategoryException {
+	private void prepareDatabase(String path) throws ClassNotFoundException, SQLException,
+			UnknownPoiCategoryException {
 		Class.forName("SQLite.JDBC");
 		this.conn = DriverManager.getConnection("jdbc:sqlite:/" + path);
 		this.conn.setAutoCommit(false);
@@ -123,9 +122,11 @@ public class POIWriterTask implements Sink {
 		this.stmt.executeUpdate("DROP TABLE IF EXISTS poi_data;");
 		this.stmt.executeUpdate("DROP TABLE IF EXISTS poi_categories;");
 		// stmt.executeUpdate("DROP INDEX IF EXISTS poi_categories_index;");
-		this.stmt.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
+		this.stmt
+				.executeUpdate("CREATE VIRTUAL TABLE poi_index USING rtree(id, minLat, maxLat, minLon, maxLon);");
 		this.stmt.executeUpdate("CREATE TABLE poi_data (id LONG, data BLOB, category INT, PRIMARY KEY (id));");
-		this.stmt.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));");
+		this.stmt
+				.executeUpdate("CREATE TABLE poi_categories (id INTEGER, name VARCHAR, parent INTEGER, PRIMARY KEY (id));");
 		// stmt.executeUpdate("CREATE INDEX poi_categories_index ON poi_categories (id);");
 		this.conn.commit();
 
@@ -152,14 +153,15 @@ public class POIWriterTask implements Sink {
 
 	}
 
-	private void writePOI(long id, double latitude, double longitude, HashMap<String, String> poiData, PoiCategory category) {
+	private void writePOI(long id, double latitude, double longitude, HashMap<String, String> poiData,
+			PoiCategory category) {
 		try {
 			// Index data
 			this.pStmt.setLong(1, id);
-			this.pStmt.setDouble(2, longitude);
-			this.pStmt.setDouble(3, longitude);
-			this.pStmt.setDouble(4, latitude);
-			this.pStmt.setDouble(5, latitude);
+			this.pStmt.setDouble(2, latitude);
+			this.pStmt.setDouble(3, latitude);
+			this.pStmt.setDouble(4, longitude);
+			this.pStmt.setDouble(5, longitude);
 
 			// POI data
 			this.pStmt2.setLong(1, id);
@@ -274,8 +276,7 @@ public class POIWriterTask implements Sink {
 		for (String key : tagMap.keySet()) {
 
 			// Skip some tags
-			if (key.equalsIgnoreCase("amenity") ||
-					key.equalsIgnoreCase("created_by")) {
+			if (key.equalsIgnoreCase("amenity") || key.equalsIgnoreCase("created_by")) {
 				continue;
 			}
 
