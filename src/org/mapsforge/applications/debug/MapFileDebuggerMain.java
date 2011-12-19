@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.mapsforge.storage.dataExtraction.MapFileMetaData;
-import org.mapsforge.storage.tile.PCTilePersistanceManager;
+import org.mapsforge.storage.tile.PCTilePersistenceManager;
 import org.mapsforge.storage.tile.TileDataContainer;
 
 /**
@@ -74,12 +74,21 @@ public class MapFileDebuggerMain {
 		}
 	}
 
+	/**
+	 * 
+	 * @param mapsforgeMapFilePath
+	 *            Path to mapsforge 0.3 map file.
+	 * @param outputFilePath
+	 *            Path to map file that will be generated.
+	 * @param useCompression
+	 *            Currently not used.
+	 */
 	private static void mapToSQLite(String mapsforgeMapFilePath, String outputFilePath, boolean useCompression) {
 		SimpleTileExtractor ste = null;
 		MapFile mf = null;
 
 		// TileSQLiteWriter writer = null;
-		PCTilePersistanceManager writer = null;
+		PCTilePersistenceManager writer = null;
 
 		byte[] zoomLevelConfiguration;
 		byte[] tile;
@@ -117,10 +126,10 @@ public class MapFileDebuggerMain {
 			mfm.prepareZoomIntervalConfiguration();
 			for (int i = 0; i < mf.getAmountOfZoomIntervals(); i++) {
 				mfm.setZoomIntervalConfiguration(i, mf.getBaseZoomLevel()[i], mf.getMinimalZoomLevel()[i],
-						mf.getMinimalZoomLevel()[i], TileDataContainer.TILE_TYPE_VECTOR);
+						mf.getMaximalZoomLevel()[i], TileDataContainer.TILE_TYPE_VECTOR);
 			}
 
-			writer = new PCTilePersistanceManager(outputFilePath, mfm);
+			writer = new PCTilePersistenceManager(outputFilePath, mfm);
 			int added = 0;
 
 			Vector<TileDataContainer> tiles = new Vector<TileDataContainer>();

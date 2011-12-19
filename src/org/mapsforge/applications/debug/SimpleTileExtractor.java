@@ -163,7 +163,7 @@ public class SimpleTileExtractor {
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
 
-			// System.out.println("FirstX : " + firstX);
+			// System.out.println("\nFirstX : " + firstX);
 			// System.out.println("LastX : " + lastX);
 			// System.out.println("FirstY : " + firstY);
 			// System.out.println("LastY : " + lastY);

@@ -34,7 +34,7 @@ import org.mapsforge.storage.dataExtraction.MapFileMetaData;
  * @author Karsten Groll
  * 
  */
-public class PCTilePersistanceManager implements TilePersistanceManager {
+public class PCTilePersistenceManager implements TilePersistenceManager {
 	// Database
 	private Connection conn = null;
 	private Statement stmt = null;
@@ -56,7 +56,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 *            created. Otherwise the meta data will be parsed from the map file. If set to null, an
 	 *            empty meta data container will be used for creating the database.
 	 */
-	public PCTilePersistanceManager(String path, MapFileMetaData mapFileMetaData) {
+	public PCTilePersistenceManager(String path, MapFileMetaData mapFileMetaData) {
 
 		if (mapFileMetaData == null) {
 			// Create default metadata values
@@ -80,7 +80,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 * @param path
 	 *            Path to a map database file.
 	 */
-	public PCTilePersistanceManager(String path) {
+	public PCTilePersistenceManager(String path) {
 		this(path, null);
 	}
 
@@ -189,15 +189,15 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	// }
 
 	@Override
-	public void insertOrUpdateTile(byte[] rawData, int xPos, int yPos, byte baseZoomLevel) {
-		insertOrUpdateTile(rawData, coordinatesToID(xPos, yPos, baseZoomLevel), baseZoomLevel);
+	public void insertOrUpdateTile(byte[] rawData, int xPos, int yPos, byte baseZoomInterval) {
+		insertOrUpdateTile(rawData, coordinatesToID(xPos, yPos, baseZoomInterval), baseZoomInterval);
 	}
 
 	@Override
-	public void insertOrUpdateTile(byte[] rawData, int id, byte baseZoomLevel) {
+	public void insertOrUpdateTile(byte[] rawData, int id, byte baseZoomInterval) {
 		System.out.println("Insert or update");
 		try {
-			this.insertOrUpdateTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
+			this.insertOrUpdateTileByIDStmt.setString(1, "tiles_" + baseZoomInterval);
 			this.insertOrUpdateTileByIDStmt.setInt(2, id);
 			this.insertOrUpdateTileByIDStmt.setBytes(3, rawData);
 
@@ -229,15 +229,15 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	}
 
 	@Override
-	public void deleteTile(int xPos, int yPos, byte baseZoomLevel) {
-		deleteTile(coordinatesToID(xPos, yPos, baseZoomLevel), baseZoomLevel);
+	public void deleteTile(int xPos, int yPos, byte baseZoomInterval) {
+		deleteTile(coordinatesToID(xPos, yPos, baseZoomInterval), baseZoomInterval);
 	}
 
 	@Override
-	public void deleteTile(int id, byte baseZoomLevel) {
+	public void deleteTile(int id, byte baseZoomInterval) {
 		try {
 			this.deleteTileByIDStmt.clearBatch();
-			this.deleteTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
+			this.deleteTileByIDStmt.setString(1, "tiles_" + baseZoomInterval);
 			this.deleteTileByIDStmt.setInt(2, id);
 
 			this.deleteTileByIDStmt.addBatch();
@@ -250,11 +250,11 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	}
 
 	@Override
-	public void deleteTiles(int[] id, byte baseZoomLevel) {
+	public void deleteTiles(int[] id, byte baseZoomInterval) {
 		try {
 			this.deleteTileByIDStmt.clearBatch();
 			for (int i = 0; i < id.length; i++) {
-				this.deleteTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
+				this.deleteTileByIDStmt.setString(1, "tiles_" + baseZoomInterval);
 				this.deleteTileByIDStmt.setInt(2, id[i]);
 
 				this.deleteTileByIDStmt.addBatch();
@@ -268,17 +268,16 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	}
 
 	@Override
-	public byte[] getTileData(int xPos, int yPos, byte baseZoomLevel) {
-
-		return getTileData(coordinatesToID(xPos, yPos, baseZoomLevel), baseZoomLevel);
+	public byte[] getTileData(int xPos, int yPos, byte baseZoomInterval) {
+		return getTileData(coordinatesToID(xPos, yPos, baseZoomInterval), baseZoomInterval);
 	}
 
 	@Override
-	public byte[] getTileData(int id, byte baseZoomLevel) {
+	public byte[] getTileData(int id, byte baseZoomInterval) {
 		byte[] result = null;
 
 		try {
-			this.getTileByIDStmt.setString(1, "tiles_" + baseZoomLevel);
+			this.getTileByIDStmt.setString(1, "tiles_" + baseZoomInterval);
 			this.getTileByIDStmt.setInt(2, id);
 			this.resultSet = getTileByIDStmt.executeQuery();
 
@@ -293,19 +292,19 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	}
 
 	@Override
-	public Collection<TileDataContainer> getTileData(int[] ids, byte baseZoomLevel) {
+	public Collection<TileDataContainer> getTileData(int[] ids, byte baseZoomInterval) {
 		Vector<TileDataContainer> ret = new Vector<TileDataContainer>();
 
 		// System.out.println("SELECT data FROM tiles_" + baseZoomLevel + " WHERE id IN " +
 		// getIDListString(ids) + ";");
 		// TODO Can we use a prepared statement here?
 		try {
-			this.stmt.execute("SELECT * FROM tiles_" + baseZoomLevel + " WHERE id IN (" + getIDListString(ids) + ");");
+			this.stmt.execute("SELECT * FROM tiles_" + baseZoomInterval + " WHERE id IN (" + getIDListString(ids) + ");");
 			this.resultSet = this.stmt.getResultSet();
 
 			while (this.resultSet.next()) {
 				// TODO calculate values (create constructor with id?)
-				ret.add(new TileDataContainer(resultSet.getBytes(1), TileDataContainer.TILE_TYPE_VECTOR, -1, -1, baseZoomLevel));
+				ret.add(new TileDataContainer(resultSet.getBytes(1), TileDataContainer.TILE_TYPE_VECTOR, -1, -1, baseZoomInterval));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -435,7 +434,6 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 			this.stmt.execute("SELECT count(*) FROM poi_tags;");
 			this.resultSet = this.stmt.getResultSet();
 			while (this.resultSet.next()) {
-				System.out.println("#POI tags: " + this.resultSet.getString(1));
 				numPoiTags = Integer.parseInt(this.resultSet.getString(1));
 			}
 			this.mapFileMetaData.setAmountOfPOIMappings(numPoiTags);
@@ -502,10 +500,8 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 
 	}
 
-	private int coordinatesToID(int xPos, int yPos, int zoomInterval) {
-		// return (int) (yPos * Math.pow(this.mapFileMetaData.getBaseZoomLevel()[zoomInterval], 2) +
-		// xPos);
-		return 0; // TODO reset
+	private int coordinatesToID(int xPos, int yPos, int baseZoomInterval) {
+		return (int) (yPos * Math.pow(this.mapFileMetaData.getBaseZoomLevel()[baseZoomInterval], 2) + xPos);
 	}
 
 	/**
@@ -515,7 +511,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 	 *            Not used.
 	 */
 	public static void main(String[] args) {
-		PCTilePersistanceManager tpm = new PCTilePersistanceManager("/home/moep/maps/mapsforge/berlin.map");
+		PCTilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
 
 		Vector<TileDataContainer> tiles = new Vector<TileDataContainer>();
 		tiles.add(new TileDataContainer("moep".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 1, 0, (byte) 1));
@@ -528,6 +524,7 @@ public class PCTilePersistanceManager implements TilePersistanceManager {
 
 		Collection<TileDataContainer> ret = tpm.getTileData(new int[] { 2, 3, 4 }, (byte) 1);
 		for (TileDataContainer c : ret) {
+			// This line only makes sense if the debug flag is set
 			System.out.println(c.getData());
 		}
 

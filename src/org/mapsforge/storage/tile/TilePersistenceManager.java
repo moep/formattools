@@ -30,7 +30,7 @@ import org.mapsforge.storage.dataExtraction.MapFileMetaData;
  * 
  *         TODO Cache data tiles (does it make sense?)
  */
-public interface TilePersistanceManager {
+public interface TilePersistenceManager {
 
 	/**
 	 * Replaces a tile in the database with the given data. If the tile does not exist it will be
@@ -42,10 +42,10 @@ public interface TilePersistanceManager {
 	 *            The tile's x coordinate in the grid for the given base zoom level.
 	 * @param yPos
 	 *            The tile's y coordinate in the grid for the given base zoom level.
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 */
-	public void insertOrUpdateTile(final byte[] rawData, final int xPos, final int yPos, final byte baseZoomLevel);
+	public void insertOrUpdateTile(final byte[] rawData, final int xPos, final int yPos, final byte baseZoomInterval);
 
 	/**
 	 * Replaces a tile in the database with the given data. If the tile does not exist it will be
@@ -56,10 +56,10 @@ public interface TilePersistanceManager {
 	 * @param id
 	 *            The tile's coordinate for the given base zoom level in a 1-dimensional representation:
 	 *            id = (y * 4^baseZoomLevel) + x
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 */
-	public void insertOrUpdateTile(final byte[] rawData, final int id, final byte baseZoomLevel);
+	public void insertOrUpdateTile(final byte[] rawData, final int id, final byte baseZoomInterval);
 
 	/**
 	 * Replaces a set of tiles in the database with the given data. If a tile does not exist it will be
@@ -78,10 +78,10 @@ public interface TilePersistanceManager {
 	 *            The tile's x coordinate in the grid for the given base zoom level.
 	 * @param yPos
 	 *            The tile's y coordinate in the grid for the given base zoom level.
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 */
-	public void deleteTile(final int xPos, final int yPos, final byte baseZoomLevel);
+	public void deleteTile(final int xPos, final int yPos, final byte baseZoomInterval);
 
 	/**
 	 * Deletes a tile at the specified position. If there is no such tile the methods does nothing.
@@ -89,10 +89,10 @@ public interface TilePersistanceManager {
 	 * @param id
 	 *            The tile's coordinate for the given base zoom level in a 1-dimensional representation:
 	 *            id = (y * 4^baseZoomLevel) + x
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 */
-	public void deleteTile(final int id, final byte baseZoomLevel);
+	public void deleteTile(final int id, final byte baseZoomInterval);
 
 	/**
 	 * Deletes a set of tiles at the specified position. If there is no such tile the methods does
@@ -101,10 +101,10 @@ public interface TilePersistanceManager {
 	 * @param ids
 	 *            The tiles' coordinates for the given base zoom level in a 1-dimensional
 	 *            representation: id = (y * 4^baseZoomLevel) + x
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 */
-	public void deleteTiles(final int[] ids, final byte baseZoomLevel);
+	public void deleteTiles(final int[] ids, final byte baseZoomInterval);
 
 	/**
 	 * Retrieves a tile's data as a byte array from the database. The data can be a vector
@@ -114,11 +114,11 @@ public interface TilePersistanceManager {
 	 *            The tile's x coordinate in the grid for the given base zoom level.
 	 * @param yPos
 	 *            The tile's y coordinate in the grid for the given base zoom level.
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 * @return The tile as a byte array.
 	 */
-	public byte[] getTileData(final int xPos, final int yPos, final byte baseZoomLevel);
+	public byte[] getTileData(final int xPos, final int yPos, final byte baseZoomInterval);
 
 	/**
 	 * Retrieves a tile's data as a byte array from the database. The data can be a vector
@@ -128,12 +128,12 @@ public interface TilePersistanceManager {
 	 *            The tile's coordinate for the given base zoom level in a 1-dimensional representation:
 	 *            id = (y * 4^baseZoomLevel) + x
 	 * 
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 * 
 	 * @return The tile as a byte array.
 	 */
-	public byte[] getTileData(final int id, final byte baseZoomLevel);
+	public byte[] getTileData(final int id, final byte baseZoomInterval);
 
 	/**
 	 * Retrieves a set of tiles' data as a collection of byte arrays from the database. The data can be
@@ -143,12 +143,12 @@ public interface TilePersistanceManager {
 	 *            The tile's coordinate for the given base zoom level in a 1-dimensional representation:
 	 *            id = (y * 4^baseZoomLevel) + x
 	 * 
-	 * @param baseZoomLevel
+	 * @param baseZoomInterval
 	 *            The tile's base zoom level.
 	 * 
 	 * @return An collection of all tiles found.
 	 */
-	public Collection<TileDataContainer> getTileData(final int[] ids, final byte baseZoomLevel);
+	public Collection<TileDataContainer> getTileData(final int[] ids, final byte baseZoomInterval);
 
 	/**
 	 * Retrieves the map files metadata such as file version, bounding box, zoom interval configuration
