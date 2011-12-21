@@ -174,4 +174,14 @@ public class DoubleLinkedPoiCategory implements PoiCategory {
 		parent.getChildren().add(this);
 	}
 
+	/**
+	 * Overwrites the category's ID. <b>This is for debugging purposes only and should not be used!</b>
+	 * 
+	 * @param id
+	 *            The new ID.
+	 */
+	public void setID(int id) {
+		this.id = id;
+	}
+
 }

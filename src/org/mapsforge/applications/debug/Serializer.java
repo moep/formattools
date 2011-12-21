@@ -168,4 +168,12 @@ public class Serializer {
 		this.buffer.position(this.buffer.position() + bytes);
 	}
 
+	/**
+	 * 
+	 * @return The buffer's position
+	 */
+	public int getPosition() {
+		return this.buffer.position();
+	}
+
 }

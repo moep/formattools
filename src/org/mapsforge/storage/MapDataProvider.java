@@ -18,6 +18,7 @@ import java.util.Collection;
 
 import org.mapsforge.core.Rect;
 import org.mapsforge.storage.atoms.Way;
+import org.mapsforge.storage.poi.PointOfInterest;
 
 /**
  * This interface provides methods for searching an retrieving map data atoms such as streets, POIs etc.
@@ -39,5 +40,17 @@ public interface MapDataProvider {
 	 * @return All ways within the given bounding box.
 	 */
 	public Collection<Way> getAllWaysInBoundingBox(final Rect boundingBox);
+
+	/**
+	 * Gets all POIs within a given bounding having a certain tag ID.
+	 * 
+	 * @param boundingBox
+	 *            The bounding box.
+	 * @param allowedTagIDs
+	 *            A list of tag IDs. POIs having a tag ID from this list will be added to the return
+	 *            set. If set to null, nodes will not be filtered.
+	 * @return All POIs with a specified tag ID within a given bounding box.
+	 */
+	public Collection<PointOfInterest> getAllPoisInBoundingBox(final Rect boundingBox, int[] allowedTagIDs);
 
 }
