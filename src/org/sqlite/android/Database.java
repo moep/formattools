@@ -27,7 +27,7 @@ public class Database {
 	 *            open mode (e.g. SQLITE_OPEN_READONLY)
 	 */
 
-	public void open(String filename, int mode) throws org.sqlite.android.Exception {
+	public void open(String filename, int mode) throws org.sqlite.android.SQLiteException {
 		if ((mode & 0200) != 0) {
 			mode = org.sqlite.android.Constants.SQLITE_OPEN_READWRITE
 					| org.sqlite.android.Constants.SQLITE_OPEN_CREATE;
@@ -37,7 +37,7 @@ public class Database {
 		synchronized (this) {
 			try {
 				_open4(filename, mode, null, false);
-			} catch (org.sqlite.android.Exception se) {
+			} catch (org.sqlite.android.SQLiteException se) {
 				throw se;
 			} catch (java.lang.OutOfMemoryError me) {
 				throw me;
@@ -59,7 +59,7 @@ public class Database {
 	 */
 
 	public void open(String filename, int mode, String vfs)
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		if ((mode & 0200) != 0) {
 			mode = org.sqlite.android.Constants.SQLITE_OPEN_READWRITE
 					| org.sqlite.android.Constants.SQLITE_OPEN_CREATE;
@@ -69,7 +69,7 @@ public class Database {
 		synchronized (this) {
 			try {
 				_open4(filename, mode, vfs, false);
-			} catch (org.sqlite.android.Exception se) {
+			} catch (org.sqlite.android.SQLiteException se) {
 				throw se;
 			} catch (java.lang.OutOfMemoryError me) {
 				throw me;
@@ -94,7 +94,7 @@ public class Database {
 	 */
 
 	public void open(String filename, int mode, String vfs, boolean ver2)
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		if ((mode & 0200) != 0) {
 			mode = org.sqlite.android.Constants.SQLITE_OPEN_READWRITE
 					| org.sqlite.android.Constants.SQLITE_OPEN_CREATE;
@@ -104,7 +104,7 @@ public class Database {
 		synchronized (this) {
 			try {
 				_open4(filename, mode, vfs, ver2);
-			} catch (org.sqlite.android.Exception se) {
+			} catch (org.sqlite.android.SQLiteException se) {
 				throw se;
 			} catch (java.lang.OutOfMemoryError me) {
 				throw me;
@@ -119,14 +119,14 @@ public class Database {
 	 */
 
 	private native void _open(String filename, int mode)
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/*
 	 * Newer full interface
 	 */
 
 	private native void _open4(String filename, int mode, String vfs,
-			boolean ver2) throws org.sqlite.android.Exception;
+			boolean ver2) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Destructor for object.
@@ -144,13 +144,13 @@ public class Database {
 	 * Close the underlying SQLite database file.
 	 */
 
-	public void close() throws org.sqlite.android.Exception {
+	public void close() throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_close();
 		}
 	}
 
-	private native void _close() throws org.sqlite.android.Exception;
+	private native void _close() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Execute an SQL statement and invoke callback methods for each row of the
@@ -166,14 +166,14 @@ public class Database {
 	 *            the object implementing the callback methods
 	 */
 
-	public void exec(String sql, org.sqlite.android.Callback cb) throws org.sqlite.android.Exception {
+	public void exec(String sql, org.sqlite.android.Callback cb) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_exec(sql, cb);
 		}
 	}
 
 	private native void _exec(String sql, org.sqlite.android.Callback cb)
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Execute an SQL statement and invoke callback methods for each row of the
@@ -200,14 +200,14 @@ public class Database {
 	 */
 
 	public void exec(String sql, org.sqlite.android.Callback cb, String args[])
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_exec(sql, cb, args);
 		}
 	}
 
 	private native void _exec(String sql, org.sqlite.android.Callback cb, String args[])
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return the row identifier of the last inserted row.
@@ -287,7 +287,7 @@ public class Database {
 	 */
 
 	public TableResult get_table(String sql, int maxrows)
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		TableResult ret = new TableResult(maxrows);
 		synchronized (this) {
 			/* only one statement !!! */
@@ -315,7 +315,7 @@ public class Database {
 	 * @return result set
 	 */
 
-	public TableResult get_table(String sql) throws org.sqlite.android.Exception {
+	public TableResult get_table(String sql) throws org.sqlite.android.SQLiteException {
 		return get_table(sql, 0);
 	}
 
@@ -332,7 +332,7 @@ public class Database {
 	 */
 
 	public TableResult get_table(String sql, int maxrows, String args[])
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		TableResult ret = new TableResult(maxrows);
 		synchronized (this) {
 			/* only one statement !!! */
@@ -363,7 +363,7 @@ public class Database {
 	 */
 
 	public TableResult get_table(String sql, String args[])
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		return get_table(sql, 0, args);
 	}
 
@@ -379,7 +379,7 @@ public class Database {
 	 */
 
 	public void get_table(String sql, String args[], TableResult tbl)
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		tbl.clear();
 		synchronized (this) {
 			/* only one statement !!! */
@@ -537,13 +537,13 @@ public class Database {
 	 *            name of encoding
 	 */
 
-	public void set_encoding(String enc) throws org.sqlite.android.Exception {
+	public void set_encoding(String enc) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_set_encoding(enc);
 		}
 	}
 
-	private native void _set_encoding(String enc) throws org.sqlite.android.Exception;
+	private native void _set_encoding(String enc) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Set authorizer function. Only available in SQLite 2.7.6 and above,
@@ -590,7 +590,7 @@ public class Database {
 	 */
 
 	public Backup backup(Database dest, String destName, String srcName)
-			throws org.sqlite.android.Exception {
+			throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			Backup b = new Backup();
 			_backup(b, dest, destName, this, srcName);
@@ -600,7 +600,7 @@ public class Database {
 
 	private static native void _backup(Backup b, Database dest,
 			String destName, Database src, String srcName)
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Set profile function. Only available in SQLite 3.6 and above, otherwise a
@@ -669,7 +669,7 @@ public class Database {
 	 * @return a Vm object
 	 */
 
-	public Vm compile(String sql) throws org.sqlite.android.Exception {
+	public Vm compile(String sql) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			Vm vm = new Vm();
 			vm_compile(sql, vm);
@@ -688,7 +688,7 @@ public class Database {
 	 * @return a Vm object
 	 */
 
-	public Vm compile(String sql, String args[]) throws org.sqlite.android.Exception {
+	public Vm compile(String sql, String args[]) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			Vm vm = new Vm();
 			vm_compile_args(sql, vm, args);
@@ -705,7 +705,7 @@ public class Database {
 	 * @return a Stmt object
 	 */
 
-	public Stmt prepare(String sql) throws org.sqlite.android.Exception {
+	public Stmt prepare(String sql) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			Stmt stmt = new Stmt();
 			stmt_prepare(sql, stmt);
@@ -730,7 +730,7 @@ public class Database {
 	 */
 
 	public Blob open_blob(String db, String table, String column, long row,
-			boolean rw) throws org.sqlite.android.Exception {
+			boolean rw) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			Blob blob = new Blob();
 			_open_blob(db, table, column, row, rw, blob);
@@ -747,7 +747,7 @@ public class Database {
 	 *            Vm object
 	 */
 
-	private native void vm_compile(String sql, Vm vm) throws org.sqlite.android.Exception;
+	private native void vm_compile(String sql, Vm vm) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Internal compile method, SQLite 3.0 only.
@@ -761,7 +761,7 @@ public class Database {
 	 */
 
 	private native void vm_compile_args(String sql, Vm vm, String args[])
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Internal SQLite3 prepare method.
@@ -773,7 +773,7 @@ public class Database {
 	 */
 
 	private native void stmt_prepare(String sql, Stmt stmt)
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Internal SQLite open blob method.
@@ -793,7 +793,7 @@ public class Database {
 	 */
 
 	private native void _open_blob(String db, String table, String column,
-			long row, boolean rw, Blob blob) throws org.sqlite.android.Exception;
+			long row, boolean rw, Blob blob) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Establish a progress callback method which gets called after N SQLite VM
@@ -821,7 +821,7 @@ public class Database {
 	 *            the key as byte array
 	 */
 
-	public void key(byte[] ekey) throws org.sqlite.android.Exception {
+	public void key(byte[] ekey) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_key(ekey);
 		}
@@ -835,7 +835,7 @@ public class Database {
 	 *            the key as String
 	 */
 
-	public void key(String skey) throws org.sqlite.android.Exception {
+	public void key(String skey) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			byte ekey[] = null;
 			if (skey != null && skey.length() > 0) {
@@ -859,7 +859,7 @@ public class Database {
 	 *            the key as byte array
 	 */
 
-	public void rekey(byte[] ekey) throws org.sqlite.android.Exception {
+	public void rekey(byte[] ekey) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_rekey(ekey);
 		}
@@ -873,7 +873,7 @@ public class Database {
 	 *            the key as String
 	 */
 
-	public void rekey(String skey) throws org.sqlite.android.Exception {
+	public void rekey(String skey) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			byte ekey[] = null;
 			if (skey != null && skey.length() > 0) {
@@ -927,12 +927,12 @@ public class Database {
 	 * @return long
 	 */
 
-	public static long long_from_julian(String s) throws org.sqlite.android.Exception {
+	public static long long_from_julian(String s) throws org.sqlite.android.SQLiteException {
 		try {
 			double d = Double.valueOf(s).doubleValue();
 			return long_from_julian(d);
 		} catch (java.lang.Exception ee) {
-			throw new org.sqlite.android.Exception("not a julian date");
+			throw new org.sqlite.android.SQLiteException("not a julian date");
 		}
 	}
 
@@ -997,7 +997,7 @@ public class Database {
 			Stmt stmt = prepare(sql);
 	        stmt.step();
 	        stmt.close();
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Auto-generated catch block
 			//e.printStackTrace();
 			return false;

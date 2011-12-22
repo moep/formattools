@@ -28,7 +28,7 @@ public class Stmt {
 	 *         statement sequence.
 	 */
 
-	public native boolean prepare() throws org.sqlite.android.Exception;
+	public native boolean prepare() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Perform one step of compiled SQLite3 statement.
@@ -65,25 +65,25 @@ public class Stmt {
 	 * @return true when row data is available, false on end of result set.
 	 */
 
-	public native boolean step() throws org.sqlite.android.Exception;
+	public native boolean step() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Close the compiled SQLite3 statement.
 	 */
 
-	public native void close() throws org.sqlite.android.Exception;
+	public native void close() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Reset the compiled SQLite3 statement without clearing parameter bindings.
 	 */
 
-	public native void reset() throws org.sqlite.android.Exception;
+	public native void reset() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Clear all bound parameters of the compiled SQLite3 statement.
 	 */
 
-	public native void clear_bindings() throws org.sqlite.android.Exception;
+	public native void clear_bindings() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional integer value to compiled SQLite3 statement.
@@ -94,7 +94,7 @@ public class Stmt {
 	 *            value of parameter
 	 */
 
-	public native void bind(int pos, int value) throws org.sqlite.android.Exception;
+	public native void bind(int pos, int value) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional long value to compiled SQLite3 statement.
@@ -105,7 +105,7 @@ public class Stmt {
 	 *            value of parameter
 	 */
 
-	public native void bind(int pos, long value) throws org.sqlite.android.Exception;
+	public native void bind(int pos, long value) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional double value to compiled SQLite3 statement.
@@ -116,7 +116,7 @@ public class Stmt {
 	 *            value of parameter
 	 */
 
-	public native void bind(int pos, double value) throws org.sqlite.android.Exception;
+	public native void bind(int pos, double value) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional byte array to compiled SQLite3 statement.
@@ -127,7 +127,7 @@ public class Stmt {
 	 *            value of parameter, may be null
 	 */
 
-	public native void bind(int pos, byte[] value) throws org.sqlite.android.Exception;
+	public native void bind(int pos, byte[] value) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional String to compiled SQLite3 statement.
@@ -138,7 +138,7 @@ public class Stmt {
 	 *            value of parameter, may be null
 	 */
 
-	public native void bind(int pos, String value) throws org.sqlite.android.Exception;
+	public native void bind(int pos, String value) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional SQL null to compiled SQLite3 statement.
@@ -147,7 +147,7 @@ public class Stmt {
 	 *            parameter index, 1-based
 	 */
 
-	public native void bind(int pos) throws org.sqlite.android.Exception;
+	public native void bind(int pos) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Bind positional zero'ed blob to compiled SQLite3 statement.
@@ -159,7 +159,7 @@ public class Stmt {
 	 */
 
 	public native void bind_zeroblob(int pos, int length)
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return number of parameters in compiled SQLite3 statement.
@@ -167,7 +167,7 @@ public class Stmt {
 	 * @return int number of parameters
 	 */
 
-	public native int bind_parameter_count() throws org.sqlite.android.Exception;
+	public native int bind_parameter_count() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return name of parameter in compiled SQLite3 statement.
@@ -177,7 +177,7 @@ public class Stmt {
 	 * @return String parameter name
 	 */
 
-	public native String bind_parameter_name(int pos) throws org.sqlite.android.Exception;
+	public native String bind_parameter_name(int pos) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return index of named parameter in compiled SQLite3 statement.
@@ -188,7 +188,7 @@ public class Stmt {
 	 */
 
 	public native int bind_parameter_index(String name)
-			throws org.sqlite.android.Exception;
+			throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve integer column from exec'ed SQLite3 statement.
@@ -198,7 +198,7 @@ public class Stmt {
 	 * @return int column value
 	 */
 
-	public native int column_int(int col) throws org.sqlite.android.Exception;
+	public native int column_int(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve long column from exec'ed SQLite3 statement.
@@ -207,7 +207,7 @@ public class Stmt {
 	 *            column number, 0-based
 	 * @return long column value
 	 */
-	public native long column_long(int col) throws org.sqlite.android.Exception;
+	public native long column_long(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve double column from exec'ed SQLite3 statement.
@@ -216,7 +216,7 @@ public class Stmt {
 	 *            column number, 0-based
 	 * @return double column value
 	 */
-	public native double column_double(int col) throws org.sqlite.android.Exception;
+	public native double column_double(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve blob column from exec'ed SQLite3 statement.
@@ -225,7 +225,7 @@ public class Stmt {
 	 *            column number, 0-based
 	 * @return byte[] column value
 	 */
-	public native byte[] column_bytes(int col) throws org.sqlite.android.Exception;
+	public native byte[] column_bytes(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve string column from exec'ed SQLite3 statement.
@@ -234,7 +234,7 @@ public class Stmt {
 	 *            column number, 0-based
 	 * @return String column value
 	 */
-	public native String column_string(int col) throws org.sqlite.android.Exception;
+	public native String column_string(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve column type from exec'ed SQLite3 statement.
@@ -243,7 +243,7 @@ public class Stmt {
 	 *            column number, 0-based
 	 * @return column type code, e.g. SQLite.Constants.SQLITE_INTEGER
 	 */
-	public native int column_type(int col) throws org.sqlite.android.Exception;
+	public native int column_type(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve number of columns of exec'ed SQLite3 statement.
@@ -251,7 +251,7 @@ public class Stmt {
 	 * @return int number of columns
 	 */
 
-	public native int column_count() throws org.sqlite.android.Exception;
+	public native int column_count() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Retrieve column data as object from exec'ed SQLite3 statement.
@@ -261,7 +261,7 @@ public class Stmt {
 	 * @return Object or null
 	 */
 
-	public Object column(int col) throws org.sqlite.android.Exception {
+	public Object column(int col) throws org.sqlite.android.SQLiteException {
 		switch (column_type(col)) {
 			case Constants.SQLITE_INTEGER:
 				return new Long(column_long(col));
@@ -283,7 +283,7 @@ public class Stmt {
 	 * @return String or null
 	 */
 
-	public native String column_name(int col) throws org.sqlite.android.Exception;
+	public native String column_name(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return table name of column of SQLite3 statement.
@@ -293,7 +293,7 @@ public class Stmt {
 	 * @return String or null
 	 */
 
-	public native String column_table_name(int col) throws org.sqlite.android.Exception;
+	public native String column_table_name(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return database name of column of SQLite3 statement.
@@ -303,7 +303,7 @@ public class Stmt {
 	 * @return String or null
 	 */
 
-	public native String column_database_name(int col) throws org.sqlite.android.Exception;
+	public native String column_database_name(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return declared column type of SQLite3 statement.
@@ -313,7 +313,7 @@ public class Stmt {
 	 * @return String or null
 	 */
 
-	public native String column_decltype(int col) throws org.sqlite.android.Exception;
+	public native String column_decltype(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return origin column name of column of SQLite3 statement.
@@ -323,7 +323,7 @@ public class Stmt {
 	 * @return String or null
 	 */
 
-	public native String column_origin_name(int col) throws org.sqlite.android.Exception;
+	public native String column_origin_name(int col) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return statement status information.
@@ -360,7 +360,7 @@ public class Stmt {
 			int colCount = 0;
 			try {
 				colCount = column_count();
-			} catch (Exception e1) {
+			} catch (SQLiteException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
@@ -368,7 +368,7 @@ public class Stmt {
 			for (int i = 0; i < colCount; i++) {
 				try {
 					mColumns[i] = column_name(i);
-				} catch (Exception e) {
+				} catch (SQLiteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

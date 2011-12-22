@@ -297,7 +297,7 @@ public class MapFileDebuggerMain {
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) throws Exception {
-		mapToSQLite("/home/moep/maps/berlin.map", "/home/moep/maps/mapsforge/berlin.map", false);
+		mapToSQLite("/home/moep/maps/germany.map", "/home/moep/maps/mapsforge/germany.map", false);
 
 		// countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
 		// checkIdexes("/home/moep/maps/brandenburg.map");

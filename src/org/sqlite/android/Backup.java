@@ -16,7 +16,7 @@ public class Backup {
 	 * Finish a backup.
 	 */
 
-	protected void finish() throws org.sqlite.android.Exception {
+	protected void finish() throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_finalize();
 		}
@@ -30,12 +30,12 @@ public class Backup {
 		synchronized (this) {
 			try {
 				_finalize();
-			} catch (org.sqlite.android.Exception e) {
+			} catch (org.sqlite.android.SQLiteException e) {
 			}
 		}
 	}
 
-	protected native void _finalize() throws org.sqlite.android.Exception;
+	protected native void _finalize() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Perform a backup step.
@@ -45,19 +45,19 @@ public class Backup {
 	 * @return true when backup completed
 	 */
 
-	public boolean step(int n) throws org.sqlite.android.Exception {
+	public boolean step(int n) throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			return _step(n);
 		}
 	}
 
-	private native boolean _step(int n) throws org.sqlite.android.Exception;
+	private native boolean _step(int n) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Perform the backup in one step.
 	 */
 
-	public void backup() throws org.sqlite.android.Exception {
+	public void backup() throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			_step(-1);
 		}
@@ -67,25 +67,25 @@ public class Backup {
 	 * Return number of remaining pages to be backed up.
 	 */
 
-	public int remaining() throws org.sqlite.android.Exception {
+	public int remaining() throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			return _remaining();
 		}
 	}
 
-	private native int _remaining() throws org.sqlite.android.Exception;
+	private native int _remaining() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Return the total number of pages in the backup source database.
 	 */
 
-	public int pagecount() throws org.sqlite.android.Exception {
+	public int pagecount() throws org.sqlite.android.SQLiteException {
 		synchronized (this) {
 			return _pagecount();
 		}
 	}
 
-	private native int _pagecount() throws org.sqlite.android.Exception;
+	private native int _pagecount() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Internal native initializer.

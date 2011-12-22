@@ -19,11 +19,12 @@ import java.util.Collection;
 
 import org.mapsforge.core.GeoCoordinate;
 import org.sqlite.android.Database;
-import org.sqlite.android.Exception;
+import org.sqlite.android.SQLiteException;
 import org.sqlite.android.Stmt;
 
 /**
- * POI persistence manager using SQLite 3 with R-tree support. This implementation does only work on Android.
+ * POI persistence manager using SQLite 3 with R-tree support. This implementation does only work on
+ * Android.
  * 
  * @author Karsten Groll
  */
@@ -50,8 +51,8 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 	/**
 	 * @param dbFilePath
-	 *            Path to SQLite file containing POI data. If the file does not exist the file and its tables
-	 *            will be created.
+	 *            Path to SQLite file containing POI data. If the file does not exist the file and its
+	 *            tables will be created.
 	 */
 	SQLitePoiPersistenceManager(String dbFilePath) {
 		// Open / create POI database
@@ -90,7 +91,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 			this.deletePoiStatement1 = this.db.prepare("DELETE FROM poi_index WHERE id == ?;");
 			this.deletePoiStatement2 = this.db.prepare("DELETE FROM poi_data WHERE id == ?;");
 
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 
@@ -149,7 +150,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 					e.printStackTrace();
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 
@@ -191,7 +192,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 				}
 			}
 
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 
@@ -226,7 +227,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 			this.insertPoiStatement2.step();
 
 			db.exec("COMMIT", null);
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 
@@ -257,7 +258,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 			}
 
 			db.exec("COMMIT", null);
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 
@@ -281,7 +282,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 
 			db.exec("COMMIT", null);
 
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 	}
@@ -293,7 +294,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.findInBoxStatement != null) {
 			try {
 				this.findInBoxStatement.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -301,7 +302,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.findByIDStatement != null) {
 			try {
 				this.findByIDStatement.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -309,7 +310,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.insertPoiStatement1 != null) {
 			try {
 				this.insertPoiStatement1.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -317,7 +318,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.insertPoiStatement2 != null) {
 			try {
 				this.insertPoiStatement2.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -325,7 +326,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.deletePoiStatement1 != null) {
 			try {
 				this.deletePoiStatement1.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -333,7 +334,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.deletePoiStatement2 != null) {
 			try {
 				this.deletePoiStatement2.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -341,7 +342,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.isValidDBStatement != null) {
 			try {
 				this.isValidDBStatement.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -351,7 +352,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		if (this.db != null) {
 			try {
 				this.db.close();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
@@ -394,7 +395,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 					e.printStackTrace();
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// Log.e(LOG_TAG, "getPointById: " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -413,22 +414,21 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		this.db = new Database();
 		try {
 			db.open(this.dbFilePath, 0666);
-		} catch (Exception e) {
-			// Log.e(LOG_TAG, e.getMessage());
+		} catch (SQLiteException e) {
+			// TODO Android error handling
 			e.printStackTrace();
 		}
 
 		if (!isValidDataBase()) {
 			try {
-				// Log.d(LOG_TAG, "Creating tables");
 				createTables();
-			} catch (Exception e) {
+			} catch (SQLiteException e) {
 				// TODO Android error handling
 			}
 		}
 	}
 
-	private void createTables() throws Exception {
+	private void createTables() throws SQLiteException {
 		// db.open() created a new file, so let's create its tables
 		this.db.exec("DROP TABLE IF EXISTS poi_index;", null);
 		this.db.exec("DROP TABLE IF EXISTS poi_data;", null);
@@ -448,7 +448,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 		try {
 			this.isValidDBStatement = db.prepare("SELECT count(name) " + "FROM sqlite_master "
 					+ "WHERE name IN " + "('poi_index', 'poi_data', 'poi_categories');");
-		} catch (Exception e1) {
+		} catch (SQLiteException e1) {
 			// TODO Android error handling
 		}
 
@@ -459,7 +459,7 @@ class SQLitePoiPersistenceManager implements PoiPersistenceManager {
 			if (this.isValidDBStatement.step()) {
 				numTables = this.isValidDBStatement.column_int(0);
 			}
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			// TODO Android error handling
 		}
 

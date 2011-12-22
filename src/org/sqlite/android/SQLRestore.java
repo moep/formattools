@@ -19,7 +19,7 @@ public class SQLRestore {
 		this.db = db;
 	}
 
-	public void restore() throws org.sqlite.android.Exception {
+	public void restore() throws org.sqlite.android.SQLiteException {
 		String line = null, sql = null;
 		while (true) {
 			try {
@@ -27,7 +27,7 @@ public class SQLRestore {
 			} catch (EOFException e) {
 				line = null;
 			} catch (IOException e) {
-				throw new org.sqlite.android.Exception("I/O error");
+				throw new org.sqlite.android.SQLiteException("I/O error");
 			}
 			if (line == null) {
 				break;
@@ -43,7 +43,7 @@ public class SQLRestore {
 			}
 		}
 		if (sql != null) {
-			throw new org.sqlite.android.Exception("Incomplete SQL: " + sql);
+			throw new org.sqlite.android.SQLiteException("Incomplete SQL: " + sql);
 		}
 	}
 }

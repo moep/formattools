@@ -521,13 +521,19 @@ public class MapDataProviderImpl implements MapDataProvider {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		TilePersistenceManager tpm = new
-				PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
-		MapDataProvider mdp = new MapDataProviderImpl(tpm);
-		Collection<PointOfInterest> pois = mdp.getAllPoisInBoundingBox(new Rect(13.394523, 13.42186,
-				52.511128, 52.523219), new int[] { 3, 4, 5 });
-		System.out.println("Found " + pois.size() + " POIs.");
-		tpm.close();
+		TilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
+		String[] tags = tpm.getMetaData().getPOIMappings();
+		for (int i = 0; i < tags.length; i++) {
+			System.out.printf("%2d: %s\r\n", i, tags[i]);
+		}
+
+		// TilePersistenceManager tpm = new
+		// PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
+		// MapDataProvider mdp = new MapDataProviderImpl(tpm);
+		// Collection<PointOfInterest> pois = mdp.getAllPoisInBoundingBox(new Rect(13.394523, 13.42186,
+		// 52.511128, 52.523219), new int[] { 3, 4, 5 });
+		// System.out.println("Found " + pois.size() + " POIs.");
+		// tpm.close();
 
 		// Berlin Mitte
 		// 52.523219,13.394523

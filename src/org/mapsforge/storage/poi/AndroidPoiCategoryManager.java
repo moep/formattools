@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 import org.sqlite.android.Database;
-import org.sqlite.android.Exception;
+import org.sqlite.android.SQLiteException;
 import org.sqlite.android.Stmt;
 
 
@@ -49,7 +49,7 @@ public class AndroidPoiCategoryManager implements PoiCategoryManager {
 
 		try {
 			this.loadCategoriesStatement = db.prepare("SELECT * FROM poi_categories ORDER BY id ASC;");
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			e.printStackTrace();
 		}
 
@@ -92,7 +92,7 @@ public class AndroidPoiCategoryManager implements PoiCategoryManager {
 					maxID = categoryID;
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLiteException e) {
 			e.printStackTrace();
 		}
 

@@ -46,7 +46,7 @@ public class Vm {
 	 * @return true as long as more row data can be retrieved, false, otherwise.
 	 */
 
-	public native boolean step(Callback cb) throws org.sqlite.android.Exception;
+	public native boolean step(Callback cb) throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Compile the next SQL statement for the SQLite VM instance.
@@ -55,13 +55,13 @@ public class Vm {
 	 *         statement sequence.
 	 */
 
-	public native boolean compile() throws org.sqlite.android.Exception;
+	public native boolean compile() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Abort the compiled SQLite VM.
 	 */
 
-	public native void stop() throws org.sqlite.android.Exception;
+	public native void stop() throws org.sqlite.android.SQLiteException;
 
 	/**
 	 * Destructor for object.

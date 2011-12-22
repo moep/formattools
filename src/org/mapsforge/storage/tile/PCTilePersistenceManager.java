@@ -75,7 +75,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 	}
 
 	/**
-	 * Open the specified map database. If the database does not exist it will be created.
+	 * Opens the specified map database. If the database does not exist it will be created.
 	 * 
 	 * @param path
 	 *            Path to a map database file.
@@ -175,18 +175,6 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 		}
 
 	}
-
-	// @Override
-	// public void insertTile(byte[] rawData, int xPos, int yPos, byte baseZoomLevel) {
-	// // TODO Auto-generated method stub
-	//
-	// }
-	//
-	// @Override
-	// public void insertTile(byte[] rawData, int id, byte baseZoomLevel) {
-	// // TODO Auto-generated method stub
-	//
-	// }
 
 	@Override
 	public void insertOrUpdateTile(byte[] rawData, int xPos, int yPos, byte baseZoomInterval) {
@@ -298,6 +286,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 		// System.out.println("SELECT data FROM tiles_" + baseZoomLevel + " WHERE id IN " +
 		// getIDListString(ids) + ";");
 		// TODO Can we use a prepared statement here?
+		// TODO Set tile coordinates
 		try {
 			this.stmt.execute("SELECT * FROM tiles_" + baseZoomInterval + " WHERE id IN (" + getIDListString(ids) + ");");
 			this.resultSet = this.stmt.getResultSet();
@@ -372,7 +361,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 			if (this.resultSet.next()) {
 				boundingBox.minLongitudeE6 = Integer.parseInt(this.resultSet.getString(1));
 			}
-			this.getMetaDataStatement.setString(1, "boundingBoxMinLon");
+			this.getMetaDataStatement.setString(1, "boundingBoxMaxLon");
 			this.getMetaDataStatement.execute();
 			this.resultSet = this.getMetaDataStatement.getResultSet();
 			if (this.resultSet.next()) {
@@ -405,12 +394,15 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 				this.mapFileMetaData.setLanguagePreference(this.resultSet.getString(1));
 			}
 
+			byte flags = 0;
 			// Debug flag
 			this.getMetaDataStatement.setString(1, "debugInformationFlag");
 			this.getMetaDataStatement.execute();
 			this.resultSet = this.getMetaDataStatement.getResultSet();
 			if (this.resultSet.next()) {
-				this.mapFileMetaData.setFlags((byte) (this.mapFileMetaData.getFlags() | (byte) 0x80));
+				if (this.resultSet.getString(1).equals("1")) {
+					flags = (byte) (flags | (byte) 0x80);
+				}
 			}
 
 			// Map position flag
@@ -418,8 +410,12 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 			this.getMetaDataStatement.execute();
 			this.resultSet = this.getMetaDataStatement.getResultSet();
 			if (this.resultSet.next()) {
-				this.mapFileMetaData.setFlags((byte) (this.mapFileMetaData.getFlags() | (byte) 0x40));
+				if (this.resultSet.getString(1).equals("1")) {
+					flags = (byte) (flags | (byte) 0x40);
+				}
 			}
+
+			this.mapFileMetaData.setFlags(flags);
 
 			// Comment
 			this.getMetaDataStatement.setString(1, "comment");
