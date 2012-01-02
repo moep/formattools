@@ -15,11 +15,15 @@
 package org.mapsforge.applications.debug;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import org.mapsforge.storage.dataExtraction.MapFileMetaData;
@@ -292,15 +296,196 @@ public class MapFileDebuggerMain {
 
 	}
 
+	private static void streetNamesToSQL(String path, String sqlDumpFilePath) {
+		SimpleTileExtractor ste = null;
+		byte[] rawTile;
+		Tile tile = null;
+		List<Way> ways = null;
+		HashMap<String, Integer> globalCount = new HashMap<String, Integer>();
+		TreeMap<Integer, List<String>> totalOccurenceMap = new TreeMap<Integer, List<String>>(Collections.reverseOrder());
+		Integer count = null;
+
+		// Test if tile coordinates are correct (NEEDS DEBUG FILE!)
+		try {
+			ste = new SimpleTileExtractor(path);
+
+			for (byte zoomInterval = 0; zoomInterval < ste.getMapFile().getAmountOfZoomIntervals(); zoomInterval++) {
+				for (int y = ste.getMinY(zoomInterval); y <= ste.getMaxY(zoomInterval); y++) {
+					for (int x = ste.getMinX(zoomInterval); x <= ste.getMaxX(zoomInterval); x++) {
+						rawTile = ste.getTile(x, y, zoomInterval);
+						if (rawTile == null)
+							continue;
+
+						tile = TileFactory.getTileFromRawData(rawTile, zoomInterval, ste.getMapFile());
+
+						// Get all way
+						ways = tile.getWays();
+
+						if (ways == null)
+							continue;
+
+						HashMap<String, Integer> localCount = new HashMap<String, Integer>();
+
+						for (Way w : ways) {
+							if (w.getName() == null)
+								continue;
+
+							if (localCount.containsKey(w.getName())) {
+								count = Integer.valueOf(localCount.get(w.getName()).intValue() + 1);
+								localCount.put(w.getName(), count);
+
+							} else {
+								localCount.put(w.getName(), new Integer(1));
+							}
+
+						}
+
+						for (String key : localCount.keySet()) {
+							// Has the street name been discovered before?
+							if (globalCount.containsKey(key)) {
+								count = Integer.valueOf(globalCount.get(key).intValue() + 1);
+								globalCount.put(key, count);
+							} else {
+								globalCount.put(key, new Integer(1));
+							}
+
+						}
+
+						tile = null;
+
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TileIndexOutOfBoundsException e) {
+			e.printStackTrace();
+		}
+
+		// Order street names by occurrence
+
+		for (String key : globalCount.keySet()) {
+			if (totalOccurenceMap.get(globalCount.get(key)) == null) {
+				totalOccurenceMap.put(new Integer(globalCount.get(key)), new LinkedList<String>());
+			}
+			totalOccurenceMap.get(globalCount.get(key)).add(key);
+		}
+
+		List<String> names;
+
+		// Print result
+		// System.out.println("#Occurences\tValues");
+		// for (Integer key : totalOccurenceMap.keySet()) {
+		// System.out.printf("%5d:", key);
+		// names = totalOccurenceMap.get(key);
+		// for (int i = 0; i < names.size(); i++) {
+		// System.out.print(names.get(i) + " | ");
+		// }
+		// System.out.println();
+		// }
+
+		// Write SQL statement
+		int index = 0;
+		String name;
+		final int BUFFER_SIZE = 1024 * 1000;
+		try {
+			System.out.println("Writing SQL dump file...");
+			FileOutputStream fos = new FileOutputStream(sqlDumpFilePath);
+			String queryString;
+			byte[] queryStringByteArray;
+			byte[] commitStringArray;
+			byte[] buffer = new byte[BUFFER_SIZE];
+			ByteBuffer bb = ByteBuffer.wrap(buffer);
+			bb.put("BEGIN;\n".getBytes("UTF-8"));
+			bb.put("DROP TABLE IF EXISTS way_names;\n".getBytes("UTF-8"));
+			bb.put("CREATE TABLE way_names (id INTEGER PRIMARY KEY, name VARCHAR);\n".getBytes("UTF-8"));
+
+			for (Integer key : totalOccurenceMap.keySet()) {
+				names = totalOccurenceMap.get(key);
+				for (int i = 0; i < names.size(); i++) {
+					name = names.get(i);
+					name = name.replaceAll("\"", "\"\"");
+
+					// Name fits into buffer
+					queryString = new String("INSERT INTO way_names (id, name) VALUES (" + index + ",\"" +
+							name + "\");\n");
+					System.out.print(queryString);
+					queryStringByteArray = queryString.getBytes("UTF-8");
+					if (queryStringByteArray.length <= bb.remaining()) {
+						bb.put(queryStringByteArray);
+					} else {
+						fos.write(bb.array(), 0, bb.position());
+						buffer = new byte[BUFFER_SIZE];
+						bb = ByteBuffer.wrap(buffer);
+						bb.put(queryStringByteArray);
+					}
+
+					++index;
+				}
+			}
+
+			commitStringArray = "COMMIT;".getBytes("UTF-8");
+			if (commitStringArray.length <= bb.remaining()) {
+				bb.put(commitStringArray);
+			} else {
+				fos.write(bb.array(), 0, bb.position());
+				buffer = new byte[BUFFER_SIZE];
+				bb = ByteBuffer.wrap(buffer);
+				bb.put(commitStringArray);
+			}
+
+			// Write remaining entries
+			fos.write(bb.array(), 0, bb.position());
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	/**
 	 * @param args
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) throws Exception {
-		mapToSQLite("/home/moep/maps/germany.map", "/home/moep/maps/mapsforge/germany.map", false);
+		/*
+		 * Step 1: Convert old map format to new SQLite format
+		 * 
+		 * Input: Map file in old format, path to SQLite map file to be created, compression flag
+		 * 
+		 * Output: A SQLite based map file
+		 */
+		// mapToSQLite("/home/moep/maps/germany.map", "/home/moep/maps/mapsforge/germany.map", false);
 
+		/*
+		 * Step 2a: Create SQL statement for a global way name index.
+		 * 
+		 * Input: Map file in old format, path where SQL queries should be dumped to
+		 * 
+		 * Output: File containing SQL queries for creating a global street index
+		 */
+		streetNamesToSQL("/home/moep/maps/berlin.map",
+				"/home/moep/maps/mapsforge/berlin_global_street_index.sql");
+
+		/*
+		 * Counts the amount of tiles a street name lies in. This is needed for statistical purposes for
+		 * creating a way name index.
+		 * 
+		 * Input: Map file in old format
+		 */
 		// countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
+
+		/**
+		 * This is needed to check if the parser can read the old map format.
+		 * 
+		 * Input: Old map format file compiled with 'debug-file=true'
+		 */
 		// checkIdexes("/home/moep/maps/brandenburg.map");
+
+		/*
+		 * Routine for extracting a single tile from the old format
+		 */
 		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/berlin.map");
 		// System.out.println(ste.getMapFile());
 		// byte[] tile = ste.getTile(8812, 5354, (byte) 1);
@@ -308,5 +493,6 @@ public class MapFileDebuggerMain {
 		// os.write(tile);
 		// os.close();
 		// TileFactory.getTileFromRawData(tile, (byte) 1, ste.getMapFile());
+
 	}
 }

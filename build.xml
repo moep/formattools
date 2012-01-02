@@ -5,22 +5,97 @@ The script in not intended for building the project. Use Eclipse for this
 purpose.
 -->
 <project name="mapsforge-debug">
+	<property name="mapsforge.version" value="0.4-experimental" />
+	<property name="mapsforge.poi_version" value="0.3-experimental" />
+
+	<property name="mapsforge.bin" value="bin" />
+	<property name="mapsforge.lib" value="lib" />
+	<property name="mapsforge.src" value="src" />
+	<property name="mapsforge.dist" value="dist" />
+	<property name="mapsforge.doc" value="doc" />
+	
+	<!-- ################## mapsforge-poi-db-jar ################## -->
+	
 	<target name="mapsforge-poidb-writer-jar-create">
 		<mkdir dir="dist" />
-		<delete file="dist/mapsforge-poidb-writer-0.3-experimental.jar" />
-		<jar destfile="dist/mapsforge-poidb-writer-0.3-experimental.jar" duplicate="preserve">
+		<delete file="dist/mapsforge-poidb-writer-${mapsforge.poi_version}.jar" />
+		<jar destfile="dist/mapsforge-poidb-writer-${mapsforge.poi_version}.jar" duplicate="preserve">
 			<fileset dir="src/" excludes="org/mapsforge/preprocessing/poi/osmosis/plugin.xml" includes="org/mapsforge/preprocessing/poi/osmosis/" />
 			<fileset dir="src/" excludes="org/mapsforge/storage/poi/AndroidPoiCategoryManager.java" includes="org/mapsforge/storage/poi/" />
 
 			<fileset dir="bin/" includes="org/mapsforge/preprocessing/poi/osmosis/" />
 			<fileset dir="bin/" excludes="org/mapsforge/storage/poi/AndroidPoiCategoryManager.class" includes="org/mapsforge/storage/poi/" />
-			<fileset dir="src/org/mapsforge/preprocessing/poi/osmosis/" includes="plugin.xml"/>
+			<fileset dir="src/org/mapsforge/preprocessing/poi/osmosis/" includes="plugin.xml" />
 			<fileset dir="src/" includes="osmosis-plugin.conf" />
 		</jar>
 
 	</target>
 
 	<target name="mapsforge-poidb-writer-copy" depends="mapsforge-poidb-writer-jar-create">
-		<copy file="dist/mapsforge-poidb-writer-0.3-experimental.jar" todir="${user.home}/.openstreetmap/osmosis/plugins/" />
+		<copy file="dist/mapsforge-poidb-writer-${mapsforge.poi_version}.jar" todir="${user.home}/.openstreetmap/osmosis/plugins/" />
 	</target>
+
+	<!-- Check if the keystore exists -->
+	<target name="check-for-keystore">
+		<available file="${mapsforge.keystore.location}" type="file" property="keystore.present" />
+	</target>
+	
+	<!-- ################## mapsforge-mapfile-writer-jar ################## -->
+
+
+		<!-- Create the JAR file -->
+		<target name="mapsforge-mapfile-writer-jar-create">
+			<mkdir dir="${mapsforge.dist}" />
+			<!-- Include source code and generated class files, avoid duplicates -->
+			<jar destfile="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar"
+			     duplicate="preserve">
+				<fileset dir="${mapsforge.src}"
+				         excludes="org/mapsforge/preprocessing/map/osmosis/plugin.xml"
+				         includes="org/mapsforge/preprocessing/map/osmosis/" />
+				<!-- excludes="org/mapsforge/preprocessing/map/osmosis/*.xml,org/mapsforge/preprocessing/map/osmosis/*.dat" /> -->
+				<fileset dir="${mapsforge.bin}"
+				         excludes="org/mapsforge/preprocessing/map/osmosis/plugin.xml"
+				         includes="org/mapsforge/preprocessing/map/osmosis/" />
+				<!-- excludes="org/mapsforge/preprocessing/map/osmosis/*.xml,org/mapsforge/preprocessing/map/osmosis/*.dat" /> -->
+				<fileset dir="${mapsforge.src}"
+				         includes="org/mapsforge/core/Rect.java,
+							org/mapsforge/core/GeoCoordinate.java,
+							org/mapsforge/core/MercatorProjection.java,
+							org/mapsforge/core/WGS84.java" />
+				<fileset dir="${mapsforge.bin}"
+				         includes="org/mapsforge/core/Rect.class,
+							org/mapsforge/core/GeoCoordinate.class,
+							org/mapsforge/core/MercatorProjection.class,
+							org/mapsforge/core/WGS84.class" />
+				<fileset dir="${mapsforge.src}/org/mapsforge/preprocessing/map/osmosis/"
+				         includes="plugin.xml" />
+			</jar>
+		</target>
+
+
+		<!-- Sign and verify the JAR file if the keystore exists -->
+		<target name="mapsforge-mapfile-writer-jar-sign"
+		        depends="check-for-keystore,mapsforge-mapfile-writer-jar-create"
+		        if="keystore.present">
+			<signjar jar="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar"
+			         keystore="${mapsforge.keystore.location}"
+			         storepass="${mapsforge.keystore.pass}"
+			         alias="${mapsforge.keystore.alias}"
+			         keypass="${mapsforge.key.pass}" />
+			<!-- Verify the signed JAR file and stop if verification was not successful -->
+			<exec executable="jarsigner" failonerror="true">
+				<arg value="-verify" />
+				<arg value="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar" />
+			</exec>
+		</target>
+
+
+		<!-- Copy the created JAR file to the plugins directory -->
+		<target name="mapsforge-mapfile-writer-jar-copy"
+		        depends="mapsforge-mapfile-writer-jar-sign">
+			<copy overwrite="true"
+			      file="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar"
+			      todir="${user.home}/.openstreetmap/osmosis/plugins" />
+		</target>
+	
 </project>
