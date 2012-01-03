@@ -15,18 +15,21 @@
 package org.mapsforge.preprocessing.map.osmosis;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import org.mapsforge.core.GeoCoordinate;
 import org.mapsforge.core.MercatorProjection;
 import org.mapsforge.preprocessing.map.osmosis.TileData.TDNode;
 import org.mapsforge.preprocessing.map.osmosis.TileData.TDWay;
+import org.mapsforge.storage.dataExtraction.MapFileMetaData;
+import org.mapsforge.storage.tile.TileDataContainer;
+import org.mapsforge.storage.tile.TilePersistenceManager;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -109,8 +112,9 @@ class MapFileWriter {
 	private static final int WAY_BUFFER_SIZE = 0x100000; // 1MB
 	private static final int POI_BUFFER_SIZE = 0x100000; // 1MB
 
-	private final RandomAccessFile randomAccessFile;
-	private ByteBuffer bufferZoomIntervalConfig;
+	// private final RandomAccessFile randomAccessFile;
+	private TilePersistenceManager tilePersistenceManager;
+	private MapFileMetaData mapFileMetaData;
 
 	// accounting
 	private double tilesProcessed = 0;
@@ -124,10 +128,11 @@ class MapFileWriter {
 	private int posZoomIntervalConfig;
 	final int bboxEnlargement;
 
-	MapFileWriter(TileBasedDataStore dataStore, RandomAccessFile file, int bboxEnlargement) {
+	MapFileWriter(TileBasedDataStore dataStore, TilePersistenceManager tpm, int bboxEnlargement) {
 		super();
 		this.dataStore = dataStore;
-		this.randomAccessFile = file;
+		this.tilePersistenceManager = tpm;
+		this.mapFileMetaData = new MapFileMetaData();
 		amountOfTilesInPercentStep = Math.ceil(dataStore.cumulatedNumberOfTiles() / PROGRESS_PERCENT_STEP);
 		this.bboxEnlargement = bboxEnlargement;
 	}
@@ -147,23 +152,21 @@ class MapFileWriter {
 		long currentFileSize = totalHeaderSize;
 		for (int i = 0; i < amountOfZoomIntervals; i++) {
 			// SUB FILE INDEX AND DATA
-			long subfileSize = writeSubfile(currentFileSize, i, debugStrings, polygonClipping, wayClipping,
+			writeSubfile(i, debugStrings, polygonClipping, wayClipping,
 					pixelCompression);
-			// SUB FILE META DATA IN CONTAINER HEADER
-			writeSubfileMetaDataToContainerHeader(i, currentFileSize, subfileSize);
-			currentFileSize += subfileSize;
+			writeSubfileMetaDataToContainerHeader(i);
 		}
 
-		randomAccessFile.seek(posZoomIntervalConfig);
-		byte[] containerB = bufferZoomIntervalConfig.array();
-		randomAccessFile.write(containerB);
+		// randomAccessFile.seek(posZoomIntervalConfig);
+		// randomAccessFile.write(containerB);
 
 		// WRITE FILE SIZE TO HEADER
-		long fileSize = randomAccessFile.length();
-		randomAccessFile.seek(OFFSET_FILE_SIZE);
+		// long fileSize = randomAccessFile.length();
+		// randomAccessFile.seek(OFFSET_FILE_SIZE);
 		// randomAccessFile.writeLong(fileSize);
 
-		randomAccessFile.close();
+		this.tilePersistenceManager.setMetaData(this.mapFileMetaData);
+		// randomAccessFile.close();
 
 		LOGGER.info("Finished writing file.");
 
@@ -191,132 +194,118 @@ class MapFileWriter {
 		buffer.put(string.getBytes(UTF8_CHARSET));
 	}
 
+	// TODO cast to void
 	private long writeContainerHeader(long date, int version, short tilePixel, String comment,
 			boolean debugStrings, GeoCoordinate mapStartPosition, String preferredLanguage) throws IOException {
 
 		// get metadata for the map file
 		int numberOfZoomIntervals = dataStore.getZoomIntervalConfiguration().getNumberOfZoomIntervals();
 
-		LOGGER.fine("writing header");
+		LOGGER.fine("writing meta data");
 		LOGGER.fine("Bounding box for file: " + dataStore.getBoundingBox().maxLatitudeE6 + ", "
 				+ dataStore.getBoundingBox().minLongitudeE6 + ", " + dataStore.getBoundingBox().minLatitudeE6
 				+ ", " + dataStore.getBoundingBox().maxLongitudeE6);
 
 		ByteBuffer containerHeaderBuffer = ByteBuffer.allocate(HEADER_BUFFER_SIZE);
 
-		// write file header
-		// MAGIC BYTE
-		byte[] magicBytes = MAGIC_BYTE.getBytes();
-		containerHeaderBuffer.put(magicBytes);
-
-		// HEADER SIZE: Write dummy pattern as header size. It will be replaced later in time
-		int headerSizePosition = containerHeaderBuffer.position();
-		containerHeaderBuffer.putInt(0xf0f0f0f0);
-
 		// FILE VERSION
-		containerHeaderBuffer.putInt(version);
+		this.mapFileMetaData.setFileVersion("" + version);
 
-		// FILE SIZE: Write dummy pattern as file size. It will be replaced later in time
-		containerHeaderBuffer.putLong(0xf0f0f0f0f0f0f0f0L);
 		// DATE OF CREATION
-		containerHeaderBuffer.putLong(date);
+		this.mapFileMetaData.setDateOfCreation(date);
 
 		// BOUNDING BOX
-		containerHeaderBuffer.putInt(dataStore.getBoundingBox().minLatitudeE6);
-		containerHeaderBuffer.putInt(dataStore.getBoundingBox().minLongitudeE6);
-		containerHeaderBuffer.putInt(dataStore.getBoundingBox().maxLatitudeE6);
-		containerHeaderBuffer.putInt(dataStore.getBoundingBox().maxLongitudeE6);
+		this.mapFileMetaData.setBoundingBox(dataStore.getBoundingBox().minLatitudeE6,
+				dataStore.getBoundingBox().minLongitudeE6,
+				dataStore.getBoundingBox().maxLatitudeE6,
+				dataStore.getBoundingBox().maxLatitudeE6);
 
 		// TILE SIZE
-		containerHeaderBuffer.putShort(tilePixel);
+		this.mapFileMetaData.setTileSize(tilePixel);
 
 		// PROJECTION
-		writeUTF8(PROJECTION, containerHeaderBuffer);
+		this.mapFileMetaData.setProjection(PROJECTION);
 
 		// PREFERRED LANGUAGE
 		// TODO leads to zero length string, but according to specification this is correct
-		if (preferredLanguage == null)
-			writeUTF8("", containerHeaderBuffer);
-		else
-			writeUTF8(preferredLanguage, containerHeaderBuffer);
+		if (preferredLanguage == null) {
+			this.mapFileMetaData.setLanguagePreference("");
+		}
+		else {
+			this.mapFileMetaData.setLanguagePreference(preferredLanguage);
+		}
 
 		// FLAGS
-		containerHeaderBuffer.put(infoByteOptmizationParams(debugStrings, mapStartPosition != null));
+		byte flags = 0;
 
 		// MAP START POSITION
 		if (mapStartPosition != null) {
 			containerHeaderBuffer.putInt(mapStartPosition.getLatitudeE6());
 			containerHeaderBuffer.putInt(mapStartPosition.getLongitudeE6());
+			flags = (byte) (flags | 0x08);
 		}
 
-		// AMOUNT POI TAGS
-		containerHeaderBuffer.putShort((short) MapFileWriterTask.TAG_MAPPING.optimizedPoiIds().size());
+		// START ZOOM LEVEL
+		// TODO Start zoom level
+
 		// POI TAGS
+		String[] poiMappings = new String[(short) MapFileWriterTask.TAG_MAPPING.optimizedPoiIds().size()];
+		System.out.println("Number of POI tags: " + poiMappings.length);
+		System.out.println("Size of key set: " + MapFileWriterTask.TAG_MAPPING.optimizedPoiIds().keySet().size());
+
 		// retrieves tag ids in order of frequency, most frequent come first
+		short i = 0;
 		for (short tagId : MapFileWriterTask.TAG_MAPPING.optimizedPoiIds().keySet()) {
 			OSMTag tag = MapFileWriterTask.TAG_MAPPING.getPoiTag(tagId);
-			writeUTF8(tag.tagKey(), containerHeaderBuffer);
+			// poiMappings[tagId] = tag.tagKey();
+			poiMappings[i++] = tag.tagKey();
 		}
-
-		// AMOUNT OF WAY TAGS
-		containerHeaderBuffer.putShort((short) MapFileWriterTask.TAG_MAPPING.optimizedWayIds().size());
+		this.mapFileMetaData.setPOIMappings(poiMappings);
 
 		// WAY TAGS
+		containerHeaderBuffer.putShort((short) MapFileWriterTask.TAG_MAPPING.optimizedWayIds().size());
+		String[] wayMappings = new String[(short) MapFileWriterTask.TAG_MAPPING.optimizedWayIds().size()];
+		i = 0;
 		for (short tagId : MapFileWriterTask.TAG_MAPPING.optimizedWayIds().keySet()) {
 			OSMTag tag = MapFileWriterTask.TAG_MAPPING.getWayTag(tagId);
-			writeUTF8(tag.tagKey(), containerHeaderBuffer);
+			// wayMappings[tagId] = tag.tagKey();
+			wayMappings[i++] = tag.tagKey();
 		}
+		this.mapFileMetaData.setWayTagMappings(wayMappings);
 
 		// AMOUNT OF ZOOM INTERVALS
-		containerHeaderBuffer.put((byte) numberOfZoomIntervals);
+		this.mapFileMetaData.setAmountOfZoomIntervals((byte) numberOfZoomIntervals);
 
 		// ZOOM INTERVAL CONFIGURATION: SKIP COMPUTED AMOUNT OF BYTES
-		this.posZoomIntervalConfig = containerHeaderBuffer.position();
-		bufferZoomIntervalConfig = ByteBuffer.allocate(SIZE_ZOOMINTERVAL_CONFIGURATION * numberOfZoomIntervals);
-
-		containerHeaderBuffer.position(containerHeaderBuffer.position() + SIZE_ZOOMINTERVAL_CONFIGURATION
-				* numberOfZoomIntervals);
+		this.mapFileMetaData.prepareZoomIntervalConfiguration();
+		// TODO Write zoom interval configuration to db
 
 		// COMMENT
 		if (comment != null && !comment.equals("")) {
-			writeUTF8(comment, containerHeaderBuffer);
+			this.mapFileMetaData.setComment(comment);
 		} else {
-			writeUTF8("i love mapsforge", containerHeaderBuffer);
+			this.mapFileMetaData.setComment("i <3 mapsforge");
 		}
-
-		// now write header size
-		// -4 bytes of header size variable itself
-		int headerSize = containerHeaderBuffer.position() - headerSizePosition - 4;
-		containerHeaderBuffer.putInt(headerSizePosition, headerSize);
-
-		if (!containerHeaderBuffer.hasArray()) {
-			randomAccessFile.close();
-			throw new RuntimeException("unsupported operating system, byte buffer not backed by array");
-		}
-		// randomAccessFile.write(containerHeaderBuffer.array(), 0, containerHeaderBuffer.position());
 
 		return containerHeaderBuffer.position();
 	}
 
-	private void writeSubfileMetaDataToContainerHeader(int i, long startIndexOfSubfile, long subfileSize) {
-
+	// TODO find new method name
+	private void writeSubfileMetaDataToContainerHeader(int i) {
 		// HEADER META DATA FOR SUB FILE
 		// write zoom interval configuration to header
 		byte minZoomCurrentInterval = dataStore.getZoomIntervalConfiguration().getMinZoom(i);
 		byte maxZoomCurrentInterval = dataStore.getZoomIntervalConfiguration().getMaxZoom(i);
 		byte baseZoomCurrentInterval = dataStore.getZoomIntervalConfiguration().getBaseZoom(i);
 
-		bufferZoomIntervalConfig.put(baseZoomCurrentInterval);
-		bufferZoomIntervalConfig.put(minZoomCurrentInterval);
-		bufferZoomIntervalConfig.put(maxZoomCurrentInterval);
-		bufferZoomIntervalConfig.putLong(startIndexOfSubfile);
-		bufferZoomIntervalConfig.putLong(subfileSize);
+		this.mapFileMetaData.setZoomIntervalConfiguration(i, baseZoomCurrentInterval, minZoomCurrentInterval,
+				maxZoomCurrentInterval, TileDataContainer.TILE_TYPE_VECTOR);
 	}
 
-	private long writeSubfile(final long startPositionSubfile, final int zoomIntervalIndex,
+	// TODO Change return type to void
+	private long writeSubfile(final int zoomIntervalIndex,
 			final boolean debugStrings, // final boolean waynodeCompression,
-			final boolean polygonClipping, final boolean wayClipping, final boolean pixelCompression)
-			throws IOException {
+			final boolean polygonClipping, final boolean wayClipping, final boolean pixelCompression) {
 
 		LOGGER.fine("writing data for zoom interval " + zoomIntervalIndex + ", number of tiles: "
 				+ dataStore.getTileGridLayout(zoomIntervalIndex).getAmountTilesHorizontal()
@@ -337,24 +326,26 @@ class MapFileWriter {
 		int tileAmountInBytes = lengthX * lengthY * BYTE_AMOUNT_SUBFILE_INDEX_PER_TILE;
 		int indexBufferSize = tileAmountInBytes
 				+ (debugStrings ? DEBUG_INDEX_START_STRING.getBytes().length : 0);
-		ByteBuffer indexBuffer = ByteBuffer.allocate(indexBufferSize);
-		ByteBuffer compressedTilesBuffer = ByteBuffer.allocate(COMPRESSED_TILES_BUFFER_SIZE);
-		ByteBuffer wayBuffer = ByteBuffer.allocate(WAY_BUFFER_SIZE);
-		ByteBuffer poiBuffer = ByteBuffer.allocate(POI_BUFFER_SIZE);
+
+		// Buffer for all tile data
+		// TODO Make re-usable
 		ByteBuffer tileBuffer = ByteBuffer.allocate(TILE_BUFFER_SIZE);
-
-		// write debug strings for tile index segment if necessary
-		if (debugStrings)
-			indexBuffer.put(DEBUG_INDEX_START_STRING.getBytes());
-
-		long currentSubfileOffset = indexBufferSize;
-		randomAccessFile.seek(startPositionSubfile + indexBufferSize);
+		ByteBuffer poiBuffer = ByteBuffer.allocate(POI_BUFFER_SIZE);
+		ByteBuffer wayBuffer = ByteBuffer.allocate(WAY_BUFFER_SIZE);
 
 		// loop over tiles (row-wise)
+		// TODO make constant
+		final int batchSize = 1000;
+		int processed = 0;
+		TileDataContainer tileDataContainer = null;
+
+		// Batch of binary tiles
+		Vector<TileDataContainer> tiles = new Vector<TileDataContainer>(batchSize);
+		// Amount of bytes written to tile buffer
 		for (int tileY = upperLeft.getY(); tileY < upperLeft.getY() + lengthY; tileY++) {
 			for (int tileX = upperLeft.getX(); tileX < upperLeft.getX() + lengthX; tileX++) {
-				// logger.info("writing data for tile (" + tileX + ", " + tileY + ")");
-
+				// System.out.println("writing data for tile (" + tileX + ", " + tileY + ")");
+				tileBuffer.clear();
 				// ***************** TILE INDEX SEGMENT ********************
 
 				TileCoordinate currentTileCoordinate = new TileCoordinate(tileX, tileY, baseZoomCurrentInterval);
@@ -363,29 +354,23 @@ class MapFileWriter {
 				int currentTileLon = GeoCoordinate.doubleToInt(MercatorProjection.tileXToLongitude(
 						currentTileCoordinate.getX(), currentTileCoordinate.getZoomlevel()));
 
-				byte[] indexBytes = Serializer.getFiveBytes(currentSubfileOffset);
-				if (TILE_INFO.isWaterTile(currentTileCoordinate)) {
-					indexBytes[0] |= BITMAP_INDEX_ENTRY_WATER;
-				} else {
-					// the TileInfo class may produce false negatives for tiles on zoom level
-					// greater than TileInfo.TILE_INFO_ZOOMLEVEL
-					// we need to run the coastline algorithm to detect whether the tile is
-					// completely covered by water or not
-					if (currentTileCoordinate.getZoomlevel() > TileInfo.TILE_INFO_ZOOMLEVEL) {
-						if (COASTLINE_HANDLER.isWaterTile(currentTileCoordinate,
-								dataStore.getCoastLines(currentTileCoordinate))) {
-							indexBytes[0] |= BITMAP_INDEX_ENTRY_WATER;
-						}
-					}
-				}
-
-				// append relative offset of this tile as five bytes to the index
-				indexBuffer.put(indexBytes);
+				// TODO Handling of water tiles
+				// if (TILE_INFO.isWaterTile(currentTileCoordinate)) {
+				// indexBytes[0] |= BITMAP_INDEX_ENTRY_WATER;
+				// } else {
+				// // the TileInfo class may produce false negatives for tiles on zoom level
+				// // greater than TileInfo.TILE_INFO_ZOOMLEVEL
+				// // we need to run the coastline algorithm to detect whether the tile is
+				// // completely covered by water or not
+				// if (currentTileCoordinate.getZoomlevel() > TileInfo.TILE_INFO_ZOOMLEVEL) {
+				// if (COASTLINE_HANDLER.isWaterTile(currentTileCoordinate,
+				// dataStore.getCoastLines(currentTileCoordinate))) {
+				// indexBytes[0] |= BITMAP_INDEX_ENTRY_WATER;
+				// }
+				// }
+				// }
 
 				// ***************** TILE DATA SEGMENT ********************
-
-				// clear tile buffer
-				tileBuffer.clear();
 
 				// get data for tile
 				TileData currentTile = dataStore.getTile(zoomIntervalIndex, tileX, tileY);
@@ -397,7 +382,10 @@ class MapFileWriter {
 				Map<Byte, List<TDWay>> waysByZoomlevel = currentTile.waysByZoomlevel(minZoomCurrentInterval,
 						maxZoomCurrentInterval);
 
+				// If tile is not empty
 				if (poisByZoomlevel.size() > 0 || waysByZoomlevel.size() > 0) {
+
+					// Tile signature
 					if (debugStrings) {
 						// write tile header
 						StringBuilder sb = new StringBuilder();
@@ -405,16 +393,13 @@ class MapFileWriter {
 								.append(DEBUG_STRING_TILE_TAIL);
 						tileBuffer.put(sb.toString().getBytes());
 						// append withespaces so that block has 32 bytes
-						appendWhitespace(DEBUG_BLOCK_SIZE - sb.toString().getBytes().length, tileBuffer);
 					}
 
+					// Zoom table
 					int entitiesPerZoomLevelTablePosition = tileBuffer.position();
-					short[][] entitiesPerZoomLevel = new short[maxZoomCurrentInterval - minZoomCurrentInterval
+					short[][] entitiesPerZoomLevel = new short[maxZoomCurrentInterval -
+							minZoomCurrentInterval
 							+ 1][2];
-					// skip some bytes that will later be filled with the number of POIs and ways on
-					// each zoom level number of zoom levels times 2 (for POIs and ways) times
-					// BYTES_SHORT for the amount of bytes
-					tileBuffer.position(tileBuffer.position() + entitiesPerZoomLevel.length * 2 * BYTES_SHORT);
 
 					// clear poi buffer
 					poiBuffer.clear();
@@ -436,7 +421,8 @@ class MapFileWriter {
 							}
 
 							// write poi features to the file
-							poiBuffer.put(Serializer.getVariableByteSigned(poi.getLatitude() - currentTileLat));
+							poiBuffer.put(Serializer.getVariableByteSigned(poi.getLatitude() -
+									currentTileLat));
 							poiBuffer
 									.put(Serializer.getVariableByteSigned(poi.getLongitude() - currentTileLon));
 
@@ -454,7 +440,8 @@ class MapFileWriter {
 
 							// write byte with bits set to 1 if the poi has a name, an elevation
 							// or a housenumber
-							poiBuffer.put(infoBytePOI(poi.getName(), poi.getElevation(), poi.getHouseNumber()));
+							poiBuffer.put(infoBytePOI(poi.getName(), poi.getElevation(),
+									poi.getHouseNumber()));
 
 							if (poi.getName() != null && poi.getName().length() > 0) {
 								writeUTF8(poi.getName(), poiBuffer);
@@ -472,12 +459,8 @@ class MapFileWriter {
 						}
 					} // end for loop over POIs
 
-					// write offset to first way in the tile header
-					tileBuffer.put(Serializer.getVariableByteUnsigned(poiBuffer.position()));
-					// write POIs to buffer
-					tileBuffer.put(poiBuffer.array(), 0, poiBuffer.position());
-
 					// ***************** WAYS ********************
+					wayBuffer.put("::waystart::".getBytes());
 					// loop over all relevant zoom levels
 					for (byte zoomlevel = minZoomCurrentInterval; zoomlevel <= maxZoomCurrentInterval; zoomlevel++) {
 						int indexEntitiesPerZoomLevelTable = zoomlevel - minZoomCurrentInterval;
@@ -488,7 +471,8 @@ class MapFileWriter {
 						for (TDWay way : ways) {
 							wayBuffer.clear();
 
-							WayPreprocessingResult wpr = preprocessWay(way, pixelCompression, polygonClipping,
+							WayPreprocessingResult wpr = preprocessWay(way, pixelCompression,
+									polygonClipping,
 									wayClipping, currentTileCoordinate);
 
 							if (wpr == null) {
@@ -585,71 +569,88 @@ class MapFileWriter {
 							entitiesPerZoomLevel[indexEntitiesPerZoomLevelTable][1]++;
 						}
 					} // end for loop over ways
+					wayBuffer.put("::wayend::".getBytes());
 
-					int tileSize = tileBuffer.position();
+					// ZOOM TABLE
+					tileBuffer.put(":::TODO: Zoom Table:::".getBytes());
+
+					// FIRST WAY OFFSET
+					tileBuffer.put(Serializer.getVariableByteUnsigned(tileBuffer.position()));
+
+					// POI DATA
+					tileBuffer.put(poiBuffer.array(), 0, poiBuffer.position());
+
+					// WAY DATA
+					tileBuffer.put(wayBuffer.array(), 0, wayBuffer.position());
+
+					// int tileSize = tileBuffer.position();
 
 					// update the zoom level table
 					// write cumulated number of POIs and ways for this tile on each zoom level
-					tileBuffer.position(entitiesPerZoomLevelTablePosition);
-					short[] cumulatedCounts = new short[2];
-					for (short[] entityCount : entitiesPerZoomLevel) {
-						cumulatedCounts[0] += entityCount[0];
-						cumulatedCounts[1] += entityCount[1];
-						tileBuffer.putShort(cumulatedCounts[0]);
-						tileBuffer.putShort(cumulatedCounts[1]);
+					// short[] cumulatedCounts = new short[2];
+					// for (short[] entityCount : entitiesPerZoomLevel) {
+					// cumulatedCounts[0] += entityCount[0];
+					// cumulatedCounts[1] += entityCount[1];
+					// tileBuffer.putShort(cumulatedCounts[0]);
+					// tileBuffer.putShort(cumulatedCounts[1]);
+					// }
+					//
+					// if (maxWaysPerTile < cumulatedCounts[1])
+					// maxWaysPerTile = cumulatedCounts[1];
+					// cumulatedNumberOfWaysInTiles += cumulatedCounts[1];
+					//
+					// tileBuffer.position(tileSize);
+
+					// currentSubfileOffset += tileBuffer.position();
+					//
+					// // accounting
+					// if (maxTileSize < tileSize)
+					// maxTileSize = tileSize;
+					// if (tileSize > 0)
+					// cumulatedTileSizeOfNonEmptyTiles += tileSize;
+					//
+					// // add tile to tiles buffer
+					// compressedTilesBuffer.put(tileBuffer.array(), 0, tileSize);
+					//
+					// // if necessary, allocate new buffer
+					// if (compressedTilesBuffer.remaining() < MIN_TILE_BUFFER_SIZE) {
+					// // randomAccessFile.write(compressedTilesBuffer.array(), 0,
+					// // compressedTilesBuffer.position());
+					// compressedTilesBuffer.clear();
+					// }
+
+					// COMMIT BATCH
+					byte[] tile = new byte[tileBuffer.position()];
+					tileBuffer.rewind();
+					tileBuffer.get(tile);
+					tiles.add(new TileDataContainer(tile, TileDataContainer.TILE_TYPE_VECTOR, tileY, tileY,
+							(byte) zoomIntervalIndex));
+					++processed;
+					if (processed == batchSize) {
+						this.tilePersistenceManager.insertOrUpdateTiles(tiles);
+						tiles.clear();
+						processed = 0;
 					}
-
-					if (maxWaysPerTile < cumulatedCounts[1])
-						maxWaysPerTile = cumulatedCounts[1];
-					cumulatedNumberOfWaysInTiles += cumulatedCounts[1];
-
-					tileBuffer.position(tileSize);
-
-					currentSubfileOffset += tileBuffer.position();
-
-					// accounting
-					if (maxTileSize < tileSize)
-						maxTileSize = tileSize;
-					if (tileSize > 0)
-						cumulatedTileSizeOfNonEmptyTiles += tileSize;
-
-					// add tile to tiles buffer
-					compressedTilesBuffer.put(tileBuffer.array(), 0, tileSize);
-					System.out.println("Writing: " + tileBuffer.array().length + " bytes");
-
-					// if necessary, allocate new buffer
-					if (compressedTilesBuffer.remaining() < MIN_TILE_BUFFER_SIZE) {
-						randomAccessFile.write(compressedTilesBuffer.array(), 0,
-								compressedTilesBuffer.position());
-						compressedTilesBuffer.clear();
-					}
-
 				} // end if clause checking if tile is empty or not
 				else {
 					emptyTiles++;
 				}
+				// ###################################
 
 				tilesProcessed++;
 				if (tilesProcessed % amountOfTilesInPercentStep == 0) {
 					LOGGER.info("written " + (tilesProcessed / amountOfTilesInPercentStep)
 							* PROGRESS_PERCENT_STEP + "% of file");
 				}
+
 			} // end for loop over tile columns
 		} // /end for loop over tile rows
 
 		// write remaining tiles
-		if (compressedTilesBuffer.position() > 0) {
-			// byte buffer was not previously cleared
-			// randomAccessFile.write(compressedTilesBuffer.array(), 0, compressedTilesBuffer.position());
-		}
-
-		// write index
-		randomAccessFile.seek(startPositionSubfile);
-		// randomAccessFile.write(indexBuffer.array());
-		randomAccessFile.seek(currentSubfileOffset);
+		this.tilePersistenceManager.insertOrUpdateTiles(tiles);
 
 		// return size of sub file in bytes
-		return currentSubfileOffset;
+		return 0;
 	}// end writeSubfile()
 
 	private static void writeWay(List<Integer> wayNodes, int currentTileLat, int currentTileLon,

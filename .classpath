@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="org/mapsforge/applications/debug/OsmosisStarter.java|SQLite3/|org/mapsforge/preprocessing/map/osmosis/Tile.java" kind="src" path="src"/>
+	<classpathentry excluding="SQLite3/|org/mapsforge/applications/debug/OsmosisStarter.java" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/osmosis/commons-compress-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/jpf-1.5.jar"/>
-	<classpathentry kind="lib" path="lib/osmosis/osmosis-core-SNAPSHOT-0.39-39-g18dc07f.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/osmosis-pbf-SNAPSHOT-0.39-39-g18dc07f.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/osmpbf-1.1.1-754a33af.jar"/>
 	<classpathentry kind="lib" path="lib/osmosis/protobuf-java-2.3.0.jar"/>
@@ -15,7 +14,7 @@
 	<classpathentry kind="lib" path="lib/sqlite-jdbc-custom.jar"/>
 	<classpathentry kind="lib" path="lib/jts-1.12.jar"/>
 	<classpathentry kind="lib" path="lib/trove-3.0.2.jar"/>
-	<classpathentry kind="lib" path="src/org/mapsforge/preprocessing/map/osmosis/Tile.java"/>
 	<classpathentry kind="lib" path="lib/android-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/osmosis/osmosis-core-0.40.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

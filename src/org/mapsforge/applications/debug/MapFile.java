@@ -260,9 +260,9 @@ class MapFile {
 	}
 
 	public void setBoundingBox(int minLat, int minLon, int maxLat, int maxLon) {
-		this.maxLat = maxLat;
-		this.minLon = minLon;
 		this.minLat = minLat;
+		this.minLon = minLon;
+		this.maxLat = maxLat;
 		this.maxLon = maxLon;
 	}
 

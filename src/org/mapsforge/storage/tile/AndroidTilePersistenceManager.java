@@ -302,6 +302,12 @@ public class AndroidTilePersistenceManager implements TilePersistenceManager {
 		return this.mapFileMetaData;
 	}
 
+	@Override
+	public void setMetaData(MapFileMetaData mapFileMetaData) {
+		// TODO Auto-generated method stub
+
+	}
+
 	/**
 	 * Loads all meta data from an existing map database.
 	 */

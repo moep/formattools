@@ -43,8 +43,8 @@ public class MapFileMetaData {
 
 	// Map start position
 	private int mapStartLon;
-
 	private int mapStartLat;
+	private byte startZoomLevel;
 
 	private String comment;
 
@@ -93,17 +93,21 @@ public class MapFileMetaData {
 	}
 
 	/**
+	 * @return true if the map is in debug mode.
+	 */
+	public boolean isDebugFlagSet() {
+		return (this.flags & 0x80) != 0;
+	}
+
+	/**
 	 * @return true if the map has map start position data.
 	 */
 	public boolean isMapStartPositionFlagSet() {
 		return (this.flags & 0x40) != 0;
 	}
 
-	/**
-	 * @return true if the map is in debug mode.
-	 */
-	public boolean isDebugFlagSet() {
-		return (this.flags & 0x80) != 0;
+	public boolean isStartZoomLevelFlagSet() {
+		return (this.flags & 0x20) != 0;
 	}
 
 	/**
@@ -213,6 +217,14 @@ public class MapFileMetaData {
 	public void setMapStartPosition(int lat, int lon) {
 		this.mapStartLat = lat;
 		this.mapStartLon = lon;
+	}
+
+	public byte getStartZoomLevel() {
+		return this.startZoomLevel;
+	}
+
+	public void setStartZoomLevel(byte zoomLevel) {
+		this.startZoomLevel = zoomLevel;
 	}
 
 	/**

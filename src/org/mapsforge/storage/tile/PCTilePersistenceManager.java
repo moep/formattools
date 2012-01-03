@@ -42,6 +42,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 	private PreparedStatement deleteTileByIDStmt = null;
 	private PreparedStatement getTileByIDStmt = null;
 	private PreparedStatement getMetaDataStatement = null;
+	private PreparedStatement insertOrUpdateMetaDataStatement = null;
 	private ResultSet resultSet = null;
 
 	private MapFileMetaData mapFileMetaData = null;
@@ -57,6 +58,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 	 *            empty meta data container will be used for creating the database.
 	 */
 	public PCTilePersistenceManager(String path, MapFileMetaData mapFileMetaData) {
+		// TODO Throw FileNotFoundException
 
 		if (mapFileMetaData == null) {
 			// Create default metadata values
@@ -95,6 +97,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 		this.deleteTileByIDStmt = conn.prepareStatement("DELETE FROM ? WHERE id == ?;");
 		this.getTileByIDStmt = conn.prepareStatement("SELECT data FROM ? WHERE id == ?;");
 		this.getMetaDataStatement = conn.prepareStatement("SELECT value FROM metadata WHERE key == ?;");
+		this.insertOrUpdateMetaDataStatement = conn.prepareStatement("INSERT OR REPLACE INTO metadata VALUES(?, ?)");
 
 		// Create database if it does not yet exist.
 		File dbFile = new File(path);
@@ -113,42 +116,18 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 			this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tiles_" + i + " (id INTEGER, data BLOB, PRIMARY KEY (id));");
 		}
 
-		// Mostly information from former file header
+		// Metadata (mostly information from former file header)
 		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS metadata (key STRING, value STRING, PRIMARY KEY (key));");
-		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS poi_tags (tag STRING, value INTEGER);");
-		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS way_tags (tag STRING, value INTEGER);");
+		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS poi_tags (tag STRING, value INTEGER, PRIMARY KEY (value));");
+		this.stmt.executeUpdate("CREATE TABLE IF NOT EXISTS way_tags (tag STRING, value INTEGER, PRIMARY KEY (value));");
 		this.stmt
 				.executeUpdate("CREATE TABLE IF NOT EXISTS zoom_interval_configuration "
 						+
 						"(interval TINYINT, baseZoomLevel TINYINT, minimalZoomLevel TINYINT, maximalZoomLevel TINYINT, dataType TINYINT);");
 
-		// INSERT (metadata)
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('version', '" + this.mapFileMetaData.getFileVersion() + "');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('dateOfCreation', '" + this.mapFileMetaData.getDateOfCreation()
-				+ "');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('boundingBoxMinLat', " + this.mapFileMetaData.getMinLat() + " );");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('boundingBoxMaxLat', " + this.mapFileMetaData.getMaxLat() + " );");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('boundingBoxMinLon', " + this.mapFileMetaData.getMinLon() + " );");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('boundingBoxMaxLon', " + this.mapFileMetaData.getMaxLon() + " );");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('tileSize', '" + this.mapFileMetaData.getTileSize() + "');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('projection', '" + this.mapFileMetaData.getProjection() + "');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('languagePreference', '"
-				+ this.mapFileMetaData.getLanguagePreference() + "');");
+		writeMetaDataToDB();
 
-		// Flags
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('debugInformationFlag', '"
-				+ (this.mapFileMetaData.isDebugFlagSet() ? "1" : "0") + "');");
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('mapPositionExistsFlag', '"
-				+ (this.mapFileMetaData.isMapStartPositionFlagSet() ? "1" : "0") + "');");
-
-		if (this.mapFileMetaData.isMapStartPositionFlagSet()) {
-			this.stmt.executeUpdate("INSERT INTO metadata VALUES ('mapStartLat', '" + this.mapFileMetaData.getMapStartLat()
-					+ "');");
-			this.stmt.executeUpdate("INSERT INTO metadata VALUES ('mapStartLon', '" + this.mapFileMetaData.getMapStartLon()
-					+ "');");
-		}
-
-		this.stmt.executeUpdate("INSERT INTO metadata VALUES ('comment', '" + this.mapFileMetaData.getComment() + "');");
+		// These values should only be added once and are not yet changeable
 
 		// Create default zoom level configuration
 		for (int i = 0; i < this.mapFileMetaData.getAmountOfZoomIntervals(); i++) {
@@ -183,7 +162,6 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 
 	@Override
 	public void insertOrUpdateTile(byte[] rawData, int id, byte baseZoomInterval) {
-		System.out.println("Insert or update");
 		try {
 			this.insertOrUpdateTileByIDStmt.setString(1, "tiles_" + baseZoomInterval);
 			this.insertOrUpdateTileByIDStmt.setInt(2, id);
@@ -321,6 +299,76 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 		return this.mapFileMetaData;
 	}
 
+	@Override
+	public void setMetaData(MapFileMetaData metaData) {
+		this.mapFileMetaData = metaData;
+		writeMetaDataToDB();
+	}
+
+	/**
+	 * This synchronizes the metadata object with the DB. Entries in the database will be updated. Keys
+	 * that do not yet exist will be created.
+	 */
+	private void writeMetaDataToDB() {
+		System.out.println("Writing meta data");
+		try {
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('version', '"
+					+ this.mapFileMetaData.getFileVersion()
+					+ "');");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('dateOfCreation', '"
+					+ this.mapFileMetaData.getDateOfCreation()
+					+ "');");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('boundingBoxMinLat', "
+					+ this.mapFileMetaData.getMinLat()
+					+ " );");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('boundingBoxMaxLat', "
+					+ this.mapFileMetaData.getMaxLat()
+					+ " );");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('boundingBoxMinLon', "
+					+ this.mapFileMetaData.getMinLon()
+					+ " );");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('boundingBoxMaxLon', "
+					+ this.mapFileMetaData.getMaxLon()
+					+ " );");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('tileSize', '" + this.mapFileMetaData.getTileSize()
+					+ "');");
+			this.stmt
+					.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('projection', '"
+							+ this.mapFileMetaData.getProjection() + "');");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('languagePreference', '"
+					+ this.mapFileMetaData.getLanguagePreference() + "');");
+
+			// Flags
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('debugInformationFlag', '"
+					+ (this.mapFileMetaData.isDebugFlagSet() ? "1" : "0") + "');");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('mapPositionExistsFlag', '"
+					+ (this.mapFileMetaData.isMapStartPositionFlagSet() ? "1" : "0") + "');");
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('startZoomLevelExistsFlag', '"
+					+ (this.mapFileMetaData.isStartZoomLevelFlagSet() ? "1" : "0") + "');");
+
+			if (this.mapFileMetaData.isMapStartPositionFlagSet()) {
+				this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('mapStartLat', '"
+						+ this.mapFileMetaData.getMapStartLat()
+						+ "');");
+				this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('mapStartLon', '"
+						+ this.mapFileMetaData.getMapStartLon()
+						+ "');");
+			}
+
+			if (this.mapFileMetaData.isStartZoomLevelFlagSet()) {
+				this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('startZoomLevel', '"
+						+ this.mapFileMetaData.getStartZoomLevel()
+						+ "');");
+			}
+
+			this.stmt.executeUpdate("INSERT OR REPLACE INTO metadata VALUES ('comment', '" + this.mapFileMetaData.getComment()
+					+ "');");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	private void readMetaDataFromDB() {
 		this.mapFileMetaData = new MapFileMetaData();
 
@@ -415,7 +463,47 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 				}
 			}
 
+			// Start zoom level flag
+			this.getMetaDataStatement.setString(1, "startZoomLevelExistsFlag");
+			this.getMetaDataStatement.execute();
+			this.resultSet = this.getMetaDataStatement.getResultSet();
+			if (this.resultSet.next()) {
+				if (this.resultSet.getString(1).equals("1")) {
+					flags = (byte) (flags | (byte) 0x20);
+				}
+			}
+
 			this.mapFileMetaData.setFlags(flags);
+
+			// Map start position
+			int mapStartLat = 0;
+			int mapStartLon = 0;
+			if (this.mapFileMetaData.isMapStartPositionFlagSet()) {
+				this.getMetaDataStatement.setString(1, "mapStartLat");
+				this.getMetaDataStatement.execute();
+				this.resultSet = this.getMetaDataStatement.getResultSet();
+				if (this.resultSet.next()) {
+					mapStartLat = Integer.parseInt(this.resultSet.getString(1));
+				}
+				this.getMetaDataStatement.setString(1, "mapStartLon");
+				this.getMetaDataStatement.execute();
+				this.resultSet = this.getMetaDataStatement.getResultSet();
+				if (this.resultSet.next()) {
+					mapStartLon = Integer.parseInt(this.resultSet.getString(1));
+				}
+
+				this.mapFileMetaData.setMapStartPosition(mapStartLat, mapStartLon);
+			}
+
+			// Start zoom level
+			if (this.mapFileMetaData.isStartZoomLevelFlagSet()) {
+				this.getMetaDataStatement.setString(1, "startZoomLevel");
+				this.getMetaDataStatement.execute();
+				this.resultSet = this.getMetaDataStatement.getResultSet();
+				if (this.resultSet.next()) {
+					this.mapFileMetaData.setStartZoomLevel(Byte.parseByte((this.resultSet.getString(1))));
+				}
+			}
 
 			// Comment
 			this.getMetaDataStatement.setString(1, "comment");
@@ -488,6 +576,7 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 	public void close() {
 		try {
 			if (!this.conn.isClosed()) {
+				this.conn.commit();
 				this.conn.close();
 			}
 		} catch (SQLException e) {
@@ -507,14 +596,19 @@ public class PCTilePersistenceManager implements TilePersistenceManager {
 	 *            Not used.
 	 */
 	public static void main(String[] args) {
-		PCTilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
+		PCTilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/test.map");
 
 		Vector<TileDataContainer> tiles = new Vector<TileDataContainer>();
-		tiles.add(new TileDataContainer("moep".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 1, 0, (byte) 1));
-		tiles.add(new TileDataContainer("bla".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 2, 0, (byte) 1));
-		tiles.add(new TileDataContainer("blubb".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 3, 0, (byte) 1));
-		tiles.add(new TileDataContainer("bleh!".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 4, 0, (byte) 1));
-		tiles.add(new TileDataContainer("narf!".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 5, 0, (byte) 1));
+		tiles.add(new TileDataContainer("moep".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 1, 0,
+				(byte) 1));
+		tiles.add(new TileDataContainer("bla".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 2, 0,
+				(byte) 1));
+		tiles.add(new TileDataContainer("blubb".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 3, 0,
+				(byte) 1));
+		tiles.add(new TileDataContainer("bleh!".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 4, 0,
+				(byte) 1));
+		tiles.add(new TileDataContainer("narf!".getBytes(), TileDataContainer.TILE_TYPE_VECTOR, 5, 0,
+				(byte) 1));
 
 		tpm.insertOrUpdateTiles(tiles);
 

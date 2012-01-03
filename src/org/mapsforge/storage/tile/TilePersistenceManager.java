@@ -159,6 +159,15 @@ public interface TilePersistenceManager {
 	public MapFileMetaData getMetaData();
 
 	/**
+	 * Writes the given metadata to the database file. If the metadata needs to be upgraded use
+	 * {@link #getMetaData()} as parameter.
+	 * 
+	 * @param mapFileMetaData
+	 *            The metadata object containing the data to be written.
+	 */
+	public void setMetaData(MapFileMetaData mapFileMetaData);
+
+	/**
 	 * Closes the db.
 	 */
 	public void close();

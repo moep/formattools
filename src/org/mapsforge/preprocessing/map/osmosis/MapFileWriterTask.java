@@ -16,7 +16,6 @@ package org.mapsforge.preprocessing.map.osmosis;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
 import java.text.NumberFormat;
 import java.util.logging.Level;
@@ -24,6 +23,8 @@ import java.util.logging.Logger;
 
 import org.mapsforge.core.GeoCoordinate;
 import org.mapsforge.core.Rect;
+import org.mapsforge.storage.tile.PCTilePersistenceManager;
+import org.mapsforge.storage.tile.TilePersistenceManager;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
@@ -38,8 +39,8 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
  * @author bross
  */
 public class MapFileWriterTask implements Sink {
-	private static final int VERSION_BINARY_FORMAT = 3;
-	private static final String VERSION_LIBRARY = "0.2.4";
+	private static final int VERSION_BINARY_FORMAT = 4;
+	private static final String VERSION_LIBRARY = "0.4-experimental";
 
 	private static final Logger LOGGER = Logger.getLogger(MapFileWriterTask.class.getName());
 
@@ -125,6 +126,7 @@ public class MapFileWriterTask implements Sink {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.openstreetmap.osmosis.core.lifecycle.Completable#complete()
 	 */
 	@Override
@@ -144,11 +146,14 @@ public class MapFileWriterTask implements Sink {
 				LOGGER.info("overwriting file " + outFile.getAbsolutePath());
 				outFile.delete();
 			}
-			RandomAccessFile file = new RandomAccessFile(outFile, "rw");
-			MapFileWriter mfw = new MapFileWriter(tileBasedGeoObjectStore, file, bboxEnlargement);
+
+			// RandomAccessFile file = new RandomAccessFile(outFile, "rw");
+			TilePersistenceManager tpm = new PCTilePersistenceManager(outFile.getAbsolutePath());
+			MapFileWriter mfw = new MapFileWriter(tileBasedGeoObjectStore, tpm, bboxEnlargement);
 			// mfw.writeFileWithDebugInfos(System.currentTimeMillis(), 1, (short) 256);
 			mfw.writeFile(System.currentTimeMillis(), VERSION_BINARY_FORMAT, (short) 256, comment, debugInfo,
 					polygonClipping, wayClipping, pixelFilter, mapStartPosition, preferredLanguage);
+			tpm.close();
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "error while writing file", e);
 		}

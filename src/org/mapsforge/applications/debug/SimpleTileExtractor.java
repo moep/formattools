@@ -28,6 +28,7 @@ import org.mapsforge.core.MercatorProjection;
  * 
  */
 public class SimpleTileExtractor {
+	private static final long BITMASK_INDEX_OFFSET = 0x7FFFFFFFFFL;
 	private static final double COORDINATES_FACTOR = 1000000.0;
 	private RandomAccessFile f;
 	private MapFile mapFile;
@@ -145,7 +146,6 @@ public class SimpleTileExtractor {
 		for (byte z = 0; z < this.mapFile.getAmountOfZoomIntervals(); z++) {
 			this.offset = this.mapFile.getAbsoluteStartPosition()[z];
 			this.f.seek(this.offset);
-			System.out.print("Reading header for subfile " + z + "...");
 
 			// Read bounding box
 			long firstX = MercatorProjection.longitudeToTileX(this.mapFile.getMinLon()
@@ -163,10 +163,10 @@ public class SimpleTileExtractor {
 
 			this.tileBoundingBox[z] = new Rect((int) firstX, (int) lastX, (int) firstY, (int) lastY);
 
-			// System.out.println("\nFirstX : " + firstX);
-			// System.out.println("LastX : " + lastX);
-			// System.out.println("FirstY : " + firstY);
-			// System.out.println("LastY : " + lastY);
+			System.out.println("\nFirstX : " + firstX);
+			System.out.println("LastX : " + lastX);
+			System.out.println("FirstY : " + firstY);
+			System.out.println("LastY : " + lastY);
 
 			// System.out.println("Min lat: " + this.mapFile.getMinLat());
 			// System.out.println("Max lat: " + this.mapFile.getMaxLat());
@@ -180,19 +180,20 @@ public class SimpleTileExtractor {
 
 			int numBlocks = (this.tileBoundingBox[z].getMaxX() - this.tileBoundingBox[z].getMinX() + 1)
 					* (this.tileBoundingBox[z].getMaxY() - this.tileBoundingBox[z].getMinY() + 1);
+			System.out.println("#Blocks: " + numBlocks);
 			// numBlocks = Math.abs(numBlocks);
 
 			// System.out.println("TBB: (" + this.tileBoundingBox[z].getMinX() + "," +
 			// this.tileBoundingBox[z].getMaxX() +
 			// ")...(" + this.tileBoundingBox[z].getMinY() + "," + this.tileBoundingBox[z].getMaxY() +
 			// ")");
-
+			System.out.println("Next tile start @ " + (numBlocks * 5 + this.offset));
 			this.tileOffset[z] = new long[numBlocks];
 			for (int i = 0; i < numBlocks; i++) {
-				this.tileOffset[z][i] = getNextLong5();
+				this.tileOffset[z][i] = getNextLong5() & BITMASK_INDEX_OFFSET;
+				System.out.printf("offset: %5x\r\n", this.tileOffset[z][i]);
 			}
-
-			System.out.println("done");
+			System.out.println("Next tile start @ " + (this.offset));
 		}
 	}
 
@@ -245,6 +246,7 @@ public class SimpleTileExtractor {
 
 		// Read the tile
 		int tileSize = getTileSize(id, zoomInterval);
+		System.out.println("Reading: " + tileSize);
 		byte[] tile = new byte[tileSize];
 		this.f.seek(this.offset);
 		this.f.read(tile, 0, tileSize);

@@ -13,9 +13,9 @@ purpose.
 	<property name="mapsforge.src" value="src" />
 	<property name="mapsforge.dist" value="dist" />
 	<property name="mapsforge.doc" value="doc" />
-	
+
 	<!-- ################## mapsforge-poi-db-jar ################## -->
-	
+
 	<target name="mapsforge-poidb-writer-jar-create">
 		<mkdir dir="dist" />
 		<delete file="dist/mapsforge-poidb-writer-${mapsforge.poi_version}.jar" />
@@ -39,63 +39,48 @@ purpose.
 	<target name="check-for-keystore">
 		<available file="${mapsforge.keystore.location}" type="file" property="keystore.present" />
 	</target>
-	
+
 	<!-- ################## mapsforge-mapfile-writer-jar ################## -->
 
 
-		<!-- Create the JAR file -->
-		<target name="mapsforge-mapfile-writer-jar-create">
-			<mkdir dir="${mapsforge.dist}" />
-			<!-- Include source code and generated class files, avoid duplicates -->
-			<jar destfile="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar"
-			     duplicate="preserve">
-				<fileset dir="${mapsforge.src}"
-				         excludes="org/mapsforge/preprocessing/map/osmosis/plugin.xml"
-				         includes="org/mapsforge/preprocessing/map/osmosis/" />
-				<!-- excludes="org/mapsforge/preprocessing/map/osmosis/*.xml,org/mapsforge/preprocessing/map/osmosis/*.dat" /> -->
-				<fileset dir="${mapsforge.bin}"
-				         excludes="org/mapsforge/preprocessing/map/osmosis/plugin.xml"
-				         includes="org/mapsforge/preprocessing/map/osmosis/" />
-				<!-- excludes="org/mapsforge/preprocessing/map/osmosis/*.xml,org/mapsforge/preprocessing/map/osmosis/*.dat" /> -->
-				<fileset dir="${mapsforge.src}"
-				         includes="org/mapsforge/core/Rect.java,
+	<!-- Create the JAR file -->
+	<target name="mapsforge-mapfile-writer-jar-create">
+		<mkdir dir="${mapsforge.dist}" />
+		<!-- Include source code and generated class files, avoid duplicates -->
+		<jar destfile="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar" duplicate="preserve">
+			<fileset dir="${mapsforge.src}" excludes="org/mapsforge/preprocessing/map/osmosis/plugin.xml,
+					     org/mapsforge/storage/tile/AndroidTilePersistenceManager.java" includes="org/mapsforge/preprocessing/map/osmosis/,
+					     org/mapsforge/storage/tile/" />
+			<!-- excludes="org/mapsforge/preprocessing/map/osmosis/*.xml,org/mapsforge/preprocessing/map/osmosis/*.dat" /> -->
+			<fileset dir="${mapsforge.bin}" excludes="org/mapsforge/preprocessing/map/osmosis/plugin.xml" includes="org/mapsforge/preprocessing/map/osmosis/" />
+			<!-- excludes="org/mapsforge/preprocessing/map/osmosis/*.xml,org/mapsforge/preprocessing/map/osmosis/*.dat" /> -->
+			<fileset dir="${mapsforge.src}" includes="org/mapsforge/core/Rect.java,
 							org/mapsforge/core/GeoCoordinate.java,
 							org/mapsforge/core/MercatorProjection.java,
 							org/mapsforge/core/WGS84.java" />
-				<fileset dir="${mapsforge.bin}"
-				         includes="org/mapsforge/core/Rect.class,
+			<fileset dir="${mapsforge.bin}" includes="org/mapsforge/core/Rect.class,
 							org/mapsforge/core/GeoCoordinate.class,
 							org/mapsforge/core/MercatorProjection.class,
 							org/mapsforge/core/WGS84.class" />
-				<fileset dir="${mapsforge.src}/org/mapsforge/preprocessing/map/osmosis/"
-				         includes="plugin.xml" />
-			</jar>
-		</target>
+			<fileset dir="${mapsforge.src}/org/mapsforge/preprocessing/map/osmosis/" includes="plugin.xml" />
+		</jar>
+	</target>
 
 
-		<!-- Sign and verify the JAR file if the keystore exists -->
-		<target name="mapsforge-mapfile-writer-jar-sign"
-		        depends="check-for-keystore,mapsforge-mapfile-writer-jar-create"
-		        if="keystore.present">
-			<signjar jar="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar"
-			         keystore="${mapsforge.keystore.location}"
-			         storepass="${mapsforge.keystore.pass}"
-			         alias="${mapsforge.keystore.alias}"
-			         keypass="${mapsforge.key.pass}" />
-			<!-- Verify the signed JAR file and stop if verification was not successful -->
-			<exec executable="jarsigner" failonerror="true">
-				<arg value="-verify" />
-				<arg value="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar" />
-			</exec>
-		</target>
+	<!-- Sign and verify the JAR file if the keystore exists -->
+	<target name="mapsforge-mapfile-writer-jar-sign" depends="check-for-keystore,mapsforge-mapfile-writer-jar-create" if="keystore.present">
+		<signjar jar="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar" keystore="${mapsforge.keystore.location}" storepass="${mapsforge.keystore.pass}" alias="${mapsforge.keystore.alias}" keypass="${mapsforge.key.pass}" />
+		<!-- Verify the signed JAR file and stop if verification was not successful -->
+		<exec executable="jarsigner" failonerror="true">
+			<arg value="-verify" />
+			<arg value="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar" />
+		</exec>
+	</target>
 
 
-		<!-- Copy the created JAR file to the plugins directory -->
-		<target name="mapsforge-mapfile-writer-jar-copy"
-		        depends="mapsforge-mapfile-writer-jar-sign">
-			<copy overwrite="true"
-			      file="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar"
-			      todir="${user.home}/.openstreetmap/osmosis/plugins" />
-		</target>
-	
+	<!-- Copy the created JAR file to the plugins directory -->
+	<target name="mapsforge-mapfile-writer-jar-copy" depends="mapsforge-mapfile-writer-jar-sign">
+		<copy overwrite="true" file="${mapsforge.dist}/mapsforge-mapfile-writer-${mapsforge.version}.jar" todir="${user.home}/.openstreetmap/osmosis/plugins" />
+	</target>
+
 </project>

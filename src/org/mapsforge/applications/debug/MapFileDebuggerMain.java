@@ -465,8 +465,8 @@ public class MapFileDebuggerMain {
 		 * 
 		 * Output: File containing SQL queries for creating a global street index
 		 */
-		streetNamesToSQL("/home/moep/maps/berlin.map",
-				"/home/moep/maps/mapsforge/berlin_global_street_index.sql");
+		// streetNamesToSQL("/home/moep/maps/berlin.map",
+		// "/home/moep/maps/mapsforge/berlin_global_street_index.sql");
 
 		/*
 		 * Counts the amount of tiles a street name lies in. This is needed for statistical purposes for
@@ -481,12 +481,12 @@ public class MapFileDebuggerMain {
 		 * 
 		 * Input: Old map format file compiled with 'debug-file=true'
 		 */
-		// checkIdexes("/home/moep/maps/brandenburg.map");
+		checkIdexes("/home/moep/maps/bremen.map");
 
 		/*
 		 * Routine for extracting a single tile from the old format
 		 */
-		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/berlin.map");
+		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/bremen.map");
 		// System.out.println(ste.getMapFile());
 		// byte[] tile = ste.getTile(8812, 5354, (byte) 1);
 		// FileOutputStream os = new FileOutputStream("/home/moep/maps/debug.tile");
