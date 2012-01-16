@@ -16,8 +16,10 @@ package org.mapsforge.storage;
 
 import java.util.Collection;
 
+import org.mapsforge.core.GeoCoordinate;
 import org.mapsforge.core.Rect;
 import org.mapsforge.storage.atoms.Way;
+import org.mapsforge.storage.atoms.WaySegment;
 import org.mapsforge.storage.poi.PointOfInterest;
 
 /**
@@ -52,5 +54,25 @@ public interface MapDataProvider {
 	 * @return All POIs with a specified tag ID within a given bounding box.
 	 */
 	public Collection<PointOfInterest> getAllPoisInBoundingBox(final Rect boundingBox, int[] allowedTagIDs);
+
+	/**
+	 * Gets all absolute coordinates in order (lat_1, lon_1), ..., (lat_n, lon_n) for a given way
+	 * segment, specified by its id. THe input is a way edge specified by its first coordinate p1 and
+	 * its last coordinate p2.
+	 * 
+	 * @param wayID
+	 *            The way ID of the way, the edge belongs to.
+	 * @param p1
+	 *            The edge's first absolute coordinate.
+	 * @param p2
+	 *            The edge's last coordinate.
+	 * @param baseZoomInterval
+	 *            The base zoom interval the edge should be searched on.
+	 * @return All absolute coordinates in order (lat_1, lon_1), ..., (lat_n, lon_n) for a given way
+	 *         segment.
+	 */
+	public WaySegment getWayDataForEdge(final long wayID, final GeoCoordinate p1, final GeoCoordinate p2, byte baseZoomInterval);
+
+	Collection<Way> getAllWays(int tileX, int tileY, byte baseZoomInterval);
 
 }

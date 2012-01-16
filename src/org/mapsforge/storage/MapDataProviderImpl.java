@@ -16,6 +16,7 @@ package org.mapsforge.storage;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import org.mapsforge.applications.debug.Serializer;
@@ -23,6 +24,7 @@ import org.mapsforge.core.GeoCoordinate;
 import org.mapsforge.core.MercatorProjection;
 import org.mapsforge.core.Rect;
 import org.mapsforge.storage.atoms.Way;
+import org.mapsforge.storage.atoms.WaySegment;
 import org.mapsforge.storage.dataExtraction.MapFileMetaData;
 import org.mapsforge.storage.poi.DoubleLinkedPoiCategory;
 import org.mapsforge.storage.poi.PoiCategory;
@@ -42,11 +44,11 @@ import org.mapsforge.storage.tile.TilePersistenceManager;
  * 
  */
 public class MapDataProviderImpl implements MapDataProvider {
-
 	/** The data tile provider. */
 	private TilePersistenceManager tpm = null;
 	private MapFileMetaData mfm = null;
 	private PoiCategoryManager poiCategoryManager = null;
+	private boolean containsWayIDs;
 
 	/**
 	 * The constructor.
@@ -55,10 +57,11 @@ public class MapDataProviderImpl implements MapDataProvider {
 	 *            A {@link TilePersistenceManager} for retrieving tiles and meta information about tiles
 	 *            and base zoom levels.
 	 */
-	public MapDataProviderImpl(TilePersistenceManager tpm) {
+	public MapDataProviderImpl(TilePersistenceManager tpm, boolean containsWayIDs) {
 		this.tpm = tpm;
 		this.mfm = this.tpm.getMetaData();
 		this.poiCategoryManager = new FakeCategoryManager(this.mfm.getPOIMappings());
+		this.containsWayIDs = containsWayIDs;
 	}
 
 	@Override
@@ -303,53 +306,60 @@ public class MapDataProviderImpl implements MapDataProvider {
 
 		// Debug tag
 		if (this.mfm.isDebugFlagSet()) {
-			// System.out.println(s.getNextString(32));
-			s.skip(32);
+			System.out.println(s.getNextString(32));
+			// s.skip(32);
 		}
 
 		// Way data size
 		int wayDataSize = s.getNextVBEUInt();
-		// System.out.println("Way data size: " + wayDataSize);
+		System.out.println("Way data size: " + wayDataSize);
 		// s.skip(wayDataSize);
+
+		// OSM Way ID
+		long id = 0;
+		if (this.containsWayIDs) {
+			id = s.getNextLong();
+			System.out.println("ID: " + id);
+		}
 
 		// Sub tile bitmap
 		s.skip(2);
 
 		// Special byte
 		byte specialByte = s.getNextByte();
-		// System.out.println("Special Byte: " + specialByte);
-		// System.out.println("Amount of tags: " + (specialByte & (byte) 0x0f));
+		System.out.println("Special Byte: " + specialByte);
+		System.out.println("Amount of tags: " + (specialByte & (byte) 0x0f));
+
 		// Tag IDs
 		for (byte pos = 0; pos < (specialByte & (byte) 0x0f); pos++) {
 			// TODO create skip method
-			// System.out.println("Tag: " + s.getNextVBEUInt());
-			s.getNextVBEUInt();
+			System.out.println("Tag: " + s.getNextVBEUInt());
+			// s.getNextVBEUInt();
 		}
 
 		// Flags
 		byte flags = s.getNextByte();
-		// System.out.println("Flags: " + flags);
-		// System.out.println("Way name flag: " + ((flags & (byte) 0x80) != 0));
-		// System.out.println("Reference flag: " + ((flags & (byte) 0x40) != 0));
-		// System.out.println("Label position flag: " + ((flags & (byte) 0x20) != 0));
-		// System.out.println("Way data blocks flag: " + ((flags & (byte) 0x10) != 0));
-		// System.out.println("Double delta flag: " + ((flags & (byte) 0x08) != 0));
+		System.out.println("Flags: " + flags);
+		System.out.println("Way name flag: " + ((flags & (byte) 0x80) != 0));
+		System.out.println("Reference flag: " + ((flags & (byte) 0x40) != 0));
+		System.out.println("Label position flag: " + ((flags & (byte) 0x20) != 0));
+		System.out.println("Way data blocks flag: " + ((flags & (byte) 0x10) != 0));
+		System.out.println("Double delta flag: " + ((flags & (byte) 0x08) != 0));
 
 		// Way name
 		if ((flags & (byte) 0x80) != 0) {
 			name = s.getNextString();
-			// System.out.println("Name: " + name);
+			System.out.println("Name: " + name);
 		}
 
-		// Reference
+		// Way reference
 		if ((flags & (byte) 0x40) != 0) {
-			// TODO create skip method
-			s.getNextString();
+
+			System.out.println("Reference: " + s.getNextString());
 		}
 
 		// Label position
 		if ((flags & (byte) 0x20) != 0) {
-			// TODO create skip method
 			s.getNextVBESInt();
 			s.getNextVBESInt();
 		}
@@ -359,6 +369,7 @@ public class MapDataProviderImpl implements MapDataProvider {
 		byte numWayDataBlocks = 1;
 		// if ((flags & (byte) 0x10) != 0) {
 		numWayDataBlocks = s.getNextByte();
+		System.out.println("#Way data blocks: " + numWayDataBlocks);
 		// }
 
 		byte numWayCoordinateBlocks;
@@ -367,6 +378,8 @@ public class MapDataProviderImpl implements MapDataProvider {
 		int wayNode;
 		for (byte wayDataBlock = 0; wayDataBlock < numWayDataBlocks; wayDataBlock++) {
 			numWayCoordinateBlocks = s.getNextByte();
+
+			System.out.println("#Way coordinate blocks for this way data block: " + numWayCoordinateBlocks);
 
 			// Read inner and outer ways
 			for (wayCoordinateBlock = 0; wayCoordinateBlock < numWayCoordinateBlocks; wayCoordinateBlock++) {
@@ -396,7 +409,11 @@ public class MapDataProviderImpl implements MapDataProvider {
 			}
 		}
 
-		return new Way(wayPoints, name);
+		if (this.containsWayIDs) {
+			return new Way(deltaToAbsoluteEncoding(wayPoints), name, id);
+		}
+
+		return new Way(deltaToAbsoluteEncoding(wayPoints), name);
 	}
 
 	private PointOfInterest parseNextPOI(Serializer s, int x, int y, byte baseZoomInterval, int[] acceptedCategoryIDs)
@@ -551,5 +568,151 @@ public class MapDataProviderImpl implements MapDataProvider {
 		// }
 		// System.out.println("Ways found: " + ways.size());
 
+	}
+
+	private Way getWayByID(long wayID, int tileX, int tileY, byte baseZoomInterval) {
+		// Initial tile
+		byte[] tile = tpm.getTileData(tileX, tileY, baseZoomInterval);
+
+		if (tile == null) {
+			return null;
+		}
+
+		Serializer s = new Serializer(tile);
+
+		// Tile signature (32B, optional)
+		if (this.mfm.isDebugFlagSet()) {
+			// System.out.println(s.getNextString(32));
+			s.skip(32);
+		}
+
+		// Number of ways / POIs per zoom level
+		short[] poisOnZoomLevel = new short[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
+				- this.mfm.getMinimalZoomLevel()[baseZoomInterval]
+				+ 1];
+		short[] waysOnZoomLevel = new short[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
+				- this.mfm.getMinimalZoomLevel()[baseZoomInterval]
+				+ 1];
+
+		// System.out.println("Covering zoom levels (" +
+		// this.mfm.getMinimalZoomLevel()[baseZoomInterval] + ","
+		// + this.mfm.getMaximalZoomLevel()[baseZoomInterval] + ")");
+
+		// Zoom table (variable)
+		int minZoomLevel = this.mfm.getMinimalZoomLevel()[baseZoomInterval];
+		int maxZoomLevel = this.mfm.getMaximalZoomLevel()[baseZoomInterval];
+		for (int row = minZoomLevel; row <= maxZoomLevel; row++) {
+			poisOnZoomLevel[row - minZoomLevel] = s.getNextShort();
+			waysOnZoomLevel[row - minZoomLevel] = s.getNextShort();
+
+			// System.out.println(row + "|" + poisOnZoomLevel[row - minZoomLevel] + "|" +
+			// waysOnZoomLevel[row - minZoomLevel]);
+		}
+
+		// First way offset (VBE-U)
+		int firstWayOffset = s.getNextVBEUInt();
+		// System.out.println("First way offset: " + firstWayOffset);
+		s.skip(firstWayOffset);
+
+		// Parse all ways
+		Way w = null;
+		for (int way = 0; way < waysOnZoomLevel[maxZoomLevel - minZoomLevel]; way++) {
+			w = parseNextWay(s);
+
+			// Extract nodes from p1 to p2 from way
+			if (w.getId() == wayID) {
+				break;
+			}
+
+		}
+
+		return w;
+	}
+
+	@Override
+	public Collection<Way> getAllWays(int tileX, int tileY, byte baseZoomInterval) {
+		// Initial tile
+		byte[] tile = tpm.getTileData(tileX, tileY, baseZoomInterval);
+
+		System.out.println("Tile size: " + tile.length);
+
+		if (tile == null) {
+			return null;
+		}
+
+		Serializer s = new Serializer(tile);
+
+		// Tile signature (32B, optional)
+		if (this.mfm.isDebugFlagSet()) {
+			// System.out.println(s.getNextString(32));
+			s.skip(32);
+		}
+
+		// Number of ways / POIs per zoom level
+		short[] poisOnZoomLevel = new short[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
+				- this.mfm.getMinimalZoomLevel()[baseZoomInterval]
+				+ 1];
+		short[] waysOnZoomLevel = new short[this.mfm.getMaximalZoomLevel()[baseZoomInterval]
+				- this.mfm.getMinimalZoomLevel()[baseZoomInterval]
+				+ 1];
+
+		// System.out.println("Covering zoom levels (" +
+		// this.mfm.getMinimalZoomLevel()[baseZoomInterval] + ","
+		// + this.mfm.getMaximalZoomLevel()[baseZoomInterval] + ")");
+
+		// Zoom table (variable)
+		int minZoomLevel = this.mfm.getMinimalZoomLevel()[baseZoomInterval];
+		int maxZoomLevel = this.mfm.getMaximalZoomLevel()[baseZoomInterval];
+		for (int row = minZoomLevel; row <= maxZoomLevel; row++) {
+			poisOnZoomLevel[row - minZoomLevel] = s.getNextShort();
+			waysOnZoomLevel[row - minZoomLevel] = s.getNextShort();
+
+			// System.out.println(row + "|" + poisOnZoomLevel[row - minZoomLevel] + "|" +
+			// waysOnZoomLevel[row - minZoomLevel]);
+		}
+
+		// First way offset (VBE-U)
+		int firstWayOffset = s.getNextVBEUInt();
+		// System.out.println("First way offset: " + firstWayOffset);
+		s.skip(firstWayOffset);
+
+		// Parse all ways
+		LinkedList<Way> ways = new LinkedList<Way>();
+		Way w = null;
+		for (int way = 0; way < waysOnZoomLevel[maxZoomLevel - minZoomLevel]; way++) {
+			w = parseNextWay(s);
+			if (w != null) {
+				ways.add(w);
+			}
+
+		}
+
+		return ways;
+	}
+
+	@Override
+	public WaySegment getWayDataForEdge(long wayID, GeoCoordinate p1, GeoCoordinate p2, byte baseZoomInterval) {
+		// Calculate the tile's start coordinates
+		long tileX = MercatorProjection.longitudeToTileX(p1.getLongitude(), baseZoomInterval);
+		long tileY = MercatorProjection.latitudeToTileY(p1.getLatitude(), baseZoomInterval);
+
+		Way w = getWayByID(wayID, (int) tileX, (int) tileY, baseZoomInterval);
+
+		// TODO return sth
+		return null;
+	}
+
+	private long[] deltaToAbsoluteEncoding(long[] deltaEncodedCoordinates) {
+		long[] ret = new long[deltaEncodedCoordinates.length];
+
+		ret[0] = deltaEncodedCoordinates[0];
+		ret[1] = deltaEncodedCoordinates[1];
+
+		for (int i = 2; i < deltaEncodedCoordinates.length; i += 2) {
+			ret[i] = ret[i - 2] + deltaEncodedCoordinates[i];
+			ret[i + 1] = ret[i - 1] + deltaEncodedCoordinates[i + 1];
+		}
+
+		return ret;
 	}
 }

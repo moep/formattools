@@ -85,9 +85,7 @@ public class SimpleTileExtractor {
 
 		// Projection name (variable)
 		this.mapFile.setProjection(getNextString());
-
-		// Language preference (variable)
-		this.mapFile.setLanguagePreference(getNextString());
+		System.out.println("Projection: " + this.mapFile.getProjection());
 
 		// Flags (1B)
 		this.mapFile.setFlags(getNextByte());
@@ -95,6 +93,23 @@ public class SimpleTileExtractor {
 		// Map start position (8B)
 		if (this.mapFile.isMapStartPositionFlagSet()) {
 			this.mapFile.setMapStartPosition(getNextInt(), getNextInt());
+		}
+
+		// Start zoom level (1B)
+		if (this.mapFile.isZoomLevelFlagSet()) {
+			getNextByte();
+		}
+
+		// Language preference (variable)
+		if (this.mapFile.isLanguagePreferenceFlagSet()) {
+			this.mapFile.setLanguagePreference(getNextString());
+			System.out.println("Language preference: " + this.mapFile.getLanguagePreference());
+		}
+
+		// Comment (variable)
+		if (this.mapFile.isDebugFlagSet()) {
+			this.mapFile.setComment(getNextString());
+			System.out.println("Comment: " + this.mapFile.getComment());
 		}
 
 		// POI tag mapping (variable)
@@ -136,9 +151,6 @@ public class SimpleTileExtractor {
 			this.mapFile.setZoomIntervalConfiguration(i, getNextByte(), getNextByte(), getNextByte(),
 					getNextLong(), getNextLong());
 		}
-
-		// Comment (variable)
-		this.mapFile.setComment(getNextString());
 
 	}
 

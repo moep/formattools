@@ -26,6 +26,7 @@ import java.util.List;
  */
 class Way {
 	private String waySignature;
+	private long id;
 	private int waySize;
 	private byte[] subTileBitmap;
 	private byte specialByte;
@@ -120,6 +121,14 @@ class Way {
 	 */
 	void setWaySignature(String waySignature) {
 		this.waySignature = waySignature;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	/**

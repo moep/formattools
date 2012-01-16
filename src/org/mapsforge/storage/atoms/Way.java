@@ -28,11 +28,17 @@ public class Way {
 	private long[] coordinates;
 	private String name;
 	private int hash = -1;
+	private long id = 0;
 
-	public Way(long[] coordinates, String name) {
+	public Way(long[] coordinates, String name, long id) {
 		this.coordinates = coordinates;
 		this.name = name;
+		this.id = id;
 		rehash();
+	}
+
+	public Way(long[] coordinates, String name) {
+		this(coordinates, name, 0);
 	}
 
 	public long[] getCoordinates() {
@@ -41,6 +47,14 @@ public class Way {
 
 	public String getName() {
 		return this.name;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public void rehash() {

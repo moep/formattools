@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,9 +27,12 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import org.mapsforge.storage.MapDataProvider;
+import org.mapsforge.storage.MapDataProviderImpl;
 import org.mapsforge.storage.dataExtraction.MapFileMetaData;
 import org.mapsforge.storage.tile.PCTilePersistenceManager;
 import org.mapsforge.storage.tile.TileDataContainer;
+import org.mapsforge.storage.tile.TilePersistenceManager;
 
 /**
  * 
@@ -178,7 +182,7 @@ public class MapFileDebuggerMain {
 		SimpleTileExtractor ste = null;
 		byte[] rawTile;
 		Tile tile = null;
-		List<Way> ways = null;
+		List<org.mapsforge.applications.debug.Way> ways = null;
 		HashMap<String, Integer> globalCount = new HashMap<String, Integer>();
 
 		Integer count = null;
@@ -211,7 +215,7 @@ public class MapFileDebuggerMain {
 
 						HashMap<String, Integer> localCount = new HashMap<String, Integer>();
 
-						for (Way w : ways) {
+						for (org.mapsforge.applications.debug.Way w : ways) {
 							if (w.getName() == null)
 								continue;
 
@@ -300,7 +304,7 @@ public class MapFileDebuggerMain {
 		SimpleTileExtractor ste = null;
 		byte[] rawTile;
 		Tile tile = null;
-		List<Way> ways = null;
+		List<org.mapsforge.applications.debug.Way> ways = null;
 		HashMap<String, Integer> globalCount = new HashMap<String, Integer>();
 		TreeMap<Integer, List<String>> totalOccurenceMap = new TreeMap<Integer, List<String>>(Collections.reverseOrder());
 		Integer count = null;
@@ -326,7 +330,7 @@ public class MapFileDebuggerMain {
 
 						HashMap<String, Integer> localCount = new HashMap<String, Integer>();
 
-						for (Way w : ways) {
+						for (org.mapsforge.applications.debug.Way w : ways) {
 							if (w.getName() == null)
 								continue;
 
@@ -456,7 +460,7 @@ public class MapFileDebuggerMain {
 		 * 
 		 * Output: A SQLite based map file
 		 */
-		// mapToSQLite("/home/moep/maps/germany.map", "/home/moep/maps/mapsforge/germany.map", false);
+		// mapToSQLite("/home/moep/maps/berlin.map", "/home/moep/maps/mapsforge/berlin.map", false);
 
 		/*
 		 * Step 2a: Create SQL statement for a global way name index.
@@ -481,18 +485,26 @@ public class MapFileDebuggerMain {
 		 * 
 		 * Input: Old map format file compiled with 'debug-file=true'
 		 */
-		checkIdexes("/home/moep/maps/bremen.map");
+		// checkIdexes("/home/moep/maps/bremen.map");
 
 		/*
 		 * Routine for extracting a single tile from the old format
 		 */
-		// SimpleTileExtractor ste = new SimpleTileExtractor("/home/moep/maps/bremen.map");
+		// SimpleTileExtractor ste = new
+		// SimpleTileExtractor("/home/moep/maps/germany-0.3.0-SNAPSHOT.map");
 		// System.out.println(ste.getMapFile());
-		// byte[] tile = ste.getTile(8812, 5354, (byte) 1);
+		// byte[] tile = ste.getTile(8802, 5375, (byte) 1);
 		// FileOutputStream os = new FileOutputStream("/home/moep/maps/debug.tile");
 		// os.write(tile);
 		// os.close();
 		// TileFactory.getTileFromRawData(tile, (byte) 1, ste.getMapFile());
+
+		System.out.println("Initializing map data provider");
+		TilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
+		MapDataProvider mdp = new MapDataProviderImpl(tpm, false);
+		Collection<org.mapsforge.storage.atoms.Way> ways = mdp.getAllWays(8802, 5373, (byte) 1);
+
+		tpm.close();
 
 	}
 }

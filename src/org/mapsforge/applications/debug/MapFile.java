@@ -154,6 +154,13 @@ class MapFile {
 	}
 
 	/**
+	 * @return true if the map is in debug mode.
+	 */
+	boolean isDebugFlagSet() {
+		return (this.flags & 0x80) != 0;
+	}
+
+	/**
 	 * @return true if the map has map start position data.
 	 */
 	boolean isMapStartPositionFlagSet() {
@@ -161,10 +168,24 @@ class MapFile {
 	}
 
 	/**
-	 * @return true if the map is in debug mode.
+	 * @return true if the map has a start zoom level.
 	 */
-	boolean isDebugFlagSet() {
-		return (this.flags & 0x80) != 0;
+	boolean isZoomLevelFlagSet() {
+		return (this.flags & 0x20) != 0;
+	}
+
+	/**
+	 * @return true if the map has a language preference.
+	 */
+	boolean isLanguagePreferenceFlagSet() {
+		return (this.flags & 0x10) != 0;
+	}
+
+	/**
+	 * @return true if the map has an attached comment.
+	 */
+	boolean isCommentFlagSet() {
+		return (this.flags & 0x08) != 0;
 	}
 
 	/**
