@@ -15,8 +15,10 @@
 package org.mapsforge.applications.debug;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,8 +29,11 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import org.mapsforge.core.GeoCoordinate;
+import org.mapsforge.core.MercatorProjection;
 import org.mapsforge.storage.MapDataProvider;
 import org.mapsforge.storage.MapDataProviderImpl;
+import org.mapsforge.storage.atoms.Way;
 import org.mapsforge.storage.dataExtraction.MapFileMetaData;
 import org.mapsforge.storage.tile.PCTilePersistenceManager;
 import org.mapsforge.storage.tile.TileDataContainer;
@@ -42,6 +47,8 @@ import org.mapsforge.storage.tile.TilePersistenceManager;
  */
 
 public class MapFileDebuggerMain {
+	private final static boolean USE_WAY_IDS = true;
+
 	private static String getBaseName(String path) {
 		return new File(path).getName().split("\\.(?=[^\\.]+$)")[0];
 	}
@@ -448,63 +455,390 @@ public class MapFileDebuggerMain {
 
 	}
 
+	private static void printStreetNameCountPerTile(String path, byte baseZoomInterval) {
+		System.out.println("Benchmark name: Street names per Way");
+		System.out.println("Map: " + getBaseName(path));
+
+		TilePersistenceManager tpm = new PCTilePersistenceManager(path);
+		MapDataProvider mdp = new MapDataProviderImpl(tpm, USE_WAY_IDS);
+		MapFileMetaData mfm = tpm.getMetaData();
+
+		byte zoomLevel = mfm.getBaseZoomLevel()[baseZoomInterval];
+		System.out.println("Base zoom level: " + zoomLevel);
+		// System.out.println("Zoom level for interval " + baseZoomInterval + ": " + zoomLevel);
+		// System.out.println("Lat: (" + mfm.getMinLat() + ", " + mfm.getMaxLat() + ")");
+		// System.out.println("Lon: (" + mfm.getMinLon() + ", " + mfm.getMaxLon() + ")");
+
+		long minX = MercatorProjection.longitudeToTileX(mfm.getMinLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxX = MercatorProjection.longitudeToTileX(mfm.getMaxLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long minY = MercatorProjection.latitudeToTileY(mfm.getMaxLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxY = MercatorProjection.latitudeToTileY(mfm.getMinLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+
+		// System.out.println("x: " + minX + " x: " + minY);
+		// System.out.println("y: " + maxX + " y: " + maxY);
+
+		int waysFound = 0;
+		int waysWithNameFound = 0;
+
+		// Counts: How often does a ID appear? (= In how many tiles does it appear?)
+		HashMap<String, Integer> nameCount = new HashMap<String, Integer>();
+		Integer idCountTmpVal;
+		for (long x = minX; x <= maxX; x++) {
+			for (long y = minY; y <= maxY; y++) {
+				Collection<Way> ways = mdp.getAllWays((int) x, (int) y, baseZoomInterval);
+				if (ways != null) {
+
+					// Count all ways
+					waysFound += ways.size();
+
+					for (Way w : ways) {
+
+						// Count ways with name
+						if (w.getName() != null && !w.getName().equals("")) {
+							++waysWithNameFound;
+						}
+
+						// Update WayID count
+						if (w.getName() != null && !w.getName().equals("")) {
+							idCountTmpVal = nameCount.get(new String(w.getName()));
+
+							if (idCountTmpVal == null) {
+								idCountTmpVal = new Integer(0);
+							}
+							idCountTmpVal += 1;
+							nameCount.put(w.getName(), idCountTmpVal);
+
+						}
+					}
+				}
+			}
+		}
+
+		tpm.close();
+
+		System.out.println("Total number of ways found: " + waysFound);
+		System.out.println("Ways with name: " + waysWithNameFound);
+		System.out.println("Different ways with name: " + nameCount.keySet().size());
+
+		// Calculate distribution
+		int[] distribution = new int[300000];
+		Vector<Integer> outsiders = new Vector<Integer>();
+		int tmp = 0;
+		long weightedSum = 0;
+		for (String key : nameCount.keySet()) {
+			tmp = nameCount.get(key);
+			++distribution[tmp - 1];
+			if (tmp > 16) {
+				outsiders.add(new Integer(tmp));
+			}
+
+			weightedSum += tmp + 1;
+		}
+		System.out.println("Weighted sum: " + weightedSum);
+		double average = weightedSum * 1.0d / waysWithNameFound;
+
+		System.out.println("GNUPlot compatible output");
+		System.out.println("-8<-----------------------");
+		System.out.println("Tiles\tNumber of streets");
+		for (int i = 0; i < 16; i++) {
+			System.out.println((i + 1) + "\t" + distribution[i]);
+		}
+		System.out.println("17+ \t" + outsiders.size());
+		System.out.println("--------------------------");
+		System.out.println();
+
+		System.out.println("R compatible output");
+		System.out.println("-8<-----------------------");
+		System.out.print("tiles$" + getBaseName(path) + " <- c(");
+		for (int i = 0; i < 16; i++) {
+			System.out.print(distribution[i] + ",");
+		}
+		System.out.print(outsiders.size() + ")\r\n");
+
+		System.out.print("names(tiles$" + getBaseName(path) + ") <- c(");
+		for (int i = 0; i < 16; i++) {
+			System.out.print("\"" + (i + 1) + "\", ");
+		}
+		System.out.print("\">= 17\")");
+		System.out.println();
+		System.out.println("--------------------------");
+
+		// Print outsiders
+		Collections.sort(outsiders);
+		System.out.println("#Outsiders: " + outsiders.size());
+		System.out.println("Outsiders: " + outsiders);
+
+		// Final Result
+		System.out.println("=====");
+		System.out.println("Average (weighted sum / #ways with names): " + average);
+		System.out.println("Average (#ways with name / #different ways with name): "
+				+ (waysWithNameFound * 1.0d / nameCount.keySet().size()));
+		System.out.println("=====");
+		System.out.println();
+	}
+
+	private static void printStreetCountPerTile(String path, byte baseZoomInterval) {
+		System.out.println("Benchmark name: Tiles per Way");
+		System.out.println("Map: " + getBaseName(path));
+
+		TilePersistenceManager tpm = new PCTilePersistenceManager(path);
+		MapDataProvider mdp = new MapDataProviderImpl(tpm, USE_WAY_IDS);
+		MapFileMetaData mfm = tpm.getMetaData();
+
+		byte zoomLevel = mfm.getBaseZoomLevel()[baseZoomInterval];
+		System.out.println("Base zoom level: " + zoomLevel);
+		// System.out.println("Zoom level for interval " + baseZoomInterval + ": " + zoomLevel);
+		// System.out.println("Lat: (" + mfm.getMinLat() + ", " + mfm.getMaxLat() + ")");
+		// System.out.println("Lon: (" + mfm.getMinLon() + ", " + mfm.getMaxLon() + ")");
+
+		long minX = MercatorProjection.longitudeToTileX(mfm.getMinLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxX = MercatorProjection.longitudeToTileX(mfm.getMaxLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long minY = MercatorProjection.latitudeToTileY(mfm.getMaxLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxY = MercatorProjection.latitudeToTileY(mfm.getMinLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+
+		// System.out.println("x: " + minX + " x: " + minY);
+		// System.out.println("y: " + maxX + " y: " + maxY);
+
+		int waysFound = 0;
+		int waysWithNameFound = 0;
+
+		// Counts: How often does a ID appear? (= In how many tiles does it appear?)
+		HashMap<Long, Integer> idCount = new HashMap<Long, Integer>();
+		Integer idCountTmpVal;
+		for (long x = minX; x <= maxX; x++) {
+			for (long y = minY; y <= maxY; y++) {
+				Collection<Way> ways = mdp.getAllWays((int) x, (int) y, baseZoomInterval);
+				if (ways != null) {
+
+					// Count all ways
+					waysFound += ways.size();
+
+					for (Way w : ways) {
+
+						// Count ways with name
+						if (w.getName() != null && !w.getName().equals("")) {
+							++waysWithNameFound;
+						}
+
+						// Update WayID count
+						// if (w.getName() != null && !w.getName().equals("")) {
+						idCountTmpVal = idCount.get(new Long(w.getId()));
+
+						if (idCountTmpVal == null) {
+							idCountTmpVal = new Integer(0);
+						}
+						idCountTmpVal += 1;
+						idCount.put(w.getId(), idCountTmpVal);
+
+						// }
+					}
+				}
+			}
+		}
+
+		tpm.close();
+
+		System.out.println("Total number of ways found: " + waysFound);
+		System.out.println("Ways with name: " + waysWithNameFound);
+		System.out.println("Different ways with name: " + idCount.keySet().size());
+
+		// Calculate distribution
+		int[] distribution = new int[300000];
+		Vector<Integer> outsiders = new Vector<Integer>();
+		int tmp = 0;
+		long weightedSum = 0;
+		for (Long key : idCount.keySet()) {
+			tmp = idCount.get(key);
+			++distribution[tmp - 1];
+			if (tmp > 16) {
+				outsiders.add(new Integer(tmp));
+			}
+
+			weightedSum += tmp + 1;
+		}
+		System.out.println("Weighted sum: " + weightedSum);
+		double average = weightedSum * 1.0d / waysWithNameFound;
+
+		System.out.println("GNUPlot compatible output");
+		System.out.println("-8<-----------------------");
+		System.out.println("Tiles\tNumber of streets");
+		for (int i = 0; i < 16; i++) {
+			System.out.println((i + 1) + "\t" + distribution[i]);
+		}
+		System.out.println("17+ \t" + outsiders.size());
+		System.out.println("--------------------------");
+		System.out.println();
+
+		System.out.println("R compatible output");
+		System.out.println("-8<-----------------------");
+		System.out.print("tiles$" + getBaseName(path) + " <- c(");
+		for (int i = 0; i < 16; i++) {
+			System.out.print(distribution[i] + ",");
+		}
+		System.out.print(outsiders.size() + ")\r\n");
+
+		System.out.print("names(tiles$" + getBaseName(path) + ") <- c(");
+		for (int i = 0; i < 16; i++) {
+			System.out.print("\"" + (i + 1) + "\", ");
+		}
+		System.out.print("\">= 17\")");
+		System.out.println();
+		System.out.println("--------------------------");
+
+		System.out.println("Writing matlab output...");
+		try {
+			FileOutputStream fos = new FileOutputStream(new File("/home/moep/maps/mapsforge/" + getBaseName(path)
+					+ "_kachelverteilung.txt"));
+			for (Long id : idCount.keySet()) {
+				fos.write((id + "\t" + idCount.get(id) + "\r\n").getBytes());
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("done.");
+
+		// Print outsiders
+		Collections.sort(outsiders);
+		System.out.println("#Outsiders: " + outsiders.size());
+		System.out.println("Outsiders: " + outsiders);
+
+		// Final Result
+		System.out.println("=====");
+		System.out.println("Average (weighted sum / #ways with names): " + average);
+		System.out.println("Average (#ways with name / #different ways with name): "
+				+ (waysWithNameFound * 1.0d / idCount.keySet().size()));
+		System.out.println("=====");
+		System.out.println();
+	}
+
+	private static void printAverageTileSize(String path, byte baseZoomInterval) {
+		System.out.println("Benchmark name: Average tile size");
+		System.out.println("Map: " + getBaseName(path));
+
+		TilePersistenceManager tpm = new PCTilePersistenceManager(path);
+		MapDataProvider mdp = new MapDataProviderImpl(tpm, USE_WAY_IDS);
+		MapFileMetaData mfm = tpm.getMetaData();
+
+		byte zoomLevel = mfm.getBaseZoomLevel()[baseZoomInterval];
+		System.out.println("Base zoom level: " + zoomLevel);
+		// System.out.println("Zoom level for interval " + baseZoomInterval + ": " + zoomLevel);
+		// System.out.println("Lat: (" + mfm.getMinLat() + ", " + mfm.getMaxLat() + ")");
+		// System.out.println("Lon: (" + mfm.getMinLon() + ", " + mfm.getMaxLon() + ")");
+
+		long minX = MercatorProjection.longitudeToTileX(mfm.getMinLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxX = MercatorProjection.longitudeToTileX(mfm.getMaxLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long minY = MercatorProjection.latitudeToTileY(mfm.getMaxLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxY = MercatorProjection.latitudeToTileY(mfm.getMinLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+
+		// System.out.println("x: " + minX + " x: " + minY);
+		// System.out.println("y: " + maxX + " y: " + maxY);
+
+		int waysFound = 0;
+		int waysWithNameFound = 0;
+
+		// Counts: How often does a ID appear? (= In how many tiles does it appear?)
+		HashMap<Long, Integer> idCount = new HashMap<Long, Integer>();
+		Integer idCountTmpVal;
+		byte[] tile;
+		int sum = 0;
+		int tiles = 0;
+		for (long x = minX; x <= maxX; x++) {
+			for (long y = minY; y <= maxY; y++) {
+				tile = tpm.getTileData((int) x, (int) y, baseZoomInterval);
+				if (tile != null) {
+					sum += tile.length;
+					++tiles;
+				}
+			}
+		}
+
+		System.out.println("Average tile size in bytes: " + (sum * 1.0d / tiles));
+
+	}
+
+	private static void printStreetNameMemoryUsage(String path, byte baseZoomInterval) {
+		System.out.println("Benchmark name: Street name memory usage");
+		System.out.println("Map: " + getBaseName(path));
+
+		TilePersistenceManager tpm = new PCTilePersistenceManager(path);
+		MapDataProvider mdp = new MapDataProviderImpl(tpm, USE_WAY_IDS);
+		MapFileMetaData mfm = tpm.getMetaData();
+
+		byte zoomLevel = mfm.getBaseZoomLevel()[baseZoomInterval];
+		System.out.println("Base zoom level: " + zoomLevel);
+		// System.out.println("Zoom level for interval " + baseZoomInterval + ": " + zoomLevel);
+		// System.out.println("Lat: (" + mfm.getMinLat() + ", " + mfm.getMaxLat() + ")");
+		// System.out.println("Lon: (" + mfm.getMinLon() + ", " + mfm.getMaxLon() + ")");
+
+		long minX = MercatorProjection.longitudeToTileX(mfm.getMinLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxX = MercatorProjection.longitudeToTileX(mfm.getMaxLon() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long minY = MercatorProjection.latitudeToTileY(mfm.getMaxLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+		long maxY = MercatorProjection.latitudeToTileY(mfm.getMinLat() / GeoCoordinate.FACTOR_DOUBLE_TO_INT, zoomLevel);
+
+		// System.out.println("x: " + minX + " x: " + minY);
+		// System.out.println("y: " + maxX + " y: " + maxY);
+
+		int waysFound = 0;
+		int waysWithNameFound = 0;
+
+		// Counts: How often does a ID appear? (= In how many tiles does it appear?)
+		HashMap<Long, Integer> idCount = new HashMap<Long, Integer>();
+		Integer idCountTmpVal;
+		long sum = 0;
+		byte[] bytes;
+		int i = 0;
+		for (long x = minX; x <= maxX; x++) {
+			for (long y = minY; y <= maxY; y++) {
+				Collection<Way> ways = mdp.getAllWays((int) x, (int) y, baseZoomInterval);
+				if (ways != null) {
+					for (Way w : ways) {
+						try {
+							if (w.getName() != null && !w.getName().equals("")) {
+								bytes = w.getName().getBytes("UTF-8");
+								sum += bytes.length;
+								++i;
+							}
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+
+		System.out.println("Total way name usage in Bytes: " + sum);
+		System.out.println("Average usage: " + sum * 1.0d / i);
+	}
+
 	/**
 	 * @param args
 	 *            not used command line parameters.
 	 */
 	public static void main(String[] args) throws Exception {
-		/*
-		 * Step 1: Convert old map format to new SQLite format
-		 * 
-		 * Input: Map file in old format, path to SQLite map file to be created, compression flag
-		 * 
-		 * Output: A SQLite based map file
-		 */
-		// mapToSQLite("/home/moep/maps/berlin.map", "/home/moep/maps/mapsforge/berlin.map", false);
-
-		/*
-		 * Step 2a: Create SQL statement for a global way name index.
-		 * 
-		 * Input: Map file in old format, path where SQL queries should be dumped to
-		 * 
-		 * Output: File containing SQL queries for creating a global street index
-		 */
-		// streetNamesToSQL("/home/moep/maps/berlin.map",
-		// "/home/moep/maps/mapsforge/berlin_global_street_index.sql");
-
-		/*
-		 * Counts the amount of tiles a street name lies in. This is needed for statistical purposes for
-		 * creating a way name index.
-		 * 
-		 * Input: Map file in old format
-		 */
-		// countAndPrintNumberOfStreetEntries("/home/moep/maps/china.map");
-
+		final String BERLIN = "/home/moep/maps/mapsforge/berlin.map";
+		final String BERLIN_BZS13 = "/home/moep/maps/mapsforge/berlin-bzs13.map";
+		final String BERLIN_CLIPPED = "/home/moep/maps/mapsforge/berlin_clipped.map";
+		final String CHINA = "/home/moep/maps/mapsforge/china.map";
+		final String CHINA_BZS13 = "/home/moep/maps/mapsforge/china-bzs13.map";
 		/**
 		 * This is needed to check if the parser can read the old map format.
 		 * 
 		 * Input: Old map format file compiled with 'debug-file=true'
 		 */
-		// checkIdexes("/home/moep/maps/bremen.map");
+		// printAverageTileSize(CHINA, (byte) 1);
+		// printAverageTileSize(CHINA_BZS13, (byte) 1);
+		printStreetCountPerTile(CHINA, (byte) 1);
+		// printStreetNameMemoryUsage(BERLIN, (byte) 1);
+		// printStreetNameCountPerTile(CHINA, (byte) 1);
 
-		/*
-		 * Routine for extracting a single tile from the old format
-		 */
-		// SimpleTileExtractor ste = new
-		// SimpleTileExtractor("/home/moep/maps/germany-0.3.0-SNAPSHOT.map");
-		// System.out.println(ste.getMapFile());
-		// byte[] tile = ste.getTile(8802, 5375, (byte) 1);
-		// FileOutputStream os = new FileOutputStream("/home/moep/maps/debug.tile");
-		// os.write(tile);
-		// os.close();
-		// TileFactory.getTileFromRawData(tile, (byte) 1, ste.getMapFile());
-
-		System.out.println("Initializing map data provider");
-		TilePersistenceManager tpm = new PCTilePersistenceManager("/home/moep/maps/mapsforge/berlin.map");
-		MapDataProvider mdp = new MapDataProviderImpl(tpm, false);
-		Collection<org.mapsforge.storage.atoms.Way> ways = mdp.getAllWays(8802, 5373, (byte) 1);
-
-		tpm.close();
+		// long x = MercatorProjection.longitudeToTileX(13.082830d, (byte) 14);
+		// long y = MercatorProjection.latitudeToTileY(52.334460d, (byte) 14);
+		// System.out.println("x: " + x + " y: " + y);
+		// x = MercatorProjection.longitudeToTileX(13.761360d, (byte) 14);
+		// y = MercatorProjection.latitudeToTileY(52.678300d, (byte) 14);
+		// System.out.println("x: " + x + " y: " + y);
 
 	}
 }

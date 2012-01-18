@@ -306,20 +306,20 @@ public class MapDataProviderImpl implements MapDataProvider {
 
 		// Debug tag
 		if (this.mfm.isDebugFlagSet()) {
-			System.out.println(s.getNextString(32));
-			// s.skip(32);
+			// System.out.println(s.getNextString(32));
+			s.skip(32);
 		}
 
 		// Way data size
 		int wayDataSize = s.getNextVBEUInt();
-		System.out.println("Way data size: " + wayDataSize);
+		// System.out.println("Way data size: " + wayDataSize);
 		// s.skip(wayDataSize);
 
 		// OSM Way ID
 		long id = 0;
 		if (this.containsWayIDs) {
 			id = s.getNextLong();
-			System.out.println("ID: " + id);
+			// System.out.println("ID: " + id);
 		}
 
 		// Sub tile bitmap
@@ -327,35 +327,35 @@ public class MapDataProviderImpl implements MapDataProvider {
 
 		// Special byte
 		byte specialByte = s.getNextByte();
-		System.out.println("Special Byte: " + specialByte);
-		System.out.println("Amount of tags: " + (specialByte & (byte) 0x0f));
+		// System.out.println("Special Byte: " + specialByte);
+		// System.out.println("Amount of tags: " + (specialByte & (byte) 0x0f));
 
 		// Tag IDs
 		for (byte pos = 0; pos < (specialByte & (byte) 0x0f); pos++) {
 			// TODO create skip method
-			System.out.println("Tag: " + s.getNextVBEUInt());
-			// s.getNextVBEUInt();
+			// System.out.println("Tag: " + s.getNextVBEUInt());
+			s.getNextVBEUInt();
 		}
 
 		// Flags
 		byte flags = s.getNextByte();
-		System.out.println("Flags: " + flags);
-		System.out.println("Way name flag: " + ((flags & (byte) 0x80) != 0));
-		System.out.println("Reference flag: " + ((flags & (byte) 0x40) != 0));
-		System.out.println("Label position flag: " + ((flags & (byte) 0x20) != 0));
-		System.out.println("Way data blocks flag: " + ((flags & (byte) 0x10) != 0));
-		System.out.println("Double delta flag: " + ((flags & (byte) 0x08) != 0));
+		// System.out.println("Flags: " + flags);
+		// System.out.println("Way name flag: " + ((flags & (byte) 0x80) != 0));
+		// System.out.println("Reference flag: " + ((flags & (byte) 0x40) != 0));
+		// System.out.println("Label position flag: " + ((flags & (byte) 0x20) != 0));
+		// System.out.println("Way data blocks flag: " + ((flags & (byte) 0x10) != 0));
+		// System.out.println("Double delta flag: " + ((flags & (byte) 0x08) != 0));
 
 		// Way name
 		if ((flags & (byte) 0x80) != 0) {
 			name = s.getNextString();
-			System.out.println("Name: " + name);
+			// System.out.println("Name: " + name);
 		}
 
 		// Way reference
 		if ((flags & (byte) 0x40) != 0) {
-
-			System.out.println("Reference: " + s.getNextString());
+			s.getNextString();
+			// System.out.println("Reference: " + s.getNextString());
 		}
 
 		// Label position
@@ -369,7 +369,7 @@ public class MapDataProviderImpl implements MapDataProvider {
 		byte numWayDataBlocks = 1;
 		// if ((flags & (byte) 0x10) != 0) {
 		numWayDataBlocks = s.getNextByte();
-		System.out.println("#Way data blocks: " + numWayDataBlocks);
+		// System.out.println("#Way data blocks: " + numWayDataBlocks);
 		// }
 
 		byte numWayCoordinateBlocks;
@@ -379,7 +379,8 @@ public class MapDataProviderImpl implements MapDataProvider {
 		for (byte wayDataBlock = 0; wayDataBlock < numWayDataBlocks; wayDataBlock++) {
 			numWayCoordinateBlocks = s.getNextByte();
 
-			System.out.println("#Way coordinate blocks for this way data block: " + numWayCoordinateBlocks);
+			// System.out.println("#Way coordinate blocks for this way data block: " +
+			// numWayCoordinateBlocks);
 
 			// Read inner and outer ways
 			for (wayCoordinateBlock = 0; wayCoordinateBlock < numWayCoordinateBlocks; wayCoordinateBlock++) {
@@ -633,8 +634,6 @@ public class MapDataProviderImpl implements MapDataProvider {
 	public Collection<Way> getAllWays(int tileX, int tileY, byte baseZoomInterval) {
 		// Initial tile
 		byte[] tile = tpm.getTileData(tileX, tileY, baseZoomInterval);
-
-		System.out.println("Tile size: " + tile.length);
 
 		if (tile == null) {
 			return null;
